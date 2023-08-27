@@ -68,6 +68,8 @@ COPY login.defs /etc/login.defs
 COPY login /etc/defaults/login
 COPY bashrc /root/.bashrc
 
+RUN pip3 install pyyaml
+
 # The Jupyter kernel that gets auto-installed with some other jupyter Ubuntu packages
 # doesn't have some nice options regarding inline matplotlib (and possibly others), so
 # we delete it.
@@ -92,7 +94,7 @@ RUN \
 RUN umask 022 \
   && npm install -g pnpm
 
-# Build cocalc itself.
+# Build the modules we need
 RUN umask 022 \
   && cd /cocalc/src \
   && pnpm make
