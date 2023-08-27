@@ -18,45 +18,50 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 RUN \
      apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-       software-properties-common \
        git \
-       build-essential \
-       python3 \
-       nodejs \
-       npm \
+       curl \
+       make \
+       g++ \
+       fuse \
        libfuse-dev \
+       neovim \
        pkg-config
 
-# The Jupyter kernel that gets auto-installed with some other jupyter Ubuntu packages
-# doesn't have some nice options regarding inline matplotlib (and possibly others), so
-# we delete it.
-RUN rm -rf /usr/share/jupyter/kernels/python3
+# Installing nodejs/npm from official Ubuntu brings in over 1GB
+# of packages, whereas this is much smaller:
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+  && apt-get install -y nodejs
 
-# Create this user, since the startup scripts assumes it exists, and user might install sage later.
-RUN    adduser --quiet --shell /bin/bash --gecos "Sage user,101,," --disabled-password sage \
-    && chown -R sage:sage /home/sage/
-
-# Commit to checkout and build.
+# Get the commit to checkout and build:
 ARG BRANCH=master
 ARG commit=HEAD
 
-# Pull latest source code for CoCalc and checkout requested commit (or HEAD),
-# install our Python libraries globally, then remove cocalc.  We only need it
-# for installing these Python libraries (TODO: move to pypi?).
+# Pull latest source code for CoCalc and checkout requested commit (or HEAD)
 RUN git clone --depth=1 https://github.com/sagemathinc/cocalc.git \
   && cd /cocalc && git pull && git fetch -u origin $BRANCH:$BRANCH && git checkout ${commit:-HEAD}
 
 # Install pnpm package manager that we now use instead of npm
 RUN npm install -g pnpm
 
-# Install deps for the modules we need
-RUN cd /cocalc/src && ./workspaces.py install --packages=api-client,backend,jupyter,sync,sync-client,util
+# Copy over a custom workspace file, so pnpm ONLY installs packages, and builds, etc.
+# the modules that actually are needed for @cocalc/compute. This makes a huge difference
+# in size and speed.
+COPY pnpm-workspace.yaml /cocalc/src/packages/pnpm-workspace.yaml
 
-# Build modules we need
-RUN cd /cocalc/src && ./workspaces.py build --packages=api-client,backend,jupyter,sync,sync-client,util
+# Install deps for the @cocalc/compute module
+RUN cd /cocalc/src/packages && pnpm install
 
-# Build the compute package
-RUN cd /cocalc/src/packages/compute/ && pnpm make
+# Build
+RUN cd /cocalc/src/packages && pnpm run -r build
+
+# Delete packages that were only needed for the build.
+# Deleting node_modules and isntalling is the recommended approach by pnpm.
+RUN cd /cocalc/src/packages && rm -rf node_modules && pnpm install --prod
+
+# Cleanup npm and pnpm cache, which is big.
+RUN rm -rf /root/.cache /root/.npm
+RUN apt-get remove -y g++ make git && apt-get autoremove -y
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 CMD sleep infinity
 
