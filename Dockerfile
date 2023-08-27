@@ -11,7 +11,6 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV TERM screen
 
-
 # So we can source (see http://goo.gl/oBPi5G)
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
@@ -67,7 +66,6 @@ RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
 
 COPY login.defs /etc/login.defs
 COPY login /etc/defaults/login
-COPY run.py /root/run.py
 COPY bashrc /root/.bashrc
 
 # The Jupyter kernel that gets auto-installed with some other jupyter Ubuntu packages
@@ -90,8 +88,6 @@ RUN \
      umask 022 && git clone --depth=1 https://github.com/sagemathinc/cocalc.git \
   && cd /cocalc && git pull && git fetch -u origin $BRANCH:$BRANCH && git checkout ${commit:-HEAD}
 
-RUN umask 022 && pip3 install --upgrade /cocalc/src/smc_pyutil/
-
 # Install pnpm package manager that we now use instead of npm
 RUN umask 022 \
   && npm install -g pnpm
@@ -99,14 +95,15 @@ RUN umask 022 \
 # Build cocalc itself.
 RUN umask 022 \
   && cd /cocalc/src \
-  && npm run make
+  && pnpm make
 
-# And cleanup npm cache, which is several hundred megabytes after building cocalc above.
-RUN rm -rf /root/.npm
+# Build the compute package
+RUN umask 022 \
+  && cd /cocalc/src/packages/compute/ \
+  && pnpm make
 
-CMD /root/run.py
+CMD sleep infinity
 
 ARG BUILD_DATE
 LABEL org.label-schema.build-date=$BUILD_DATE
 
-EXPOSE 22 80 443
