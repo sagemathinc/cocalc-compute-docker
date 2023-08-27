@@ -19,56 +19,13 @@ RUN \
      apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y \
        software-properties-common \
-       tmux \
-       flex \
-       bison \
-       libreadline-dev \
-       poppler-utils \
-       net-tools \
-       wget \
-       curl \
        git \
-       python3 \
-       python-is-python3 \
-       python3-pip \
-       make \
-       g++ \
-       sudo \
-       psmisc \
-       rsync \
-       tidy \
-       vim \
-       inetutils-ping \
-       lynx \
-       telnet \
-       git \
-       ssh \
-       m4 \
-       latexmk \
-       libpq5 \
-       libpq-dev \
        build-essential \
-       automake \
-       jq \
-       bsdmainutils \
-       postgresql \
+       python3 \
        nodejs \
        npm \
        libfuse-dev \
        pkg-config
-
-RUN echo "umask 077" >> /etc/bash.bashrc
-
-# Build a UTF-8 locale, so that tmux works -- see https://unix.stackexchange.com/questions/277909/updated-my-arch-linux-server-and-now-i-get-tmux-need-utf-8-locale-lc-ctype-bu
-RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen
-
-# Configuration
-
-COPY login.defs /etc/login.defs
-COPY login /etc/defaults/login
-COPY bashrc /root/.bashrc
-
-RUN pip3 install pyyaml
 
 # The Jupyter kernel that gets auto-installed with some other jupyter Ubuntu packages
 # doesn't have some nice options regarding inline matplotlib (and possibly others), so
@@ -86,23 +43,20 @@ ARG commit=HEAD
 # Pull latest source code for CoCalc and checkout requested commit (or HEAD),
 # install our Python libraries globally, then remove cocalc.  We only need it
 # for installing these Python libraries (TODO: move to pypi?).
-RUN \
-     umask 022 && git clone --depth=1 https://github.com/sagemathinc/cocalc.git \
+RUN git clone --depth=1 https://github.com/sagemathinc/cocalc.git \
   && cd /cocalc && git pull && git fetch -u origin $BRANCH:$BRANCH && git checkout ${commit:-HEAD}
 
 # Install pnpm package manager that we now use instead of npm
-RUN umask 022 \
-  && npm install -g pnpm
+RUN npm install -g pnpm
 
-# Build the modules we need
-RUN umask 022 \
-  && cd /cocalc/src \
-  && pnpm make
+# Install deps for the modules we need
+RUN cd /cocalc/src && ./workspaces.py install --packages=api-client,backend,jupyter,sync,sync-client,util
+
+# Build modules we need
+RUN cd /cocalc/src && ./workspaces.py build --packages=api-client,backend,jupyter,sync,sync-client,util
 
 # Build the compute package
-RUN umask 022 \
-  && cd /cocalc/src/packages/compute/ \
-  && pnpm make
+RUN cd /cocalc/src/packages/compute/ && pnpm make
 
 CMD sleep infinity
 
