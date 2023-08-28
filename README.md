@@ -1,4 +1,4 @@
-# CoCalc Compute Docker
+# CoCalc: Compute Docker Image
 
 Docker image for adding remote compute capabilities to a CoCalc project.
 
@@ -12,7 +12,7 @@ docker run  \
    -e PROJECT_ID=ab3c2e56-32c4-4fa5-a3ee-6fd980d10fbf \
    -e IPYNB_PATH=myfile.ipynb  \
    --cap-add=SYS_ADMIN --device /dev/fuse --security-opt apparmor:unconfined \
-   sagemathinc/cocalc-compute
+   sagemathinc/compute
 ```
 
 - Get the API_KEY in project settings.
