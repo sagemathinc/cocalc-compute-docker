@@ -10,4 +10,4 @@ echo $commit | cut -c-12 > current_commit
 time docker build --build-arg commit=$commit --build-arg BRANCH=$BRANCH --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') -t cocalc-compute $@ ..
 docker tag cocalc-compute:latest sagemathinc/cocalc-compute:latest
 docker tag cocalc-compute:latest sagemathinc/cocalc-compute:`cat current_commit`
-docker run --name=cocalc-compute-test --cap-add SYS_ADMIN --device /dev/fuse  -d sagemathinc/cocalc-compute
+docker run --name=cocalc-compute-test --cap-add SYS_ADMIN --device /dev/fuse  --security-opt apparmor:unconfined -d sagemathinc/cocalc-compute
