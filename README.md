@@ -61,3 +61,10 @@ await require("@cocalc/compute").jupyter({
 });
 0;
 ```
+
+Note that this Docker container is VERY bare bones and doesn't even have the Python Jupyter kernel in it.   You can install it as follows:
+
+```sh
+apt install python3-pip && pip install jupyter && python3 -m ipykernel install
+```
+

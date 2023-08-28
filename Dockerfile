@@ -1,5 +1,7 @@
+# Start with the first stage of the build.
+
 ARG MYAPP_IMAGE=ubuntu:22.10
-FROM $MYAPP_IMAGE
+FROM $MYAPP_IMAGE AS build_image
 
 MAINTAINER William Stein <wstein@sagemath.com>
 
@@ -58,14 +60,36 @@ RUN cd /cocalc/src/packages && pnpm run -r build
 # Deleting node_modules and isntalling is the recommended approach by pnpm.
 RUN cd /cocalc/src/packages && rm -rf node_modules && pnpm install --prod
 
-# Cleanup npm and pnpm cache, which is big.
-RUN rm -rf `pnpm store path`
-RUN rm -rf /root/.cache /root/.npm
-RUN apt-get remove -y g++ make git && apt-get autoremove -y
+# Now, start the second stage.
+FROM $MYAPP_IMAGE
+
+# Setup environment variables.
+USER root
+ENV LC_ALL=C.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV TERM=screen
+
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+
+RUN \
+  apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+       curl \
+       fuse \
+       libfuse-dev \
+       neovim \
+       pkg-config
+
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+  && apt-get install -y nodejs
+
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Copy the cocalc directory from the build image.
+COPY --from=build_image /cocalc /cocalc
 
 CMD sleep infinity
 
 ARG BUILD_DATE
 LABEL org.label-schema.build-date=$BUILD_DATE
-
