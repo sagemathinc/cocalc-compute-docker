@@ -12,7 +12,7 @@ docker run  \
    -e PROJECT_ID=ab3c2e56-32c4-4fa5-a3ee-6fd980d10fbf \
    -e IPYNB_PATH=myfile.ipynb  \
    --cap-add=SYS_ADMIN --device /dev/fuse --security-opt apparmor:unconfined \
-   sagemathinc/compute
+   sagemathinc/compute-python3
 ```
 
 - Get the API_KEY in project settings.
@@ -51,11 +51,5 @@ await require("@cocalc/compute").jupyter({
   cwd: "/tmp/project",
 });
 0;
-```
-
-Note that this Docker container is VERY bare bones and doesn't even have the Python Jupyter kernel in it. You can install it as follows:
-
-```sh
-apt update && apt install python3-pip && pip install jupyter && python3 -m ipykernel install
 ```
 
