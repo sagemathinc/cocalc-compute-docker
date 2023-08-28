@@ -14,6 +14,21 @@ const { mountProject, jupyter } = require("@cocalc/compute");
 const PROJECT_HOME = "/home/user";
 
 async function main() {
+  let unmount = null;
+  let kernel = null;
+  const exitHandler = async () => {
+    console.log("cleaning up...");
+    process.removeListener("exit", exitHandler);
+    process.removeListener("SIGINT", exitHandler);
+    process.removeListener("SIGTERM", exitHandler);
+    await unmount?.();
+    process.exit();
+  };
+
+  process.on("exit", exitHandler);
+  process.on("SIGINT", exitHandler);
+  process.on("SIGTERM", exitHandler);
+
   const { apiKey } = require("@cocalc/backend/data");
   try {
     if (!process.env.PROJECT_ID) {
@@ -39,31 +54,23 @@ async function main() {
     return;
   }
 
-  const exitHandler = async () => {
-    console.log("cleaning up...");
-    process.removeListener("exit", exitHandler);
-    process.removeListener("SIGINT", exitHandler);
-    process.removeListener("SIGTERM", exitHandler);
-    await unmount?.();
-    process.exit();
-  };
-
-  process.on("exit", exitHandler);
-  process.on("SIGINT", exitHandler);
-  process.on("SIGTERM", exitHandler);
-
   console.log("Mounting project", process.env.PROJECT_ID, "at", PROJECT_HOME);
-  const unmount = await mountProject({
-    project_id: process.env.PROJECT_ID,
-    path: PROJECT_HOME,
-  });
+  try {
+    unmount = await mountProject({
+      project_id: process.env.PROJECT_ID,
+      path: PROJECT_HOME,
+    });
 
-  console.log("Starting Jupyter notebook", process.env.IPYNB_PATH);
-  const kernel = await jupyter({
-    project_id: process.env.PROJECT_ID,
-    path: process.env.IPYNB_PATH,
-    cwd: PROJECT_HOME,
-  });
+    console.log("Starting Jupyter notebook", process.env.IPYNB_PATH);
+    kernel = await jupyter({
+      project_id: process.env.PROJECT_ID,
+      path: process.env.IPYNB_PATH,
+      cwd: PROJECT_HOME,
+    });
+  } catch (err) {
+    console.log("something went wrong ", err);
+    exitHandler();
+  }
 
   console.log(
     `Your notebook ${process.env.IPYNB_PATH} should now be running in this container.`,

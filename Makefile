@@ -35,8 +35,17 @@ use-builder:
 inspect-builder:
 	docker buildx inspect --bootstrap
 
-# Quicker local build not using the multi-platform support.
+# Quicker local builds not using the multi-platform support.
 # This is MUCH faster when you want to do development.  The above
 # is for making a public release for linux/amd64 and linux/arm64.
-build-local:
-	docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH) --build-arg BUILD_DATE=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')  -t $(IMAGE_NAME) .
+compute:
+	docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH) --build-arg BUILD_DATE=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')  -t $(DOCKER_USER)/$(IMAGE_NAME) .
+
+compute-python3:
+	cd kernels/python3 && docker build -t sagemathinc/compute-python3 .
+
+build-compute-python3:
+	cd kernels/python3 && docker buildx build --platform $(PLATFORMS) -t $(DOCKER_USER)/compute-python3:$(IMAGE_TAG) .
+
+push-compute-python3:
+	cd kernels/python3 && docker buildx build --platform $(PLATFORMS) -t $(DOCKER_USER)/compute-python3:$(IMAGE_TAG) --push .
