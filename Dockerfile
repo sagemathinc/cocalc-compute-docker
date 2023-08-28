@@ -69,6 +69,7 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV TERM=screen
+ENV DEBUG_CONSOLE=yes
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
@@ -89,7 +90,10 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 # Copy the cocalc directory from the build image.
 COPY --from=build_image /cocalc /cocalc
 
-CMD sleep infinity
+COPY start.js /cocalc/src/packages/compute/
+
+CMD cd /cocalc/src/packages/compute/ && node start.js
+# CMD sleep infinity
 
 ARG BUILD_DATE
 LABEL org.label-schema.build-date=$BUILD_DATE
