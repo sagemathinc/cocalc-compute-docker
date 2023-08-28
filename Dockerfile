@@ -59,6 +59,7 @@ RUN cd /cocalc/src/packages && pnpm run -r build
 RUN cd /cocalc/src/packages && rm -rf node_modules && pnpm install --prod
 
 # Cleanup npm and pnpm cache, which is big.
+RUN rm -rf `pnpm store path`
 RUN rm -rf /root/.cache /root/.npm
 RUN apt-get remove -y g++ make git && apt-get autoremove -y
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
