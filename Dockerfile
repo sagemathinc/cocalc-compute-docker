@@ -46,8 +46,8 @@ RUN git clone --depth=1 https://github.com/sagemathinc/cocalc.git \
 RUN npm install -g pnpm
 
 # Copy over a custom workspace file, so pnpm ONLY installs packages, and builds, etc.
-# the modules that actually are needed for @cocalc/compute. This makes a huge difference
-# in size and speed.
+# the modules that actually are needed for @cocalc/compute.
+# This makes a huge difference in size and speed.
 COPY pnpm-workspace.yaml /cocalc/src/packages/pnpm-workspace.yaml
 
 # Install deps for the @cocalc/compute module
@@ -56,9 +56,17 @@ RUN cd /cocalc/src/packages && pnpm install
 # Build
 RUN cd /cocalc/src/packages && pnpm run -r build
 
+# Install the @cocalc/compute module
+RUN cd /cocalc/src/compute && pnpm install
+
+# And build it
+RUN cd /cocalc/src/compute && pnpm run -r build
+
 # Delete packages that were only needed for the build.
 # Deleting node_modules and isntalling is the recommended approach by pnpm.
 RUN cd /cocalc/src/packages && rm -rf node_modules && pnpm install --prod
+
+RUN cd /cocalc/src/compute && rm -rf node_modules && pnpm install --prod
 
 # Now, start the second stage.
 FROM $MYAPP_IMAGE
@@ -90,9 +98,9 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 # Copy the cocalc directory from the build image.
 COPY --from=build_image /cocalc /cocalc
 
-COPY start.js /cocalc/src/packages/compute/
+COPY start.js /cocalc/src/compute/compute
 
-CMD cd /cocalc/src/packages/compute/ && node start.js
+CMD cd /cocalc/src/compute/compute && node start.js
 # CMD sleep infinity
 
 ARG BUILD_DATE

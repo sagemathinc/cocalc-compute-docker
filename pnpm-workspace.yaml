@@ -5,4 +5,4 @@ packages:
   - "sync"
   - "sync-client"
   - "util"
-  - "compute"
+  - "terminal"
