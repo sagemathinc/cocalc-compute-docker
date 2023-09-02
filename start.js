@@ -9,13 +9,14 @@ process.env.BASE_PATH = process.env.BASE_PATH ?? "/";
 process.env.API_SERVER = process.env.API_SERVER ?? "https://cocalc.com";
 process.env.API_BASE_PATH = process.env.API_BASE_PATH ?? "/";
 
-const { mountProject, jupyter } = require("@cocalc/compute");
+const { mountProject, jupyter, terminal } = require("@cocalc/compute");
 
 const PROJECT_HOME = "/home/user";
 
 async function main() {
   let unmount = null;
   let kernel = null;
+  let term = null;
   const exitHandler = async () => {
     console.log("cleaning up...");
     process.removeListener("exit", exitHandler);
@@ -33,10 +34,6 @@ async function main() {
   try {
     if (!process.env.PROJECT_ID) {
       throw Error("You must set the PROJECT_ID environment variable");
-    }
-
-    if (!process.env.IPYNB_PATH) {
-      throw Error("You must set the IPYNB_PATH environment variable");
     }
 
     if (!apiKey) {
@@ -61,24 +58,54 @@ async function main() {
       path: PROJECT_HOME,
     });
 
-    console.log("Starting Jupyter notebook", process.env.IPYNB_PATH);
-    kernel = await jupyter({
-      project_id: process.env.PROJECT_ID,
-      path: process.env.IPYNB_PATH,
-      cwd: PROJECT_HOME,
-    });
+    if (process.env.TERM_PATH) {
+      console.log("Connecting to", process.env.TERM_PATH);
+      term = await terminal({
+        project_id: process.env.PROJECT_ID,
+        path: process.env.TERM_PATH,
+        cwd: PROJECT_HOME,
+      });
+    }
+
+    if (process.env.IPYNB_PATH) {
+      console.log("Connecting to", process.env.IPYNB_PATH);
+      kernel = await jupyter({
+        project_id: process.env.PROJECT_ID,
+        path: process.env.IPYNB_PATH,
+        cwd: PROJECT_HOME,
+      });
+    }
   } catch (err) {
     console.log("something went wrong ", err);
     exitHandler();
   }
 
-  console.log(
-    `Your notebook ${process.env.IPYNB_PATH} should now be running in this container.`,
-  );
-  console.log(
-    `${process.env.API_SERVER}/projects/${process.env.PROJECT_ID}/files/${process.env.IPYNB_PATH}`,
-  );
-  console.log("Press Control+C to exit.");
+  const info = () => {
+    console.log("Success!");
+
+    if (process.env.IPYNB_PATH) {
+      console.log(
+        `Your notebook ${process.env.IPYNB_PATH} should be running in this container.`,
+      );
+      console.log(
+        `  ${process.env.API_SERVER}/projects/${process.env.PROJECT_ID}/files/${process.env.IPYNB_PATH}`,
+      );
+    }
+
+    if (process.env.TERM_PATH) {
+      console.log(
+        `Your terminal ${process.env.TERM_PATH} should be running in this container.`,
+      );
+      console.log(
+        `  ${process.env.API_SERVER}/projects/${process.env.PROJECT_ID}/files/${process.env.TERM_PATH}`,
+      );
+    }
+
+    console.log(`Your home directory is mounted at ${PROJECT_HOME}`);
+    console.log("\nPress Control+C to exit.");
+  };
+
+  info();
 }
 
 main();

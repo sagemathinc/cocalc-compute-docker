@@ -11,6 +11,7 @@ docker run  \
    -e API_KEY=sk-4xxxxxxxxxxxx000Q \
    -e PROJECT_ID=ab3c2e56-32c4-4fa5-a3ee-6fd980d10fbf \
    -e IPYNB_PATH=myfile.ipynb  \
+   -e TERM_PATH=term.term \
    --cap-add=SYS_ADMIN --device /dev/fuse --security-opt apparmor:unconfined \
    sagemathinc/compute-python3
 ```
