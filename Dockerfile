@@ -30,9 +30,13 @@ RUN \
        pkg-config
 
 # Installing nodejs/npm from official Ubuntu brings in over 1GB
-# of packages, whereas this is much smaller:
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-  && apt-get install -y nodejs
+# of packages, whereas this is much smaller (and more up to date)
+RUN  apt-get install -y ca-certificates curl gnupg \
+  && mkdir -p /etc/apt/keyrings \
+  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+  && export NODE_MAJOR=18 \
+  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
+  && apt-get update && apt-get install nodejs -y
 
 # Get the commit to checkout and build:
 ARG BRANCH=master
@@ -90,11 +94,14 @@ RUN \
        neovim \
        pkg-config
 
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-  && apt-get install -y nodejs
+RUN  apt-get install -y ca-certificates curl gnupg \
+  && mkdir -p /etc/apt/keyrings \
+  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+  && export NODE_MAJOR=18 \
+  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
+  && apt-get update && apt-get install nodejs -y
 
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
+# 2-stage build:
 # Copy the cocalc directory from the build image.
 COPY --from=build_image /cocalc /cocalc
 
