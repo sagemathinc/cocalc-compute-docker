@@ -54,3 +54,20 @@ await require("@cocalc/compute").jupyter({
 0;
 ```
 
+### Docker
+
+Support you want to be able to run docker inside the container. Include the option 
+
+```sh
+-v /var/run/docker.sock:/var/run/docker.sock
+```
+
+when you run docker \(as above\). Once you get a terminal in the container, install Docker:
+
+```sh
+ apt-get update && apt-get install -y docker.io
+```
+
+Then you can immediately fully use Docker.   
+
+**Security Note:** that this is using the Docker daemon running on the host machine.  Thus only do this when you trust running anything via docker on the host machine, e.g., when the host machine is a dedicated VM specifically for this purpose.

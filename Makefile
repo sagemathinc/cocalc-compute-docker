@@ -44,8 +44,8 @@ compute:
 compute-python3:
 	cd kernels/python3 && docker build -t sagemathinc/compute-python3 .
 
-build-compute-python3:
+build-python3:
 	cd kernels/python3 && docker buildx build --platform $(PLATFORMS) -t $(DOCKER_USER)/compute-python3:$(IMAGE_TAG) .
 
-push-compute-python3:
+push-python3:
 	cd kernels/python3 && docker buildx build --platform $(PLATFORMS) -t $(DOCKER_USER)/compute-python3:$(IMAGE_TAG) --push .
