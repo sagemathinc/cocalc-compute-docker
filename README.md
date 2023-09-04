@@ -71,3 +71,45 @@ when you run docker \(as above\). Once you get a terminal in the container, inst
 Then you can immediately fully use Docker.   
 
 **Security Note:** that this is using the Docker daemon running on the host machine.  Thus only do this when you trust running anything via docker on the host machine, e.g., when the host machine is a dedicated VM specifically for this purpose.
+
+### NVidia GPUs
+
+If your host computer has a GPU \(so `nvidia-smi` should be there and show a GPU\), you can make it available by including this option on the command line when running Docker:
+
+```sh
+--gpus all 
+```
+
+When the container starts, type `nvidia-smi` to confirm the GPU is available.  You could see it in action by doing `pip install torch` then run this code in Python:
+
+```py
+import torch
+import time
+
+# define a tensor
+a = torch.randn([10000, 10000])
+
+# case for CUDA available (Assuming the previous cell returned 'True')
+if torch.cuda.is_available():
+    # move the tensor to GPU
+    a = a.cuda()
+
+    start = time.time()
+    
+    # perform an operation on the tensor
+    a.sin_()
+    
+    print("Time taken when CUDA is available : ", time.time()-start)
+
+# case for only CPU
+else:
+    start = time.time()
+    
+    # perform operation on the tensor
+    a.sin_()
+    
+    print("Time taken when only CPU is available : ", time.time()-start)
+
+
+```
+
