@@ -72,6 +72,7 @@ RUN cd /cocalc/src/packages && rm -rf node_modules && pnpm install --prod
 
 RUN cd /cocalc/src/compute && rm -rf node_modules && pnpm install --prod
 
+# 2-stage build:
 # Now, start the second stage.
 FROM $MYAPP_IMAGE
 
@@ -85,6 +86,7 @@ ENV DEBUG_CONSOLE=yes
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
+# Install core tools and nodejs
 RUN \
   apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -92,8 +94,7 @@ RUN \
        fuse \
        libfuse-dev \
        neovim \
-       pkg-config \
-       docker.io
+       pkg-config
 
 RUN  apt-get install -y ca-certificates curl gnupg \
   && mkdir -p /etc/apt/keyrings \
@@ -102,10 +103,21 @@ RUN  apt-get install -y ca-certificates curl gnupg \
   && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
   && apt-get update && apt-get install nodejs -y
 
-# confusing since users will want to install things, and it doesn't save much
-#RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# Install official upstream docker from docker.com, which is new and
+# has the most features.
+RUN \
+     apt-get update -y \
+  && apt-get install -y ca-certificates curl gnupg \
+  && install -m 0755 -d /etc/apt/keyrings \
+  && curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+  && chmod a+r /etc/apt/keyrings/docker.gpg \
+  && echo \
+  "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+  "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+  tee /etc/apt/sources.list.d/docker.list > /dev/null \
+  && apt-get update -y \
+  && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-# 2-stage build:
 # Copy the cocalc directory from the build image.
 COPY --from=build_image /cocalc /cocalc
 
