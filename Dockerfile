@@ -1,6 +1,6 @@
 # Start with the first stage of the build.
 
-ARG MYAPP_IMAGE=ubuntu:22.10
+ARG MYAPP_IMAGE=ubuntu:22.04
 FROM $MYAPP_IMAGE AS build_image
 
 MAINTAINER William Stein <wstein@sagemath.com>
@@ -16,7 +16,7 @@ ENV TERM screen
 # So we can source (see http://goo.gl/oBPi5G)
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
-# Ubuntu software that are used by CoCalc (latex, pandoc, sage)
+# Ubuntu software
 RUN \
      apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -92,7 +92,8 @@ RUN \
        fuse \
        libfuse-dev \
        neovim \
-       pkg-config
+       pkg-config \
+       docker.io
 
 RUN  apt-get install -y ca-certificates curl gnupg \
   && mkdir -p /etc/apt/keyrings \
@@ -100,6 +101,9 @@ RUN  apt-get install -y ca-certificates curl gnupg \
   && export NODE_MAJOR=18 \
   && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
   && apt-get update && apt-get install nodejs -y
+
+# confusing since users will want to install things, and it doesn't save much
+#RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # 2-stage build:
 # Copy the cocalc directory from the build image.
