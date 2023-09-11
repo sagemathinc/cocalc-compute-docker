@@ -52,3 +52,13 @@ build-python3:
 
 push-python3:
 	cd kernels/python3 && docker buildx build --platform $(PLATFORMS) -t $(DOCKER_USER)/compute-python3:$(IMAGE_TAG) --push .
+
+
+compute-pytorch:
+	cd kernels/pytorch && docker build -t sagemathinc/compute-pytorch .
+
+build-pytorch:
+	cd kernels/pytorch && docker buildx build --platform $(PLATFORMS) -t $(DOCKER_USER)/compute-pytorch:$(IMAGE_TAG) .
+
+push-pytorch:
+	cd kernels/pytorch && docker buildx build --platform $(PLATFORMS) -t $(DOCKER_USER)/compute-pytorch:$(IMAGE_TAG) --push .
