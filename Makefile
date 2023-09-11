@@ -11,6 +11,9 @@ COMMIT=$(shell git ls-remote -h https://github.com/sagemathinc/cocalc $(BRANCH) 
 # Builder parameters
 BUILDER_NAME=mybuilder
 
+# If you need to customize the PATH in some setting:
+# export PATH:=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
 # Build a multi-platform Docker image
 build:
 	docker buildx build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH) --build-arg BUILD_DATE=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ') --platform $(PLATFORMS) -t $(DOCKER_USER)/$(IMAGE_NAME):$(IMAGE_TAG) .
