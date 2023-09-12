@@ -10,6 +10,9 @@ ENV LANGUAGE=en_US:en
 ENV TERM=screen
 ENV DEBUG_CONSOLE=yes
 
+# upstream PATH has an old nodejs version at the beginning.
+ENV PATH=/usr/local/mpi/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ucx/bin:/opt/tensorrt/bin
+
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 # Install core tools and nodejs

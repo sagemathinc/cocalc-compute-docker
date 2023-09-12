@@ -9,6 +9,19 @@ process.env.BASE_PATH = process.env.BASE_PATH ?? "/";
 process.env.API_SERVER = process.env.API_SERVER ?? "https://cocalc.com";
 process.env.API_BASE_PATH = process.env.API_BASE_PATH ?? "/";
 
+const util = require("util");
+const exec = util.promisify(require("child_process").exec);
+
+async function getFilesystemType(path) {
+  try {
+    const { stdout } = await exec(`df -T ${path} | awk 'NR==2 {print \$2}'`);
+    return stdout.trim();
+  } catch (error) {
+    console.error(`exec error: ${error}`);
+    return null;
+  }
+}
+
 const { mountProject, jupyter, terminal } = require("@cocalc/compute");
 
 const PROJECT_HOME = "/home/user";
@@ -53,10 +66,12 @@ async function main() {
 
   console.log("Mounting project", process.env.PROJECT_ID, "at", PROJECT_HOME);
   try {
-    unmount = await mountProject({
-      project_id: process.env.PROJECT_ID,
-      path: PROJECT_HOME,
-    });
+    if ((await getFilesystemType(PROJECT_HOME)) != "fuse") {
+      unmount = await mountProject({
+        project_id: process.env.PROJECT_ID,
+        path: PROJECT_HOME,
+      });
+    }
 
     if (process.env.TERM_PATH) {
       console.log("Connecting to", process.env.TERM_PATH);
