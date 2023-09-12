@@ -47,7 +47,7 @@ RUN \
 # Copy the cocalc directory from the build image.
 COPY --from=sagemathinc/compute /cocalc /cocalc
 
-COPY ../../start.js /cocalc/src/compute/compute
+COPY start.js /cocalc/src/compute/compute
 
 CMD cd /cocalc/src/compute/compute && node start.js
 

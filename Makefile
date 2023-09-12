@@ -45,20 +45,35 @@ compute:
 	docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH) --build-arg BUILD_DATE=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')  -t $(DOCKER_USER)/$(IMAGE_NAME) .
 
 compute-python3:
-	cd kernels/python3 && docker build -t sagemathinc/compute-python3 .
+	cd images/python3 && docker build -t $(DOCKER_USER)/compute-python3 .
 
 build-python3:
-	cd kernels/python3 && docker buildx build --platform $(PLATFORMS) -t $(DOCKER_USER)/compute-python3:$(IMAGE_TAG) .
+	cd images/python3 && docker buildx build --platform $(PLATFORMS) -t $(DOCKER_USER)/compute-python3:$(IMAGE_TAG) .
 
 push-python3:
-	cd kernels/python3 && docker buildx build --platform $(PLATFORMS) -t $(DOCKER_USER)/compute-python3:$(IMAGE_TAG) --push .
+	cd images/python3 && docker buildx build --platform $(PLATFORMS) -t $(DOCKER_USER)/compute-python3:$(IMAGE_TAG) --push .
 
 
-compute-pytorch:
-	cd kernels/pytorch && docker build -t sagemathinc/compute-pytorch .
 
+#####
+#####
+
+# Only need to worry about x86_64 for this, obviously:
 build-pytorch:
-	cd kernels/pytorch && docker buildx build --platform $(PLATFORMS) -t $(DOCKER_USER)/compute-pytorch:$(IMAGE_TAG) .
+	cd images/pytorch && docker build -t $(DOCKER_USER)/compute-pytorch .
 
 push-pytorch:
-	cd kernels/pytorch && docker buildx build --platform $(PLATFORMS) -t $(DOCKER_USER)/compute-pytorch:$(IMAGE_TAG) --push .
+	cd images/pytorch && docker push $(DOCKER_USER)/compute-pytorch
+
+
+
+# Only need to worry about x86_64 for this, obviously:
+build-tensorflow:
+	# do not cd to tensorflow directory, because we need to access start.js which is here.
+	# We want the build context to be bigger.
+	docker build -t  $(DOCKER_USER)/compute-tensorflow:$(IMAGE_TAG) -f images/tensorflow/Dockerfile .
+
+push-tensorflow:
+	docker push $(DOCKER_USER)/compute-tensorflow:$(IMAGE_TAG)
+
+
