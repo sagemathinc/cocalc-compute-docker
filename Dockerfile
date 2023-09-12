@@ -124,7 +124,4 @@ COPY --from=build_image /cocalc /cocalc
 COPY start.js /cocalc/src/compute/compute
 
 CMD cd /cocalc/src/compute/compute && node start.js
-# CMD sleep infinity
 
-ARG BUILD_DATE
-LABEL org.label-schema.build-date=$BUILD_DATE
