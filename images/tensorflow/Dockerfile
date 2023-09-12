@@ -53,7 +53,7 @@ COPY --from=sagemathinc/compute /cocalc /cocalc
 RUN \
      grep -v nvm /root/.bashrc > /root/.bashrc.new \
   && mv /root/.bashrc.new /root/.bashrc \
-     grep -v nvm /etc/bash.bashrc > /etc/bash.bashrc.new \
+  && grep -v nvm /etc/bash.bashrc > /etc/bash.bashrc.new \
   && mv /etc/bash.bashrc.new /etc/bash.bashrc
 
 COPY start.js /cocalc/src/compute/compute
