@@ -10,9 +10,6 @@ ENV LANGUAGE=en_US:en
 ENV TERM=screen
 ENV DEBUG_CONSOLE=yes
 
-# upstream PATH has an old nodejs version at the beginning.
-ENV PATH=/usr/local/mpi/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ucx/bin:/opt/tensorrt/bin
-
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 # Install core tools and nodejs
@@ -50,7 +47,20 @@ RUN \
 # Copy the cocalc directory from the build image.
 COPY --from=sagemathinc/compute /cocalc /cocalc
 
+# The Nvidia image puts its own old nodejs install at the front
+# of the path in both /etc/bash.bashrc and in /root/.bashrc
+# That would break everything, since we want our node v18 as installed above.
+RUN \
+     grep -v nvm /root/.bashrc > /root/.bashrc.new \
+  && mv /root/.bashrc.new /root/.bashrc \
+     grep -v nvm /etc/bash.bashrc > /etc/bash.bashrc.new \
+  && mv /etc/bash.bashrc.new /etc/bash.bashrc
+
 COPY start.js /cocalc/src/compute/compute
+
+ENV HOME /home/user
+
+WORKDIR /home/user
 
 CMD cd /cocalc/src/compute/compute && node start.js
 
