@@ -56,9 +56,17 @@ push-python3:
 
 
 #####
+# GPU stuff
+# Only need to worry about x86_64 for this, obviously:
 #####
 
-# Only need to worry about x86_64 for this, obviously:
+cuda:
+	cd images/cuda && docker build -t $(DOCKER_USER)/compute-cuda .
+
+push-cuda:
+	cd images/cuda && docker push $(DOCKER_USER)/compute-cuda
+
+
 pytorch:
 	cd images/pytorch && docker build -t $(DOCKER_USER)/compute-pytorch .
 
@@ -67,7 +75,6 @@ push-pytorch:
 
 
 
-# Only need to worry about x86_64 for this, obviously:
 tensorflow:
 	# do not cd to tensorflow directory, because we need to access start.js which is here.
 	# We want the build context to be bigger.
@@ -75,5 +82,4 @@ tensorflow:
 
 push-tensorflow:
 	docker push $(DOCKER_USER)/compute-tensorflow:$(IMAGE_TAG)
-
 
