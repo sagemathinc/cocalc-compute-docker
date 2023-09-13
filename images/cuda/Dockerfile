@@ -1,3 +1,4 @@
 FROM sagemathinc/compute
 
-RUN pip install nvidia-cuda-toolkit
+RUN    apt-get update -y \
+    && apt-get install -y nvidia-cuda-toolkit
