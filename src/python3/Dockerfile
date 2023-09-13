@@ -1,4 +1,6 @@
-FROM sagemathinc/compute
+ARG ARCH=
+
+FROM sagemathinc/compute${ARCH}
 
 RUN apt-get update \
     && apt-get install -y python3-pip \
