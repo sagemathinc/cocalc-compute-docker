@@ -56,8 +56,6 @@ RUN \
   && grep -v nvm /etc/bash.bashrc > /etc/bash.bashrc.new \
   && mv /etc/bash.bashrc.new /etc/bash.bashrc
 
-COPY start.js /cocalc/src/compute/compute
-
 ENV HOME /home/user
 
 WORKDIR /home/user
