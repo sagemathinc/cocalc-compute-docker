@@ -24,12 +24,6 @@ async function getFilesystemType(path) {
 
 const { mountProject, jupyter, terminal } = require("@cocalc/compute");
 
-function delay(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
 const PROJECT_HOME = "/home/user";
 
 async function main() {
