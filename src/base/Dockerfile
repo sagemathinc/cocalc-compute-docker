@@ -52,7 +52,7 @@ RUN npm install -g pnpm
 # Copy over a custom workspace file, so pnpm ONLY installs packages, and builds, etc.
 # the modules that actually are needed for @cocalc/compute.
 # This makes a huge difference in size and speed.
-COPY base/pnpm-workspace.yaml /cocalc/src/packages/pnpm-workspace.yaml
+COPY pnpm-workspace.yaml /cocalc/src/packages/pnpm-workspace.yaml
 
 # Install deps for the @cocalc/compute module
 RUN cd /cocalc/src/packages && pnpm install
@@ -119,11 +119,11 @@ RUN \
   && apt-get update -y \
   && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
+# Docker without sudo
+RUN sed -i 's/docker:x:999:/docker:x:999:2001/' /etc/group
+
 # Copy the cocalc directory from the build image.
 COPY --from=build_image /cocalc /cocalc
-
-COPY base/start.js /cocalc/src/compute/compute
-COPY open /usr/bin/
 
 # Setup a normal user account (not root) that matches cocalc.com (so uid=gid=2001),
 # give it passwordless root and ability to mount fuse filesystems.
@@ -133,8 +133,4 @@ RUN /usr/sbin/groupadd --gid=2001 -o user \
   && echo '%user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers \
   && sed -i 's/#user_allow_other/user_allow_other/g' /etc/fuse.conf
 
-
-USER user
-
-CMD cd /cocalc/src/compute/compute && node start.js
-
+COPY open /usr/bin/
