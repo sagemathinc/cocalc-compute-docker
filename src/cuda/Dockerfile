@@ -1,4 +1,8 @@
-FROM sagemathinc/compute
+FROM sagemathinc/compute-manager
+
+USER root
 
 RUN    apt-get update -y \
-    && apt-get install -y nvidia-cuda-toolkit
+    && apt-get install -y build-essential nvidia-cuda-toolkit
+
+USER user

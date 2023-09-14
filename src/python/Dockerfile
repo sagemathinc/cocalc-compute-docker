@@ -1,6 +1,8 @@
 ARG ARCH=
 
-FROM sagemathinc/compute-base${ARCH}
+FROM sagemathinc/compute-manager${ARCH}
+
+USER root
 
 RUN apt-get update \
     && apt-get install -y python3-pip \
@@ -8,5 +10,3 @@ RUN apt-get update \
     && python3 -m ipykernel install
 
 USER user
-
-#RUN apt-get clean && rm -rf /var/lib/apt/lists/*

@@ -95,7 +95,8 @@ RUN \
        libfuse-dev \
        neovim \
        pkg-config \
-       sudo
+       sudo \
+       make
 
 RUN  apt-get install -y ca-certificates curl gnupg \
   && mkdir -p /etc/apt/keyrings \
@@ -119,18 +120,18 @@ RUN \
   && apt-get update -y \
   && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-# Docker without sudo
-RUN sed -i 's/docker:x:999:/docker:x:999:2001/' /etc/group
-
 # Copy the cocalc directory from the build image.
 COPY --from=build_image /cocalc /cocalc
 
 # Setup a normal user account (not root) that matches cocalc.com (so uid=gid=2001),
 # give it passwordless root and ability to mount fuse filesystems.
+# And to use docker without sudo.
 RUN /usr/sbin/groupadd --gid=2001 -o user \
   && /usr/sbin/useradd  --home-dir=/home/user --gid=2001 --uid=2001 --shell=/bin/bash user \
   && mkdir -p /home/user &&  chown 2001:2001 -R /home/user \
   && echo '%user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers \
-  && sed -i 's/#user_allow_other/user_allow_other/g' /etc/fuse.conf
+  && sed -i 's/#user_allow_other/user_allow_other/g' /etc/fuse.conf \
+  && sed -i 's/docker:x:999:/docker:x:999:user/' /etc/group
+
 
 COPY open /usr/bin/
