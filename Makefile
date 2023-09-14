@@ -10,6 +10,12 @@ COMMIT=$(shell git ls-remote -h https://github.com/sagemathinc/cocalc $(BRANCH) 
 # Depending on your platform, set the ARCH variable
 ARCH=$(shell uname -m | sed 's/x86_64//;s/arm64/-arm64/;s/aarch64/-arm64/')
 
+core:
+	make base && make filesystem && make manager && make python
+
+push:
+	make push-base && make push-filesystem && make push-manager && make push-python
+
 base:
 	cd src/base && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG) .
 
