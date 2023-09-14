@@ -52,7 +52,7 @@ RUN npm install -g pnpm
 # Copy over a custom workspace file, so pnpm ONLY installs packages, and builds, etc.
 # the modules that actually are needed for @cocalc/compute.
 # This makes a huge difference in size and speed.
-COPY pnpm-workspace.yaml /cocalc/src/packages/pnpm-workspace.yaml
+COPY base/pnpm-workspace.yaml /cocalc/src/packages/pnpm-workspace.yaml
 
 # Install deps for the @cocalc/compute module
 RUN cd /cocalc/src/packages && pnpm install
@@ -94,7 +94,8 @@ RUN \
        fuse \
        libfuse-dev \
        neovim \
-       pkg-config
+       pkg-config \
+       sudo
 
 RUN  apt-get install -y ca-certificates curl gnupg \
   && mkdir -p /etc/apt/keyrings \
@@ -121,7 +122,19 @@ RUN \
 # Copy the cocalc directory from the build image.
 COPY --from=build_image /cocalc /cocalc
 
-COPY start.js /cocalc/src/compute/compute
+COPY base/start.js /cocalc/src/compute/compute
+COPY open /usr/bin/
+
+# Setup a normal user account (not root) that matches cocalc.com (so uid=gid=2001),
+# give it passwordless root and ability to mount fuse filesystems.
+RUN /usr/sbin/groupadd --gid=2001 -o user \
+  && /usr/sbin/useradd  --home-dir=/home/user --gid=2001 --uid=2001 --shell=/bin/bash user \
+  && mkdir -p /home/user &&  chown 2001:2001 -R /home/user \
+  && echo '%user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers \
+  && sed -i 's/#user_allow_other/user_allow_other/g' /etc/fuse.conf
+
+
+USER user
 
 CMD cd /cocalc/src/compute/compute && node start.js
 

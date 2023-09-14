@@ -3,13 +3,15 @@ DOCKER_USER=sagemathinc
 IMAGE_TAG=latest
 
 # CoCalc Git parameters
-BRANCH=master
+
+BRANCH=compute  # not master right now while under dev!
+
 COMMIT=$(shell git ls-remote -h https://github.com/sagemathinc/cocalc $(BRANCH) | awk '{print $$1}')
 # Depending on your platform, set the ARCH variable
 ARCH=$(shell uname -m | sed 's/x86_64//;s/aarch64/-arm64/')
 
 base:
-	cd src/base && time docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG)  .
+	cd src && time docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG) -f base/Dockerfile .
 
 push-base:
 	time docker push $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG)

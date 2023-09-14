@@ -24,6 +24,12 @@ async function getFilesystemType(path) {
 
 const { mountProject, jupyter, terminal } = require("@cocalc/compute");
 
+function delay(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
 const PROJECT_HOME = "/home/user";
 
 async function main() {
@@ -66,29 +72,41 @@ async function main() {
 
   console.log("Mounting project", process.env.PROJECT_ID, "at", PROJECT_HOME);
   try {
+    // CRITICAL: Do NOT both mount the filesystem *and* and start terminals
+    // in the same process.  Do one or the other.  Doing both as a non-root
+    // user in docker at least leads to deadlocks.
     if ((await getFilesystemType(PROJECT_HOME)) != "fuse") {
       unmount = await mountProject({
         project_id: process.env.PROJECT_ID,
         path: PROJECT_HOME,
+        options: { mountOptions: { allowOther: true } },
       });
     }
 
     if (process.env.TERM_PATH) {
-      console.log("Connecting to", process.env.TERM_PATH);
-      term = await terminal({
-        project_id: process.env.PROJECT_ID,
-        path: process.env.TERM_PATH,
-        cwd: PROJECT_HOME,
-      });
+      if (unmount != null) {
+        console.log("This is a mount so skipping terminal");
+      } else {
+        console.log("Connecting to", process.env.TERM_PATH);
+        term = await terminal({
+          project_id: process.env.PROJECT_ID,
+          path: process.env.TERM_PATH,
+          cwd: PROJECT_HOME,
+        });
+      }
     }
 
     if (process.env.IPYNB_PATH) {
-      console.log("Connecting to", process.env.IPYNB_PATH);
-      kernel = await jupyter({
-        project_id: process.env.PROJECT_ID,
-        path: process.env.IPYNB_PATH,
-        cwd: PROJECT_HOME,
-      });
+      if (unmount != null) {
+        console.log("This is a mount so skipping notebook");
+      } else {
+        console.log("Connecting to", process.env.IPYNB_PATH);
+        kernel = await jupyter({
+          project_id: process.env.PROJECT_ID,
+          path: process.env.IPYNB_PATH,
+          cwd: PROJECT_HOME,
+        });
+      }
     }
   } catch (err) {
     console.log("something went wrong ", err);
