@@ -42,6 +42,13 @@ push-python:
 	docker push $(DOCKER_USER)/compute-python$(ARCH):$(IMAGE_TAG)
 
 
+sagemath-10.1:
+	cd src/sagemath-10.1 && docker build -t $(DOCKER_USER)/compute-sagemath-10.1:$(IMAGE_TAG) .
+
+push-sagemath-10.1:
+	docker push $(DOCKER_USER)/compute-sagemath-10.1:$(IMAGE_TAG)
+
+
 #####
 # GPU only images below
 # Only need to worry about x86_64 for this, obviously:
