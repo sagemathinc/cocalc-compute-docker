@@ -48,6 +48,9 @@ sagemath-10.1:
 push-sagemath-10.1:
 	docker push $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG)
 
+run-sagemath-10.1:
+	docker run -it --rm $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG) bash
+
 
 #####
 # GPU only images below
