@@ -43,7 +43,7 @@ push-python:
 
 
 sagemath-10.1:
-	cd src/sagemath-10.1 && docker build -t $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG) .
+	cd src/sagemath-10.1 && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG) .
 
 push-sagemath-10.1:
 	docker push $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG)
