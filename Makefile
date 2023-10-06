@@ -46,6 +46,19 @@ push-sagemath-10.1:
 run-sagemath-10.1:
 	docker run -it --rm $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG) bash
 
+julia:
+	cd src/julia && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-julia$(ARCH):$(IMAGE_TAG) .
+push-julia:
+	docker push $(DOCKER_USER)/compute-julia$(ARCH):$(IMAGE_TAG)
+run-julia:
+	docker run -it --rm $(DOCKER_USER)/compute-julia$(ARCH):$(IMAGE_TAG) bash
+
+rlang:
+	cd src/rlang && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-rlang$(ARCH):$(IMAGE_TAG) .
+push-rlang:
+	docker push $(DOCKER_USER)/compute-rlang$(ARCH):$(IMAGE_TAG)
+run-rlang:
+	docker run -it --rm $(DOCKER_USER)/compute-rlang$(ARCH):$(IMAGE_TAG) bash
 
 #####
 # GPU only images below
