@@ -50,7 +50,7 @@ async function main() {
     }
 
     if (!process.env.COMPUTE_SERVER_ID) {
-      throw Error("You must set the PROJECT_ID environment variable");
+      throw Error("You must set the COMPUTE_SERVER_ID environment variable");
     }
 
     if (!apiKey) {
