@@ -68,7 +68,10 @@ async function main() {
     return;
   }
 
-  const M = manager({project_id:process.env.PROJECT_ID, compute_server_id:process.env.COMPUTE_SERVER_ID})
+  const M = manager({
+    project_id: process.env.PROJECT_ID,
+    compute_server_id: process.env.COMPUTE_SERVER_ID,
+  });
   await M.init();
 }
 
