@@ -63,7 +63,9 @@ run-sagemath-10.1-core:
 
 # this depends on sagemath-10.1-core having been built either locally or pushed to dockerhub at some point:
 sagemath-10.1:
-	cd src/sagemath-10.1 && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG) .
+	cd src/sagemath-10.1 && \
+	docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG) -f Dockerfile$(ARCH) .
+
 push-sagemath-10.1:
 	docker push $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG)
 run-sagemath-10.1:
