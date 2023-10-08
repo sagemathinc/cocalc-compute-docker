@@ -1,3 +1,5 @@
+# When you change this, be sure to change Dockerfile-arm64 in the same way!!!
+
 ARG ARCH=
 
 FROM sagemathinc/compute-python${ARCH}
