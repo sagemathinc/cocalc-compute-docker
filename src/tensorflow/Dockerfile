@@ -12,7 +12,8 @@ ENV DEBUG_CONSOLE=yes
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
-# Install core tools and nodejs
+ Install core tools
+#  libfuse-dev is critical since the cocalc source assumes it is there.
 RUN \
   apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -20,14 +21,7 @@ RUN \
        fuse \
        libfuse-dev \
        neovim \
-       pkg-config
-
-RUN  apt-get install -y ca-certificates curl gnupg \
-  && mkdir -p /etc/apt/keyrings \
-  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
-  && export NODE_MAJOR=18 \
-  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_$NODE_MAJOR.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
-  && apt-get update && apt-get install nodejs -y
+       sudo
 
 # Install official upstream docker from docker.com, which is new and
 # has the most features.
@@ -44,21 +38,18 @@ RUN \
   && apt-get update -y \
   && apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-# Copy the cocalc directory from the build image.
-COPY --from=sagemathinc/compute /cocalc /cocalc
+# Setup a normal user account (not root) that matches cocalc.com (so uid=gid=2001),
+# give it passwordless root and ability to mount fuse filesystems.
+# And to use docker without sudo.
+RUN /usr/sbin/groupadd --gid=2001 -o user \
+  && /usr/sbin/useradd  --home-dir=/home/user --gid=2001 --uid=2001 --shell=/bin/bash user \
+  && mkdir -p /home/user &&  chown 2001:2001 -R /home/user \
+  && echo '%user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers \
+  && sed -i 's/#user_allow_other/user_allow_other/g' /etc/fuse.conf \
+  && sed -i 's/docker:x:999:/docker:x:999:user/' /etc/group \
+  && echo "[ -f /cocalc/nvm/nvm.sh ] && source /cocalc/nvm/nvm.sh" >> /etc/bash.bashrc
+  
+USER user
 
-# The Nvidia image puts its own old nodejs install at the front
-# of the path in both /etc/bash.bashrc and in /root/.bashrc
-# That would break everything, since we want our node v18 as installed above.
-RUN \
-     grep -v nvm /root/.bashrc > /root/.bashrc.new \
-  && mv /root/.bashrc.new /root/.bashrc \
-  && grep -v nvm /etc/bash.bashrc > /etc/bash.bashrc.new \
-  && mv /etc/bash.bashrc.new /etc/bash.bashrc
-
-ENV HOME /home/user
-
-WORKDIR /home/user
-
-CMD cd /cocalc/src/compute/compute && node start.js
+CMD /cocalc/start-manager.sh
 

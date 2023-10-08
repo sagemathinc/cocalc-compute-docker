@@ -1,11 +1,15 @@
 ARG ARCH=
 
 FROM sagemathinc/compute-python${ARCH}
-USER root
+USER user
 
 COPY --from=sagemathinc/compute-sagemath-10.1-core /usr/local/sage /usr/local/sage
 
+# run sage once. Otherwise, the first startup is very slow. 
+RUN /usr/bin/sage < /dev/null
+
 # Add links for sage and sagemath
+USER root
 RUN  ln -sf "/usr/local/sage/sage/sage" /usr/bin/sage \
   && ln -sf "/usr/local/sage/sage/sage" /usr/bin/sagemath
 
