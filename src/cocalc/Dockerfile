@@ -85,7 +85,9 @@ COPY --from=build_image /cocalc /cocalc
 
 COPY start-manager.js /cocalc/src/compute/compute
 COPY start-filesystem.js /cocalc/src/compute/compute
+COPY start-manager.sh /cocalc/
+COPY start-filesystem.sh /cocalc/
 
-RUN chmod a+rwx /cocalc/src/compute/compute/start*.js
+RUN chmod a+rwx /cocalc/src/compute/compute/start*.js /cocalc/start*.sh
 
 
