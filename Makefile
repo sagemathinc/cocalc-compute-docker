@@ -13,8 +13,8 @@ ARCH=$(shell uname -m | sed 's/x86_64//;s/arm64/-arm64/;s/aarch64/-arm64/')
 core:
 	make cocalc && make base && make filesystem && make manager && make python
 
-push:
-	make push-cocalc && make push-base && make push-filesystem && make push-manager && make push-python
+push-core:
+	make push-cocalc && make push-base && make push-filesystem && make push-python
 
 cocalc:
 	cd src/cocalc && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) .
@@ -42,8 +42,6 @@ push-filesystem:
 
 manager:
 	cd src/manager && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-manager$(ARCH):$(IMAGE_TAG) .
-push-manager:
-	docker push $(DOCKER_USER)/compute-manager$(ARCH):$(IMAGE_TAG)
 
 
 python:

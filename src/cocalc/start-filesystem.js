@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /*
-This is to be place in /cocalc/src/packages/compute/ and run there.
+This is to be placed in /cocalc/src/packages/compute/ and run there.
 Actually, it just needs @cocalc/compute to be require-able.
 */
 
@@ -76,32 +76,6 @@ async function main() {
         options: { mountOptions: { allowOther: true } },
       });
     }
-
-    if (process.env.TERM_PATH) {
-      if (unmount != null) {
-        console.log("This is a mount so skipping terminal");
-      } else {
-        console.log("Connecting to", process.env.TERM_PATH);
-        term = await terminal({
-          project_id: process.env.PROJECT_ID,
-          path: process.env.TERM_PATH,
-          cwd: PROJECT_HOME,
-        });
-      }
-    }
-
-    if (process.env.IPYNB_PATH) {
-      if (unmount != null) {
-        console.log("This is a mount so skipping notebook");
-      } else {
-        console.log("Connecting to", process.env.IPYNB_PATH);
-        kernel = await jupyter({
-          project_id: process.env.PROJECT_ID,
-          path: process.env.IPYNB_PATH,
-          cwd: PROJECT_HOME,
-        });
-      }
-    }
   } catch (err) {
     console.log("something went wrong ", err);
     exitHandler();
@@ -109,25 +83,6 @@ async function main() {
 
   const info = () => {
     console.log("Success!");
-
-    if (process.env.IPYNB_PATH) {
-      console.log(
-        `Your notebook ${process.env.IPYNB_PATH} should be running in this container.`,
-      );
-      console.log(
-        `  ${process.env.API_SERVER}/projects/${process.env.PROJECT_ID}/files/${process.env.IPYNB_PATH}`,
-      );
-    }
-
-    if (process.env.TERM_PATH) {
-      console.log(
-        `Your terminal ${process.env.TERM_PATH} should be running in this container.`,
-      );
-      console.log(
-        `  ${process.env.API_SERVER}/projects/${process.env.PROJECT_ID}/files/${process.env.TERM_PATH}`,
-      );
-    }
-
     console.log(`Your home directory is mounted at ${PROJECT_HOME}`);
     console.log("\nPress Control+C to exit.");
   };

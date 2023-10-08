@@ -83,6 +83,9 @@ FROM $MYAPP_IMAGE
 # Copy the cocalc directory from the build image.
 COPY --from=build_image /cocalc /cocalc
 
-COPY start.js /cocalc/src/compute/compute
-RUN chmod a+rwx /cocalc/src/compute/compute/start.js
+COPY start-manager.js /cocalc/src/compute/compute
+COPY start-filesystem.js /cocalc/src/compute/compute
+
+RUN chmod a+rwx /cocalc/src/compute/compute/start*.js
+
 
