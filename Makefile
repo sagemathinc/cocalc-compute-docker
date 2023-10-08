@@ -51,6 +51,17 @@ push-python:
 run-python:
 	docker run -it --rm $(DOCKER_USER)/compute-python$(ARCH):$(IMAGE_TAG) bash
 
+# This takes a long time to run, since it builds sage from source.  You only ever should do this once per
+# Sage release and architecture.  It results in a directory /usr/local/sage, which gets copied into
+# the sagemath-10.1 image below.
+sagemath-10.1-core:
+	cd src/sagemath-10.1/core && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH):$(IMAGE_TAG) .
+push-sagemath-10.1-core:
+	docker push $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH):$(IMAGE_TAG)
+run-sagemath-10.1-core:
+	docker run -it --rm $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH):$(IMAGE_TAG) bash
+
+# this depends on sagemath-10.1-core having been built either locally or pushed to dockerhub at some point:
 sagemath-10.1:
 	cd src/sagemath-10.1 && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG) .
 push-sagemath-10.1:
