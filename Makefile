@@ -11,13 +11,27 @@ COMMIT=$(shell git ls-remote -h https://github.com/sagemathinc/cocalc $(BRANCH) 
 ARCH=$(shell uname -m | sed 's/x86_64//;s/arm64/-arm64/;s/aarch64/-arm64/')
 
 core:
-	make base && make filesystem && make manager && make python
+	make cocalc && make base && make filesystem && make manager && make python
 
 push:
-	make push-base && make push-filesystem && make push-manager && make push-python
+	make push-cocalc && make push-base && make push-filesystem && make push-manager && make push-python
+
+cocalc:
+	cd src/cocalc && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) .
+run-cocalc:
+	docker run -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) bash
+push-cocalc:
+	docker push $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG)
+cocalc-build:
+	rm -rf cocalc-build
+	docker create --name temp-copy-cocalc $(DOCKER_USER)/compute-cocalc$(ARCH)
+	docker cp temp-copy-cocalc:/cocalc cocalc-build
+	docker rm temp-copy-cocalc
 
 base:
 	cd src/base && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG) .
+run-base:
+	docker run -it --rm $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG) bash
 push-base:
 	docker push $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG)
 
