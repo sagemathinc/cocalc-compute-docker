@@ -6,7 +6,7 @@ USER user
 COPY --from=sagemathinc/compute-sagemath-10.1-core /usr/local/sage /usr/local/sage
 
 # run sage once. Otherwise, the first startup is very slow. 
-RUN /usr/bin/sage < /dev/null
+RUN /usr/local/sage/sage/sage < /dev/null
 
 # Add links for sage and sagemath
 USER root
