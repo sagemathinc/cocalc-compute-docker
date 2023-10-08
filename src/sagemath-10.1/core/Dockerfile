@@ -20,7 +20,14 @@ RUN \
        libssl-dev \
        graphviz \
        tachyon \
-       python3-pip
+       python3-pip \
+       git
+
+# build as a normal user, not root:
+
+RUN /usr/sbin/groupadd --gid=2001 -o user \
+  && /usr/sbin/useradd  --home-dir=/home/user --gid=2001 --uid=2001 --shell=/bin/bash user \
+  && mkdir -p /home/user &&  chown 2001:2001 -R /home/user
 
 RUN mkdir -p /usr/local/sage && chown -R user:user /usr/local/sage
 
