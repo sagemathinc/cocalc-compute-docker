@@ -12,7 +12,7 @@ ENV DEBUG_CONSOLE=yes
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
- Install core tools
+#  Install core tools
 #  libfuse-dev is critical since the cocalc source assumes it is there.
 RUN \
   apt-get update \

@@ -42,6 +42,7 @@ RUN git clone --depth=1 https://github.com/sagemathinc/cocalc.git \
   
 # !!!!! CRITICAL: Do *NOT* upgrade nodejs to a newer version until the following is fixed !!!!!!
 #    https://github.com/sagemathinc/cocalc/issues/6963
+# Also, if you change the version here, you must also change it in start-manager.sh and start-filesystem.sh
 RUN  mkdir -p /cocalc/nvm \
   && cd /cocalc \
   && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | NVM_DIR=/cocalc/nvm bash \
