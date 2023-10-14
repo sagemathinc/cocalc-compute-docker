@@ -88,6 +88,7 @@ COPY start-manager.js /cocalc/src/compute/compute
 COPY start-filesystem.js /cocalc/src/compute/compute
 COPY start-manager.sh /cocalc/
 COPY start-filesystem.sh /cocalc/
+COPY start-env.sh /cocalc/
 
 RUN chmod a+rwx /cocalc/src/compute/compute/start*.js /cocalc/start*.sh
 
