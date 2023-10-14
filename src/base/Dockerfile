@@ -26,7 +26,8 @@ RUN \
        fuse \
        libfuse-dev \
        neovim \
-       sudo
+       sudo \
+       python-is-python3
 
 # Install official upstream docker from docker.com, which is new and
 # has the most features.
