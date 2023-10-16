@@ -12,9 +12,13 @@ RUN \
   apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y r-base r-cran-tidyverse tidy
 
-# Install R Jupyter Kernel package into R itself (so the R Jupyter kernel works), 
+# Install R Jupyter Kernel package into R itself (so the R Jupyter kernel works),
 # and some other packages e.g., rmarkdown which requires reticulate to use Python.
 RUN echo "install.packages(c('repr', 'IRdisplay', 'evaluate', 'crayon', 'pbdZMQ', 'httr', 'devtools', 'uuid', 'digest', 'IRkernel', 'rmarkdown', 'reticulate', 'formatR'), repos='https://cloud.r-project.org')" | R --no-save
+
+COPY ir /usr/local/share/jupyter/kernels/ir
+
+RUN chmod a+r -R /usr/local/share/jupyter/kernels
 
 WORKDIR /home/user
 USER user

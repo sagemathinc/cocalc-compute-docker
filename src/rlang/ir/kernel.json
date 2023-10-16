@@ -1,0 +1,11 @@
+{
+  "language": "r",
+  "argv": [
+    "R",
+    "-e",
+    "options(jupyter.plot_mimetypes = c('image/svg+xml')); IRkernel::main()",
+    "--args",
+    "{connection_file}"
+  ],
+  "display_name": "R (R-Project)"
+}
