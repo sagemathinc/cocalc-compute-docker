@@ -1,6 +1,6 @@
 ARG ARCH=
 
-FROM sagemathinc/compute-manager${ARCH}
+FROM sagemathinc/compute${ARCH}
 
 USER root
 

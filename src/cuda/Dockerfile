@@ -1,4 +1,4 @@
-FROM sagemathinc/compute-manager
+FROM sagemathinc/compute
 
 USER root
 

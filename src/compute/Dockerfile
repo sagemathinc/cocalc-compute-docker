@@ -4,5 +4,5 @@ FROM sagemathinc/compute-base${ARCH}
 
 USER user
 
-CMD /cocalc/start-manager.sh
+CMD /cocalc/start-compute.sh
 

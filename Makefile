@@ -10,11 +10,19 @@ COMMIT=$(shell git ls-remote -h https://github.com/sagemathinc/cocalc $(BRANCH) 
 # Depending on your platform, set the ARCH variable
 ARCH=$(shell uname -m | sed 's/x86_64//;s/arm64/-arm64/;s/aarch64/-arm64/')
 
-core:
-	make cocalc && make base && make filesystem && make manager && make python
+all-x86:
+	make core && make math && make gpu
+push-all-x86:
+	make push-core && make push-math && make push-gpu
+all-arm64:
+	make core && make mat
+push-all-arm64:
+	make push-core && make push-math
 
+core:
+	make cocalc && make base && make filesystem && make compute && make python
 push-core:
-	make push-cocalc && make push-base && make push-filesystem && make push-python
+	make push-cocalc && make push-base && make push-filesystem && make push-compute && make push-python
 
 cocalc:
 	cd src/cocalc && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) .
@@ -40,9 +48,10 @@ filesystem:
 push-filesystem:
 	docker push $(DOCKER_USER)/compute-filesystem$(ARCH):$(IMAGE_TAG)
 
-manager:
-	cd src/manager && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-manager$(ARCH):$(IMAGE_TAG) .
-
+compute:
+	cd src/compute && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG) .
+push-compute:
+	docker push $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG)
 
 python:
 	cd src/python && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-python$(ARCH):$(IMAGE_TAG) .
@@ -50,6 +59,12 @@ push-python:
 	docker push $(DOCKER_USER)/compute-python$(ARCH):$(IMAGE_TAG)
 run-python:
 	docker run -it --rm $(DOCKER_USER)/compute-python$(ARCH):$(IMAGE_TAG) bash
+
+
+math:
+	make sagemath-10.1 && make julia && make rlang
+push-math:
+	make push-sagemath-10.1 && make push-julia && make push-rlang
 
 # This takes a long time to run, since it builds sage from source.  You only ever should do this once per
 # Sage release and architecture.  It results in a directory /usr/local/sage, which gets copied into
@@ -89,6 +104,10 @@ run-rlang:
 # GPU only images below
 # Only need to worry about x86_64 for this, obviously:
 #####
+gpu:
+	make cuda && make pytorch && make tensorflow
+push-gpu:
+	make push-cuda && make push-pytorch && make push-tensorflow
 
 cuda:
 	cd src/cuda && docker build -t $(DOCKER_USER)/compute-cuda:$(IMAGE_TAG) .

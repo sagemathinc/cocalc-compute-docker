@@ -53,5 +53,5 @@ RUN /usr/sbin/groupadd --gid=2001 -o user \
 
 USER user
 
-CMD /cocalc/start-manager.sh
+CMD /cocalc/start-compute.sh
 

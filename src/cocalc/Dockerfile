@@ -31,7 +31,7 @@ RUN \
        libfuse-dev \
        neovim \
        pkg-config
-       
+
 # Get the commit to checkout and build:
 ARG BRANCH=master
 ARG commit=HEAD
@@ -39,10 +39,10 @@ ARG commit=HEAD
 # Pull latest source code for CoCalc and checkout requested commit (or HEAD)
 RUN git clone --depth=1 https://github.com/sagemathinc/cocalc.git \
   && cd /cocalc && git pull && git fetch -u origin $BRANCH:$BRANCH && git checkout ${commit:-HEAD}
-  
+
 # !!!!! CRITICAL: Do *NOT* upgrade nodejs to a newer version until the following is fixed !!!!!!
 #    https://github.com/sagemathinc/cocalc/issues/6963
-# Also, if you change the version here, you must also change it in start-manager.sh and start-filesystem.sh
+# Also, if you change the version here, you must also change it in start-compute.sh and start-filesystem.sh
 RUN  mkdir -p /cocalc/nvm \
   && cd /cocalc \
   && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | NVM_DIR=/cocalc/nvm bash \
@@ -84,9 +84,9 @@ FROM $MYAPP_IMAGE
 # Copy the cocalc directory from the build image.
 COPY --from=build_image /cocalc /cocalc
 
-COPY start-manager.js /cocalc/src/compute/compute
+COPY start-compute.js /cocalc/src/compute/compute
 COPY start-filesystem.js /cocalc/src/compute/compute
-COPY start-manager.sh /cocalc/
+COPY start-compute.sh /cocalc/
 COPY start-filesystem.sh /cocalc/
 COPY start-env.sh /cocalc/
 
