@@ -27,7 +27,9 @@ RUN \
        libfuse-dev \
        neovim \
        sudo \
-       python-is-python3
+       python-is-python3 \
+       tmux \
+       htop
 
 # Install official upstream docker from docker.com, which is new and
 # has the most features.
@@ -54,10 +56,10 @@ RUN /usr/sbin/groupadd --gid=2001 -o user \
   && sed -i 's/#user_allow_other/user_allow_other/g' /etc/fuse.conf \
   && sed -i 's/docker:x:999:/docker:x:999:user/' /etc/group \
   && echo "[ -f /cocalc/nvm/nvm.sh ] && source /cocalc/nvm/nvm.sh" >> /etc/bash.bashrc
-  
+
 # FOR DEV/TESTING ONLY
 # Copy the cocalc directory -- this is going to usually be mounted
-# from the host image to we instead always get an up to date version, 
+# from the host image to we instead always get an up to date version,
 # but it's nice to have some version here for testing purposes.
 # COPY --from=sagemathinc/compute-cocalc /cocalc /cocalc
 

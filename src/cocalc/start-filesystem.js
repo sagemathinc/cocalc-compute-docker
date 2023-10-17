@@ -73,7 +73,7 @@ async function main() {
       unmount = await mountProject({
         project_id: process.env.PROJECT_ID,
         path: PROJECT_HOME,
-        options: { mountOptions: { allowOther: true } },
+        options: { mountOptions: { allowOther: true, nonEmpty: true } },
       });
     }
   } catch (err) {

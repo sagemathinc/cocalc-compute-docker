@@ -21,7 +21,9 @@ RUN \
        fuse \
        libfuse-dev \
        neovim \
-       sudo
+       sudo \
+       python-is-python3 \
+       tmux
 
 # Install official upstream docker from docker.com, which is new and
 # has the most features.
@@ -48,7 +50,7 @@ RUN /usr/sbin/groupadd --gid=2001 -o user \
   && sed -i 's/#user_allow_other/user_allow_other/g' /etc/fuse.conf \
   && sed -i 's/docker:x:999:/docker:x:999:user/' /etc/group \
   && echo "[ -f /cocalc/nvm/nvm.sh ] && source /cocalc/nvm/nvm.sh" >> /etc/bash.bashrc
-  
+
 USER user
 
 CMD /cocalc/start-manager.sh
