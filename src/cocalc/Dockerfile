@@ -89,7 +89,8 @@ COPY start-filesystem.js /cocalc/src/compute/compute
 COPY start-compute.sh /cocalc/
 COPY start-filesystem.sh /cocalc/
 COPY start-env.sh /cocalc/
+COPY docker_pull.py /cocalc/
 
-RUN chmod a+rwx /cocalc/src/compute/compute/start*.js /cocalc/start*.sh
+RUN chmod a+rwx /cocalc/src/compute/compute/start*.js /cocalc/start*.sh /cocalc/docker_pull.py
 
 
