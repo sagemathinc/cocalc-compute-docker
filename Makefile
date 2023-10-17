@@ -15,7 +15,7 @@ all-x86:
 push-all-x86:
 	make push-core && make push-math && make push-gpu
 all-arm64:
-	make core && make mat
+	make core && make math
 push-all-arm64:
 	make push-core && make push-math
 
