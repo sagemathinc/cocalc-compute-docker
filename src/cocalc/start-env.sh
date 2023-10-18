@@ -12,4 +12,4 @@ export COMPUTE_SERVER_ID=`cat /cocalc/conf/compute_server_id`
 export DEBUG=$(test -f /cocalc/conf/debug && cat /cocalc/conf/debug || echo "")
 
 sudo hostname `cat /cocalc/conf/hostname`
-echo '127.0.0.1 `cat /cocalc/conf/hostname`' | sudo tee -a /etc/hosts
+echo "127.0.0.1 `cat /cocalc/conf/hostname`" | sudo tee -a /etc/hosts
