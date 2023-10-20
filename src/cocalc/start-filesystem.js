@@ -22,9 +22,9 @@ async function getFilesystemType(path) {
   }
 }
 
-const { mountProject, jupyter, terminal } = require("@cocalc/compute");
+const { mountProject } = require("@cocalc/compute");
 
-const PROJECT_HOME = "/home/user";
+const PROJECT_HOME = process.env.PROJECT_HOME ?? "/tmp/home";
 
 async function main() {
   let unmount = null;
@@ -64,7 +64,23 @@ async function main() {
     return;
   }
 
-  console.log("Mounting project", process.env.PROJECT_ID, "at", PROJECT_HOME);
+  let unionfs;
+  if (process.env.UNIONFS_UPPER && process.env.UNIONFS_LOWER) {
+    unionfs = {
+      lower: process.env.UNIONFS_LOWER,
+      upper: process.env.UNIONFS_UPPER,
+    };
+  } else {
+    unionfs = undefined;
+  }
+
+  console.log(
+    "Mounting project",
+    process.env.PROJECT_ID,
+    "at",
+    PROJECT_HOME,
+    unionfs,
+  );
   try {
     // CRITICAL: Do NOT both mount the filesystem *and* and start terminals
     // in the same process.  Do one or the other.  Doing both as a non-root
@@ -74,6 +90,7 @@ async function main() {
         project_id: process.env.PROJECT_ID,
         path: PROJECT_HOME,
         options: { mountOptions: { allowOther: true, nonEmpty: true } },
+        unionfs,
       });
     }
   } catch (err) {

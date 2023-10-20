@@ -6,25 +6,6 @@ process.env.API_BASE_PATH = process.env.API_BASE_PATH ?? "/";
 
 const { manager } = require("@cocalc/compute");
 
-const PROJECT_HOME = "/home/user";
-
-const util = require("util");
-const exec = util.promisify(require("child_process").exec);
-function delay(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-async function getFilesystemType(path) {
-  try {
-    const { stdout } = await exec(`df -T ${path} | awk 'NR==2 {print \$2}'`);
-    return stdout.trim();
-  } catch (error) {
-    console.error(`exec error: ${error}`);
-    return null;
-  }
-}
-
 async function main() {
   const exitHandler = async () => {
     console.log("cleaning up...");
@@ -37,11 +18,6 @@ async function main() {
   process.on("exit", exitHandler);
   process.on("SIGINT", exitHandler);
   process.on("SIGTERM", exitHandler);
-
-  while ((await getFilesystemType(PROJECT_HOME)) != "fuse") {
-    console.log(`Waiting for ${PROJECT_HOME} to be mounted`);
-    await delay(3000);
-  }
 
   const { apiKey } = require("@cocalc/backend/data");
   try {
@@ -69,8 +45,13 @@ async function main() {
   }
 
   const M = manager({
+    home: process.env.PROJECT_HOME,
     project_id: process.env.PROJECT_ID,
     compute_server_id: process.env.COMPUTE_SERVER_ID,
+    waitHomeFilesystemType:
+      process.env.UNIONFS_UPPER && process.env.UNIONFS_LOWER
+        ? "fuse.unionfs-fuse"
+        : "fuse",
   });
   await M.init();
 }
