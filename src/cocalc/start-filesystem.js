@@ -92,6 +92,7 @@ async function main() {
         path: PROJECT_HOME,
         options: { mountOptions: { allowOther: true, nonEmpty: true } },
         unionfs,
+        readTrackingPath: process.env.READ_TRACKING_PATH,
       });
     }
   } catch (err) {
