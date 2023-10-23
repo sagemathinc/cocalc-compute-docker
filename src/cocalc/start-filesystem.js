@@ -87,13 +87,13 @@ async function main() {
     // in the same process.  Do one or the other.  Doing both as a non-root
     // user in docker at least leads to deadlocks.
     if ((await getFilesystemType(PROJECT_HOME)) != "fuse") {
-      unmount = await mountProject({
+      ({ unmount } = await mountProject({
         project_id: process.env.PROJECT_ID,
         path: PROJECT_HOME,
         options: { mountOptions: { allowOther: true, nonEmpty: true } },
         unionfs,
         readTrackingPath: process.env.READ_TRACKING_PATH,
-      });
+      }));
     }
   } catch (err) {
     console.log("something went wrong ", err);
