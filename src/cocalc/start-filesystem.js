@@ -93,6 +93,9 @@ async function main() {
         options: { mountOptions: { allowOther: true, nonEmpty: true } },
         unionfs,
         readTrackingPath: process.env.READ_TRACKING_PATH,
+        // TODO: this exclude should be something configurable somehow... not sure.
+        // maybe it is in the ccompute-servers table along with sync state info?
+        exclude: [".*", "scratch", "tmp"],
       }));
     }
   } catch (err) {
