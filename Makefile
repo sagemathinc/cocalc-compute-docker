@@ -135,4 +135,12 @@ run-tensorflow:
 	docker run -it --rm $(DOCKER_USER)/compute-tensorflow$(ARCH):$(IMAGE_TAG) bash
 
 
+# Everything for deep learning: tensorflow + pytorch + transformers all in one
+deeplearning:
+	cd src/deeplearning && docker build -t $(DOCKER_USER)/compute-deeplearning:$(IMAGE_TAG) .
+push-deeplearning:
+	docker push $(DOCKER_USER)/compute-deeplearning:$(IMAGE_TAG)
+run-deeplearning:
+	docker run -it --rm $(DOCKER_USER)/compute-deeplearning$(ARCH):$(IMAGE_TAG) bash
+
 
