@@ -51,6 +51,11 @@ RUN /usr/sbin/groupadd --gid=2001 -o user \
   && sed -i 's/docker:x:999:/docker:x:999:user/' /etc/group \
   && echo "[ -f /cocalc/nvm/nvm.sh ] && source /cocalc/nvm/nvm.sh" >> /etc/bash.bashrc
 
+# To easily install certain things from Hugging Face.
+# Libraries that huggingface libraries use.
+RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6
+RUN pip install diffusers transformers diffusers invisible_watermark accelerate safetensors
+
 USER user
 
 CMD /cocalc/start-compute.sh
