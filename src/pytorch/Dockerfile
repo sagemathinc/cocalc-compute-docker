@@ -55,6 +55,9 @@ RUN /usr/sbin/groupadd --gid=2001 -o user \
 RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6
 RUN pip install diffusers transformers diffusers invisible_watermark accelerate safetensors
 
+COPY open /usr/bin/
+RUN chmod a+rx /usr/bin/open
+
 USER user
 
 CMD /cocalc/start-compute.sh
