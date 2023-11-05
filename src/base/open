@@ -49,10 +49,9 @@ def process(paths):
                     os.makedirs(dir)
             if path[-1] != '/':
                 sys.stderr.write("creating file '%s'\n" % path)
-                from . import new_file
-                new_file.new_file(
-                    path
-                )  # see https://github.com/sagemathinc/cocalc/issues/1476
+                # for simplicity on compute-servers just make blank file -- no templates.
+                # this is fine for jupyter and terminals.
+                open(path,'w').close()
 
         if not path.startswith('/'):
             # we use pwd instead of getcwd or os.path.abspath since we want this to
