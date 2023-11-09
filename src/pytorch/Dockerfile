@@ -53,7 +53,7 @@ RUN /usr/sbin/groupadd --gid=2001 -o user \
 # To easily install certain things from Hugging Face.
 # Libraries that huggingface libraries use.
 RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6
-RUN pip install diffusers transformers diffusers invisible_watermark accelerate safetensors
+RUN pip install diffusers transformers diffusers invisible_watermark accelerate safetensors sentencepiece
 
 COPY open /usr/bin/
 RUN chmod a+rx /usr/bin/open

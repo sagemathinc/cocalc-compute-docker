@@ -90,7 +90,8 @@ COPY start-compute.sh /cocalc/
 COPY start-filesystem.sh /cocalc/
 COPY start-env.sh /cocalc/
 COPY docker_pull.py /cocalc/
+COPY disk_enlarger.py /cocalc/
 
-RUN chmod a+rwx /cocalc/src/compute/compute/start*.js /cocalc/start*.sh /cocalc/docker_pull.py
+RUN chmod a+rwx /cocalc/src/compute/compute/start*.js /cocalc/start*.sh /cocalc/*.py
 
 

@@ -10,6 +10,7 @@ export API_KEY=`cat /cocalc/conf/api_key`
 export API_SERVER=`cat /cocalc/conf/api_server`
 export PROJECT_ID=`cat /cocalc/conf/project_id`
 export COMPUTE_SERVER_ID=`cat /cocalc/conf/compute_server_id`
+export EXCLUDE_FROM_SYNC=`cat /cocalc/conf/exclude_from_sync`
 export DEBUG=$(test -f /cocalc/conf/debug && cat /cocalc/conf/debug || echo "")
 export UNIONFS_UPPER=/home/unionfs/upper
 export UNIONFS_LOWER=/home/unionfs/lower

@@ -25,6 +25,7 @@ async function getFilesystemType(path) {
 const { mountProject } = require("@cocalc/compute");
 
 const PROJECT_HOME = process.env.PROJECT_HOME ?? "/tmp/home";
+const EXCLUDE_FROM_SYNC = process.env.EXCLUDE_FROM_SYNC ?? "";
 
 async function main() {
   let unmount = null;
@@ -93,9 +94,9 @@ async function main() {
         options: { mountOptions: { allowOther: true, nonEmpty: true } },
         unionfs,
         readTrackingPath: process.env.READ_TRACKING_PATH,
-        // TODO: this exclude should be something configurable somehow... not sure.
-        // maybe it is in the ccompute-servers table along with sync state info?
-        exclude: [".*", "scratch", "tmp"],
+        exclude: [".*"].concat(
+          EXCLUDE_FROM_SYNC ? EXCLUDE_FROM_SYNC.split("|") : [],
+        ),
       }));
     }
   } catch (err) {
