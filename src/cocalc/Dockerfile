@@ -89,6 +89,10 @@ COPY start-env.sh /cocalc/
 COPY docker_pull.py /cocalc/
 COPY disk_enlarger.py /cocalc/
 
+# These directories aren't used but are big.
+RUN cd /cocalc/src/packages \
+   && rm -rf assets cdn database frontend hub next project static
+
 RUN chmod a+rwx /cocalc/src/compute/compute/start*.js /cocalc/start*.sh /cocalc/*.py
 
 
