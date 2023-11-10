@@ -40,17 +40,14 @@ ARG commit=HEAD
 RUN git clone --depth=1 https://github.com/sagemathinc/cocalc.git \
   && cd /cocalc && git pull && git fetch -u origin $BRANCH:$BRANCH && git checkout ${commit:-HEAD}
 
-# !!!!! CRITICAL: Do *NOT* upgrade nodejs to a newer version until the following is fixed !!!!!!
-#    https://github.com/sagemathinc/cocalc/issues/6963
-# Also, if you change the version here, you must also change it in start-compute.sh and start-filesystem.sh
-RUN  mkdir -p /cocalc/nvm \
+RUN  mkdir -p /nvm \
   && cd /cocalc \
-  && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | NVM_DIR=/cocalc/nvm bash \
-  && source /cocalc/nvm/nvm.sh \
+  && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | NVM_DIR=/nvm bash \
+  && source /nvm/nvm.sh \
   && nvm install --no-progress 18.17.1 \
-  && rm -rf /cocalc/nvm/.git/ \
+  && rm -rf /nvm/.git/ \
   && npm install -g npm pnpm \
-  && echo "source /cocalc/nvm/nvm.sh" >> /etc/bash.bashrc
+  && echo "source /nvm/nvm.sh" >> /etc/bash.bashrc
 
 # Copy over a custom workspace file, so pnpm ONLY installs packages, and builds, etc.
 # the modules that actually are needed for @cocalc/compute.
@@ -59,22 +56,22 @@ COPY pnpm-workspace.yaml /cocalc/src/packages/pnpm-workspace.yaml
 RUN chmod a+r /cocalc/src/packages/pnpm-workspace.yaml
 
 # Install deps for the @cocalc/compute module
-RUN . /cocalc/nvm/nvm.sh && cd /cocalc/src/packages && pnpm install
+RUN . /nvm/nvm.sh && cd /cocalc/src/packages && pnpm install
 
 # Build
-RUN . /cocalc/nvm/nvm.sh && cd /cocalc/src/packages && pnpm run -r build
+RUN . /nvm/nvm.sh && cd /cocalc/src/packages && pnpm run -r build
 
 # Install the @cocalc/compute module
-RUN . /cocalc/nvm/nvm.sh && cd /cocalc/src/compute && pnpm install
+RUN . /nvm/nvm.sh && cd /cocalc/src/compute && pnpm install
 
 # And build it
-RUN . /cocalc/nvm/nvm.sh && cd /cocalc/src/compute && pnpm run -r build
+RUN . /nvm/nvm.sh && cd /cocalc/src/compute && pnpm run -r build
 
 # Delete packages that were only needed for the build.
-# Deleting node_modules and isntalling is the recommended approach by pnpm.
-RUN . /cocalc/nvm/nvm.sh && cd /cocalc/src/packages && rm -rf node_modules && pnpm install --prod
+# Deleting node_modules and installing is the recommended approach by pnpm.
+RUN . /nvm/nvm.sh && cd /cocalc/src/packages && rm -rf node_modules && pnpm install --prod
 
-RUN . /cocalc/nvm/nvm.sh && cd /cocalc/src/compute && rm -rf node_modules && pnpm install --prod
+RUN . /nvm/nvm.sh && cd /cocalc/src/compute && rm -rf node_modules && pnpm install --prod
 
 RUN rm -rf /cocalc/.git
 

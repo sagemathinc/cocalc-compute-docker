@@ -25,3 +25,8 @@ echo "" > $READ_TRACKING_PATH
 
 sudo hostname `cat /cocalc/conf/hostname`
 echo "127.0.0.1 `cat /cocalc/conf/hostname`" | sudo tee -a /etc/hosts
+
+# Make the NEWEST version of nodejs available.
+source /cocalc/nvm/nvm.sh
+nvm use node
+

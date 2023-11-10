@@ -32,10 +32,10 @@ for line in iter(process.stdout.readline, b''):
     # Check if the disk has been enlarged
     #   [48336.686151] sda: detected capacity change from 125829120 to 167772160
     print(line)
-    for dev in ['sda', 'nvme0n1']:
+    for dev in [b'sda', b'nvme0n1']:
         if line.find(b'%s: detected capacity change' % dev) != -1:
             print("%s disk device changed size -- growing partition" % dev)
-            run(['growpart', '/dev/%s' % dev, '1'])
+            run(['growpart', '/dev/%s' % dev.decode(), '1'])
             result = subprocess.run(['df', '/'], stdout=subprocess.PIPE)
             output = result.stdout.decode()
             root_device = output.split('\n')[1].split()[0]
