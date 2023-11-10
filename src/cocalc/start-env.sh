@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -ev
 
 # Setup env vars about project we will connect to.
 
@@ -20,5 +20,8 @@ sudo hostname `cat /cocalc/conf/hostname`
 echo "127.0.0.1 `cat /cocalc/conf/hostname`" | sudo tee -a /etc/hosts
 
 # Make the cocalc version of nodejs available.
+# this is VERY verbose hence "set +v"
+set +v
 NVM_DIR=/cocalc/nvm source /cocalc/nvm/nvm.sh
+set -v
 

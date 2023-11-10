@@ -28,20 +28,27 @@ cocalc:
 	cd src/cocalc && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) .
 run-cocalc:
 	docker run -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) bash
-push-cocalc:
-	docker push $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG)
 
-COCALC_TAR_GZ=cocalc.tar.gz
-dist-cocalc:
-	rm -rf /tmp/cocalc
+# Update minor version number, copy from docker image and publish @cocalc/compute-cocalc$(ARCH)
+# to the npm registry.  This only works, of course, if you are signed into npm as a user that
+# can publish to @cocalc.
+COMPUTE_SERVER_PATH=src/compute-server-npm-package
+push-cocalc:
+	rm -rf $(COMPUTE_SERVER_PATH)/tmp
+	mkdir -p $(COMPUTE_SERVER_PATH)/tmp/dist
+	cd $(COMPUTE_SERVER_PATH) && npm version minor
+	cp -rv $(COMPUTE_SERVER_PATH)/* $(COMPUTE_SERVER_PATH)/tmp
 	docker create --name temp-copy-cocalc $(DOCKER_USER)/compute-cocalc$(ARCH)
-	docker cp temp-copy-cocalc:/cocalc /tmp/cocalc
-	# remove the 9MB sqlite source code, which we don't need
-	rm /tmp/cocalc/src/packages/node_modules/.pnpm/better-sqlite3*/node_modules/better-sqlite3/deps/sqlite3/sqlite3.c
+	docker cp temp-copy-cocalc:/cocalc $(COMPUTE_SERVER_PATH)/tmp/dist/cocalc
 	docker rm temp-copy-cocalc
-	tar -zcf $(COCALC_TAR_GZ) --strip-components=1 -C /tmp cocalc
-	rm -rf /tmp/cocalc
-	chmod a+rw $(COCALC_TAR_GZ)
+	cd $(COMPUTE_SERVER_PATH)/tmp/dist/ && tar -zcf cocalc.tar.gz cocalc
+	rm -r $(COMPUTE_SERVER_PATH)/tmp/dist/cocalc/
+	# Add -arm64 extension to package name, if necessary.
+	@if [ -n "$(ARCH)" ]; then \
+	    sed -i 's/"name": "@cocalc\/compute-server"/"name": "@cocalc\/compute-server-arm64"/' $(COMPUTE_SERVER_PATH)/tmp/package.json; \
+	fi
+	cd $(COMPUTE_SERVER_PATH)/tmp && npm publish --no-git-checks
+	rm -rf $(COMPUTE_SERVER_PATH)/tmp
 
 base:
 	cd src/base && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG) .

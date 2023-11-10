@@ -93,6 +93,9 @@ COPY disk_enlarger.py /cocalc/
 RUN cd /cocalc/src/packages \
    && rm -rf assets cdn database frontend hub next project static
 
+# remove the 9MB sqlite source code, which we don't need
+RUN rm -f /cocalc/src/packages/node_modules/.pnpm/better-sqlite3*/node_modules/better-sqlite3/deps/sqlite3/sqlite3.c
+
 RUN chmod a+rwx /cocalc/src/compute/compute/start*.js /cocalc/start*.sh /cocalc/*.py
 
 
