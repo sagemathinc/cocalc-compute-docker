@@ -30,11 +30,18 @@ run-cocalc:
 	docker run -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) bash
 push-cocalc:
 	docker push $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG)
-cocalc-build:
-	rm -rf cocalc-build
+
+COCALC_TAR_GZ=cocalc.tar.gz
+dist-cocalc:
+	rm -rf /tmp/cocalc
 	docker create --name temp-copy-cocalc $(DOCKER_USER)/compute-cocalc$(ARCH)
-	docker cp temp-copy-cocalc:/cocalc cocalc-build
+	docker cp temp-copy-cocalc:/cocalc /tmp/cocalc
+	# remove the 9MB sqlite source code, which we don't need
+	rm /tmp/cocalc/src/packages/node_modules/.pnpm/better-sqlite3*/node_modules/better-sqlite3/deps/sqlite3/sqlite3.c
 	docker rm temp-copy-cocalc
+	tar -zcf $(COCALC_TAR_GZ) --strip-components=1 -C /tmp cocalc
+	rm -rf /tmp/cocalc
+	chmod a+rw $(COCALC_TAR_GZ)
 
 base:
 	cd src/base && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG) .

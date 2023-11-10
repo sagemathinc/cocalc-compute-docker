@@ -3,3 +3,5 @@ current_commit
 current_commit_noagpl
 *.term
 *.sage-chat
+node_modules/
+dist/
