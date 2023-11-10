@@ -32,23 +32,23 @@ run-cocalc:
 # Update minor version number, copy from docker image and publish @cocalc/compute-cocalc$(ARCH)
 # to the npm registry.  This only works, of course, if you are signed into npm as a user that
 # can publish to @cocalc.
-COMPUTE_SERVER_PATH=src/compute-server-npm-package
+COCALC_NPM=src/cocalc-npm
 push-cocalc:
-	rm -rf $(COMPUTE_SERVER_PATH)/tmp
-	mkdir -p $(COMPUTE_SERVER_PATH)/tmp/dist
-	cd $(COMPUTE_SERVER_PATH) && npm version minor
-	cp -rv $(COMPUTE_SERVER_PATH)/* $(COMPUTE_SERVER_PATH)/tmp
+	rm -rf /tmp/cocalc-npm
+	mkdir -p /tmp/cocalc-npm/dist
+	cd $(COCALC_NPM) && npm version minor
+	cp -rv $(COCALC_NPM)/* /tmp/cocalc-npm
 	docker create --name temp-copy-cocalc $(DOCKER_USER)/compute-cocalc$(ARCH)
-	docker cp temp-copy-cocalc:/cocalc $(COMPUTE_SERVER_PATH)/tmp/dist/cocalc
+	docker cp temp-copy-cocalc:/cocalc /tmp/cocalc-npm/dist/cocalc
 	docker rm temp-copy-cocalc
-	cd $(COMPUTE_SERVER_PATH)/tmp/dist/ && tar -zcf cocalc.tar.gz cocalc
-	rm -r $(COMPUTE_SERVER_PATH)/tmp/dist/cocalc/
+	cd /tmp/cocalc-npm/dist/ && tar -zcf cocalc.tar.gz cocalc
+	rm -r /tmp/cocalc-npm/dist/cocalc/
 	# Add -arm64 extension to package name, if necessary.
 	@if [ -n "$(ARCH)" ]; then \
-	    sed -i 's/"name": "@cocalc\/compute-server"/"name": "@cocalc\/compute-server-arm64"/' $(COMPUTE_SERVER_PATH)/tmp/package.json; \
+	    sed -i 's/"name": "@cocalc\/compute-server"/"name": "@cocalc\/compute-server-arm64"/' /tmp/cocalc-npm/package.json; \
 	fi
-	cd $(COMPUTE_SERVER_PATH)/tmp && npm publish --no-git-checks
-	rm -rf $(COMPUTE_SERVER_PATH)/tmp
+	cd /tmp/cocalc-npm && npm publish --no-git-checks
+	rm -rf /tmp/cocalc-npm
 
 base:
 	cd src/base && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG) .
