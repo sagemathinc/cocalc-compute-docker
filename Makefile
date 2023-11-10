@@ -45,7 +45,7 @@ push-cocalc:
 	rm -r /tmp/cocalc-npm/dist/cocalc/
 	# Add -arm64 extension to package name, if necessary.
 	@if [ -n "$(ARCH)" ]; then \
-	    sed -i 's/"name": "@cocalc\/compute-server"/"name": "@cocalc\/compute-server-arm64"/' /tmp/cocalc-npm/package.json; \
+		sed -i.bak 's/compute-server/compute-server-arm64/g' /tmp/cocalc-npm/package.json
 	fi
 	cd /tmp/cocalc-npm && npm publish --no-git-checks
 	rm -rf /tmp/cocalc-npm
