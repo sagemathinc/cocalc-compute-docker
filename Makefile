@@ -29,14 +29,15 @@ cocalc:
 run-cocalc:
 	docker run -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) bash
 
-# Update minor version number, copy from docker image and publish @cocalc/compute-cocalc$(ARCH)
-# to the npm registry.  This only works, of course, if you are signed into npm as a user that
-# can publish to @cocalc.
+# Copy from docker image and publish @cocalc/compute-cocalc$(ARCH)
+# to the npm registry.  This only works, of course, if you are signed
+# into npm as a user that can publish to @cocalc.
+# This automatically publishes as the next available minor version of
+# the package (but doesn't modify local git at all).
 COCALC_NPM=src/cocalc-npm
 push-cocalc:
 	rm -rf /tmp/cocalc-npm
 	mkdir -p /tmp/cocalc-npm/dist
-	cd $(COCALC_NPM) && npm version minor
 	cp -rv $(COCALC_NPM)/* /tmp/cocalc-npm
 	docker create --name temp-copy-cocalc $(DOCKER_USER)/compute-cocalc$(ARCH)
 	docker cp temp-copy-cocalc:/cocalc /tmp/cocalc-npm/dist/cocalc
@@ -45,7 +46,10 @@ push-cocalc:
 	rm -r /tmp/cocalc-npm/dist/cocalc/
 	# Add -arm64 extension to package name, if necessary.
 	@if [ -n "$(ARCH)" ]; then sed -i.bak 's/compute-server/compute-server-arm64/g' /tmp/cocalc-npm/package.json; fi
-	cd /tmp/cocalc-npm && npm publish --no-git-checks
+	cd /tmp/cocalc-npm \
+		&& npm version `npm view @cocalc/compute-server version` || true \
+		&& npm version minor \
+		&& npm publish --no-git-checks
 	rm -rf /tmp/cocalc-npm
 
 base:
