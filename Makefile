@@ -49,7 +49,7 @@ push-cocalc:
 	cd /tmp/cocalc-npm \
 		&& npm version `npm view @cocalc/compute-server version` || true \
 		&& npm version minor \
-		&& npm publish --no-git-checks
+		&& npm publish --access=public --no-git-checks
 	rm -rf /tmp/cocalc-npm
 
 base:
