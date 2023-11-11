@@ -14,6 +14,7 @@ ENV LANG=en_US.UTF-8
 ENV LANGUAGE=en_US:en
 ENV TERM=screen
 ENV DEBUG_CONSOLE=yes
+ENV PIP_ROOT_USER_ACTION=ignore
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 

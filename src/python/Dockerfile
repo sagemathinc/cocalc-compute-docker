@@ -9,4 +9,7 @@ RUN apt-get update \
     && pip install jupyter \
     && python3 -m ipykernel install
 
+# Popular python libraries
+RUN pip install matplotlib pandas numpy scipy scikit-learn requests beautifulsoup4 sympy mpmath pyyaml networkx
+
 USER user

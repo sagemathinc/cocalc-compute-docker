@@ -56,6 +56,9 @@ RUN /usr/sbin/groupadd --gid=2001 -o user \
 RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6
 RUN pip install diffusers transformers diffusers invisible_watermark accelerate safetensors sentencepiece
 
+# Popular python libraries
+RUN pip install matplotlib pandas numpy scipy scikit-learn requests beautifulsoup4 sympy mpmath pyyaml networkx
+
 COPY open /usr/bin/
 RUN chmod a+rx /usr/bin/open
 
