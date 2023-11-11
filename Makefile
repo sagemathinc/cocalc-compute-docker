@@ -20,9 +20,9 @@ push-all-arm64:
 	make push-core && make push-math
 
 core:
-	make cocalc && make base && make filesystem && make compute && make python
+	make cocalc && make base && make filesystem  & make python
 push-core:
-	make push-cocalc && make push-base && make push-filesystem && make push-compute && make push-python
+	make push-cocalc && make push-filesystem && make push-python
 
 cocalc:
 	cd src/cocalc && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) .
@@ -56,8 +56,6 @@ base:
 	cd src/base && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG) .
 run-base:
 	docker run -it --rm $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG) bash
-push-base:
-	docker push $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG)
 
 filesystem:
 	cd src/filesystem && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-filesystem$(ARCH):$(IMAGE_TAG) .
@@ -66,8 +64,6 @@ push-filesystem:
 
 compute:
 	cd src/compute && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG) .
-push-compute:
-	docker push $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG)
 
 python:
 	cd src/python && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-python$(ARCH):$(IMAGE_TAG) .
