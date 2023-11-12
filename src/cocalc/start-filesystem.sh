@@ -4,10 +4,12 @@ set -ev
 
 source /cocalc/start-env.sh
 
-# This directory could be anywhere.  Setting it enabled read tracking at the websocketfs level,
+# This directory could be anywhere.
+mkdir -p /home/unionfs/upper/.compute-server/
+
+# Setting it enabled read tracking at the websocketfs level,
 # which is then used by our caching level using unionfs to automatically keep
 # files locally when they are read, so future reads are fast and free.
-mkdir -p /home/unionfs/upper/.compute-server/
 export READ_TRACKING_PATH=/home/unionfs/upper/.compute-server/read-tracking
 echo "" > $READ_TRACKING_PATH
 
