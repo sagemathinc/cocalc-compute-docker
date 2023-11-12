@@ -59,6 +59,8 @@ run-base:
 
 filesystem:
 	cd src/filesystem && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-filesystem$(ARCH):$(IMAGE_TAG) .
+run-filesystem:
+	docker run -it --rm $(DOCKER_USER)/compute-filesystem$(ARCH):$(IMAGE_TAG) bash
 push-filesystem:
 	docker push $(DOCKER_USER)/compute-filesystem$(ARCH):$(IMAGE_TAG)
 

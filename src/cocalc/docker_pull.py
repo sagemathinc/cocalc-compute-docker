@@ -5,6 +5,8 @@ anything if the latest version is available locally, and if the
 latest verstion is not available locallly, it first deletes
 the local version of the image before doing the pull, in order
 to avoid wasting disk space.
+
+WE ARE NOT ACTUALLY USING THIS IN PRACTICE ANYMORE.
 """
 
 import json, subprocess, sys
