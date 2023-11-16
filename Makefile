@@ -164,3 +164,11 @@ push-miniforge:
 	docker push $(DOCKER_USER)/compute-miniforge:$(IMAGE_TAG)
 run-miniforge:
 	docker run -it --rm $(DOCKER_USER)/compute-miniforge$(ARCH):$(IMAGE_TAG) bash
+
+
+colab:
+	cd src/colab && docker build -t $(DOCKER_USER)/compute-colab:$(IMAGE_TAG) .
+push-colab:
+	docker push $(DOCKER_USER)/compute-colab:$(IMAGE_TAG)
+run-colab:
+	docker run -it --rm $(DOCKER_USER)/compute-colab$(ARCH):$(IMAGE_TAG) bash
