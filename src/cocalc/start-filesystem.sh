@@ -13,7 +13,10 @@ mkdir -p $UNIONFS_UPPER/.compute-server/
 export READ_TRACKING_PATH=$UNIONFS_UPPER/.compute-server/read-tracking
 echo "" > $READ_TRACKING_PATH
 
-export METADATA_FILE=$UNIONFS_UPPER/.compute-server/meta/meta.lz4
+# WARNING/DANGER! This must match with what is done in
+#    cocalc/src/packages/sync-fs/lib/handle-api-call.ts
+# or the filesystem will "silently" become 1000x slower...
+export METADATA_FILE=$UNIONFS_LOWER/.compute-servers/$COMPUTE_SERVER_ID/meta/meta.lz4
 
 cd /cocalc/src/compute/compute
 
