@@ -97,6 +97,8 @@ async function main() {
         exclude: [".*"].concat(
           EXCLUDE_FROM_SYNC ? EXCLUDE_FROM_SYNC.split("|") : [],
         ),
+        metadataFile: process.env.METADATA_FILE,
+        cacheTimeout: 20,
       }));
     }
   } catch (err) {
