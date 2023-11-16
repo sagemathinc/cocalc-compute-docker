@@ -99,6 +99,8 @@ async function main() {
         ),
         metadataFile: process.env.METADATA_FILE,
         cacheTimeout: 20,
+        syncIntervalMin: 15,
+        syncIntervalMax: 60,
       }));
     }
   } catch (err) {
