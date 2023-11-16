@@ -1,5 +1,3 @@
-# Forked from E043 in https://github.com/kierenAW/conda_environments_for_data_science
-name: cocalc-compute
 channels:
   - huggingface
   - conda-forge
