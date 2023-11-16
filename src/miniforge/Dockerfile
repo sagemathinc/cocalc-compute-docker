@@ -4,8 +4,11 @@ FROM sagemathinc/compute${ARCH}
 
 USER root
 
-ADD miniforge.sh /miniforge.sh
-ADD environment.yml /environment.yml
+RUN apt-get update && apt-get install -qq -y wget
+
+ADD miniforge.sh environment.yml /
+ADD conda-activate.sh /bin/conda-activate.sh
+RUN chmod a+x /bin/conda-activate.sh
 RUN bash /miniforge.sh
 RUN rm /miniforge.sh /environment.yml
 
