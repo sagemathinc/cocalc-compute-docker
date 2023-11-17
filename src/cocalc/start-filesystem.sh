@@ -4,6 +4,12 @@ set -ev
 
 source /cocalc/start-env.sh
 
+
+# Install ssh keys into cache for user account, so they will be there
+# in the union mount.
+mkdir -p $UNIONFS_UPPER/.ssh
+cp -v /cocalc/conf/authorized_keys $UNIONFS_UPPER/.ssh/authorized_keys
+
 # This directory could be anywhere.
 mkdir -p $UNIONFS_UPPER/.compute-server/
 
@@ -21,9 +27,10 @@ export METADATA_FILE=$UNIONFS_LOWER/.compute-servers/$COMPUTE_SERVER_ID/meta/met
 cd /cocalc/src/compute/compute
 
 # Make sure filesystems aren't mounted
-
 umount $UNIONFS_LOWER  2>/dev/null || true
 umount $PROJECT_HOME   2>/dev/null || true
+fusermount -uz $UNIONFS_LOWER  2>/dev/null || true
+fusermount -uz $PROJECT_HOME   2>/dev/null || true
 
 if [[ -z "$UNIONFS_UPPER" ]]; then
     # unionfs not configured at all.
