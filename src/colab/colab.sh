@@ -16,7 +16,8 @@ apt-get install -qq -y \
     wget \
     curl \
     git \
-    vim
+    vim \
+    libcairo2-dev
 
 ## Setup R's CRAN40 repo
 ## NOTE: we skip this for now ... also note the grep -v 'r-cran-' below
