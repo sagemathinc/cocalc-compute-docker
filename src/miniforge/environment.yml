@@ -23,11 +23,12 @@ dependencies:
   - fonts-conda-forge
   - h5py
   - huggingface_hub
-  - ipykernel
   - ipython
   - ipython_genutils
   - ipywidgets
+  - ipykernel
   - jax
+  - jupyter_console
   - jupyterlab
   - jupyterlab_widgets
   - kiwisolver
