@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Install an Anaconda based Python environment, based on "Miniforge"
-
+set -ev
 set -xeuo pipefail
 
 # https://github.com/conda-forge/miniforge#downloading-the-installer-as-part-of-a-ci-pipeline

@@ -34,7 +34,6 @@ dependencies:
   - kiwisolver
   - matplotlib
   - matplotlib-inline
-  - mkl
   - mlflow
   - mypy_extensions
   - networkx
@@ -68,7 +67,6 @@ dependencies:
   - tensorboard
   - tensorboardx
   - toolz
-  - torchaudio
   - torchvision
   - tqdm
   - traitlets

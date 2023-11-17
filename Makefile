@@ -76,9 +76,9 @@ run-python:
 
 
 math:
-	make sagemath-10.1 && make rlang
+	make sagemath-10.1 && make rlang && make anaconda && make colab
 push-math:
-	make push-sagemath-10.1 && make push-rlang
+	make push-sagemath-10.1 && make push-rlang && make push-anaconda && make push-colab
 
 # This takes a long time to run, since it builds sage from source.  You only ever should do this once per
 # Sage release and architecture.  It results in a directory /usr/local/sage, which gets copied into
@@ -113,6 +113,21 @@ push-rlang:
 	docker push $(DOCKER_USER)/compute-rlang$(ARCH):$(IMAGE_TAG)
 run-rlang:
 	docker run -it --rm $(DOCKER_USER)/compute-rlang$(ARCH):$(IMAGE_TAG) bash
+
+anaconda:
+	cd src/anaconda && docker build  --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-anaconda$(ARCH):$(IMAGE_TAG) .
+push-anaconda:
+	docker push $(DOCKER_USER)/compute-anaconda$(ARCH):$(IMAGE_TAG)
+run-anaconda:
+	docker run -it --rm $(DOCKER_USER)/compute-anaconda$(ARCH):$(IMAGE_TAG) bash
+
+
+colab:
+	cd src/colab && docker build  --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-colab$(ARCH):$(IMAGE_TAG) .
+push-colab:
+	docker push $(DOCKER_USER)/compute-colab$(ARCH):$(IMAGE_TAG)
+run-colab:
+	docker run -it --rm $(DOCKER_USER)/compute-colab$(ARCH):$(IMAGE_TAG) bash
 
 #####
 # GPU only images below
@@ -156,20 +171,3 @@ push-deeplearning:
 	docker push $(DOCKER_USER)/compute-deeplearning:$(IMAGE_TAG)
 run-deeplearning:
 	docker run -it --rm $(DOCKER_USER)/compute-deeplearning$(ARCH):$(IMAGE_TAG) bash
-
-
-anaconda:
-	cd src/anaconda && docker build -t $(DOCKER_USER)/compute-anaconda:$(IMAGE_TAG) .
-push-anaconda:
-	docker push $(DOCKER_USER)/compute-anaconda:$(IMAGE_TAG)
-run-anaconda:
-	docker run -it --rm $(DOCKER_USER)/compute-anaconda$(ARCH):$(IMAGE_TAG) bash
-
-
-colab:
-	cd src/colab && docker build -t $(DOCKER_USER)/compute-colab:$(IMAGE_TAG) .
-push-colab:
-	docker push $(DOCKER_USER)/compute-colab:$(IMAGE_TAG)
-run-colab:
-	docker run -it --rm $(DOCKER_USER)/compute-colab$(ARCH):$(IMAGE_TAG) bash
-

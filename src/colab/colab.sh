@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#!/bin/bash bash
+set -ev
 set -xeuo pipefail
 
 ## APT environment
