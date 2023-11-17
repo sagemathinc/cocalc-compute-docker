@@ -158,12 +158,12 @@ run-deeplearning:
 	docker run -it --rm $(DOCKER_USER)/compute-deeplearning$(ARCH):$(IMAGE_TAG) bash
 
 
-miniforge:
-	cd src/miniforge && docker build -t $(DOCKER_USER)/compute-miniforge:$(IMAGE_TAG) .
-push-miniforge:
-	docker push $(DOCKER_USER)/compute-miniforge:$(IMAGE_TAG)
-run-miniforge:
-	docker run -it --rm $(DOCKER_USER)/compute-miniforge$(ARCH):$(IMAGE_TAG) bash
+anaconda:
+	cd src/anaconda && docker build -t $(DOCKER_USER)/compute-anaconda:$(IMAGE_TAG) .
+push-anaconda:
+	docker push $(DOCKER_USER)/compute-anaconda:$(IMAGE_TAG)
+run-anaconda:
+	docker run -it --rm $(DOCKER_USER)/compute-anaconda$(ARCH):$(IMAGE_TAG) bash
 
 
 colab:
