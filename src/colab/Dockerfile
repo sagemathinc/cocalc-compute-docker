@@ -1,7 +1,7 @@
 ARG ARCH=
 
 FROM sagemathinc/compute${ARCH}
-ARG DEBIAN_FRONTEND=noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 
 USER root

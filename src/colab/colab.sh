@@ -5,6 +5,7 @@ set -xeuo pipefail
 
 apt-get update
 apt-get install -qq -y \
+    apt-utils \
     lsb-release \
     python3-pip \
     python3-dev \
@@ -22,11 +23,11 @@ apt-get install -qq -y \
 #wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | sudo tee -a /etc/apt/trusted.gpg.d/#cran_ubuntu_key.asc
 #add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/"
 #apt-get update
-apt-get install -y -qq r-base r-recommended r-base-dev
+#apt-get install -y -qq r-base r-recommended r-base-dev
 
 # 2023-11-17: only jammy and jammy-updates (for Ubuntu 22.04)
 # we --ignore-missing because some R packages are not in that repo, or I don't know yet how to find them
-cat apt.txt | tail -n +2 | grep "/$(lsb_release -s -c)" | grep -v 'r-cran-' | cut -d'/' -f1 | xargs -n 32 apt-get install --ignore-missing -y -qq
+cat apt.txt | tail -n +2 | grep "/$(lsb_release -s -c)" | grep -v 'r-cran-' | cut -d'/' -f1 | xargs -n 32 apt-get install --ignore-missing -y
 
 apt-get clean autoclean
 apt-get autoremove --yes
