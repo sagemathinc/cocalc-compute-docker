@@ -6,7 +6,7 @@ set -xeuo pipefail
 # https://github.com/conda-forge/miniforge#downloading-the-installer-as-part-of-a-ci-pipeline
 wget -q -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 bash Miniforge3.sh -b -p "/conda"
-. /cocalc-compute-init.sh
+. /conda-activate.sh
 
 # upgrade all packages
 mamba upgrade --all --yes

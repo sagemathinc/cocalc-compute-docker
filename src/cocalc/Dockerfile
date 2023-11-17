@@ -97,5 +97,3 @@ RUN cd /cocalc/src/packages \
 RUN rm -f /cocalc/src/packages/node_modules/.pnpm/better-sqlite3*/node_modules/better-sqlite3/deps/sqlite3/sqlite3.c
 
 RUN chmod a+rwx /cocalc/src/compute/compute/start*.js /cocalc/start*.sh /cocalc/*.py
-
-
