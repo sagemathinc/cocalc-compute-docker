@@ -76,9 +76,9 @@ run-python:
 
 
 math:
-	make sagemath-10.1 && make rlang && make anaconda && make colab
+	make sagemath-10.1 && make rlang && make anaconda
 push-math:
-	make push-sagemath-10.1 && make push-rlang && make push-anaconda && make push-colab
+	make push-sagemath-10.1 && make push-rlang && make push-anaconda
 
 # This takes a long time to run, since it builds sage from source.  You only ever should do this once per
 # Sage release and architecture.  It results in a directory /usr/local/sage, which gets copied into
@@ -122,21 +122,14 @@ run-anaconda:
 	docker run -it --rm $(DOCKER_USER)/compute-anaconda$(ARCH):$(IMAGE_TAG) bash
 
 
-colab:
-	cd src/colab && docker build  --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-colab$(ARCH):$(IMAGE_TAG) .
-push-colab:
-	docker push $(DOCKER_USER)/compute-colab$(ARCH):$(IMAGE_TAG)
-run-colab:
-	docker run -it --rm $(DOCKER_USER)/compute-colab$(ARCH):$(IMAGE_TAG) bash
-
 #####
 # GPU only images below
 # Only need to worry about x86_64 for this, obviously:
 #####
 gpu:
-	make cuda && make pytorch && make tensorflow
+	make cuda && make pytorch && make tensorflow && make colab
 push-gpu:
-	make push-cuda && make push-pytorch && make push-tensorflow
+	make push-cuda && make push-pytorch && make push-tensorflow && make push-colab
 
 cuda:
 	cd src/cuda && docker build -t $(DOCKER_USER)/compute-cuda:$(IMAGE_TAG) .
@@ -164,10 +157,20 @@ run-tensorflow:
 	docker run -it --rm $(DOCKER_USER)/compute-tensorflow$(ARCH):$(IMAGE_TAG) bash
 
 
-# Everything for deep learning: tensorflow + pytorch + transformers all in one
-deeplearning:
-	cd src/deeplearning && docker build -t $(DOCKER_USER)/compute-deeplearning:$(IMAGE_TAG) .
-push-deeplearning:
-	docker push $(DOCKER_USER)/compute-deeplearning:$(IMAGE_TAG)
-run-deeplearning:
-	docker run -it --rm $(DOCKER_USER)/compute-deeplearning$(ARCH):$(IMAGE_TAG) bash
+colab:
+	cd src/colab && docker build  --build-arg -t $(DOCKER_USER)/compute-colab:$(IMAGE_TAG) .
+push-colab:
+	docker push $(DOCKER_USER)/compute-colab:$(IMAGE_TAG)
+run-colab:
+	docker run -it --rm $(DOCKER_USER)/compute-colab:$(IMAGE_TAG) bash
+
+
+
+
+# # Everything for deep learning: tensorflow + pytorch + transformers all in one
+# deeplearning:
+# 	cd src/deeplearning && docker build -t $(DOCKER_USER)/compute-deeplearning:$(IMAGE_TAG) .
+# push-deeplearning:
+# 	docker push $(DOCKER_USER)/compute-deeplearning:$(IMAGE_TAG)
+# run-deeplearning:
+# 	docker run -it --rm $(DOCKER_USER)/compute-deeplearning$(ARCH):$(IMAGE_TAG) bash
