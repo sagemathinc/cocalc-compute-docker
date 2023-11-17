@@ -1,18 +1,13 @@
 ARG ARCH=
 
 FROM sagemathinc/compute${ARCH}
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
 
 USER root
 
-RUN apt-get update
-RUN apt-get install -qq -y \
-    lsb-release \
-    python3-pip \
-    python3-dev \
-    pkg-config \
-    build-essential
-ADD colab.sh env.txt apt.txt /
+ADD colab.sh pip.txt apt.txt /
 RUN bash /colab.sh
-RUN rm /colab.sh /env.txt /apt.txt
+RUN rm /colab.sh /pip.txt /apt.txt
 
-#USER user
+USER user
