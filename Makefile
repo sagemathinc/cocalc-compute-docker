@@ -36,21 +36,21 @@ run-cocalc:
 # the package (but doesn't modify local git at all).
 COCALC_NPM=src/cocalc-npm
 push-cocalc:
-	rm -rf /tmp/cocalc-npm
-	mkdir -p /tmp/cocalc-npm/dist
-	cp -rv $(COCALC_NPM)/* /tmp/cocalc-npm
+	rm -rf /tmp/cocalc-npm$(ARCH)
+	mkdir -p /tmp/cocalc-npm$(ARCH)/dist
+	cp -rv $(COCALC_NPM)/* /tmp/cocalc-npm$(ARCH)
 	docker create --name temp-copy-cocalc $(DOCKER_USER)/compute-cocalc$(ARCH)
-	docker cp temp-copy-cocalc:/cocalc /tmp/cocalc-npm/dist/cocalc
+	docker cp temp-copy-cocalc:/cocalc /tmp/cocalc-npm$(ARCH)/dist/cocalc
 	docker rm temp-copy-cocalc
-	cd /tmp/cocalc-npm/dist/ && tar -zcf cocalc.tar.gz cocalc
-	rm -r /tmp/cocalc-npm/dist/cocalc/
+	cd /tmp/cocalc-npm$(ARCH)/dist/ && tar -zcf cocalc.tar.gz cocalc
+	rm -r /tmp/cocalc-npm$(ARCH)/dist/cocalc/
 	# Add -arm64 extension to package name, if necessary.
-	@if [ -n "$(ARCH)" ]; then sed -i.bak 's/compute-server/compute-server-arm64/g' /tmp/cocalc-npm/package.json; fi
-	cd /tmp/cocalc-npm \
+	@if [ -n "$(ARCH)" ]; then sed -i.bak 's/compute-server/compute-server-arm64/g' /tmp/cocalc-npm$(ARCH)/package.json; fi
+	cd /tmp/cocalc-npm$(ARCH) \
 		&& npm version `npm view @cocalc/compute-server$(ARCH) version` || true \
 		&& npm version minor \
 		&& npm publish --access=public --no-git-checks
-	rm -rf /tmp/cocalc-npm
+	rm -rf /tmp/cocalc-npm$(ARCH)
 
 base:
 	cd src/base && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG) .
