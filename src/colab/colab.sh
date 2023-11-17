@@ -26,8 +26,16 @@ apt-get install -qq -y \
 #apt-get install -y -qq r-base r-recommended r-base-dev
 
 # 2023-11-17: only jammy and jammy-updates (for Ubuntu 22.04)
+
+# check that $(lsb_release -s -c) equals "jammy"
+if [ "$(lsb_release -s -c)" != "jammy" ]; then
+    echo "ERROR: this script is only for Ubuntu 22.04 (jammy), not $(lsb_release -s -c)"
+    exit 1
+fi
+
 # we --ignore-missing because some R packages are not in that repo, or I don't know yet how to find them
-cat apt.txt | tail -n +2 | grep "/$(lsb_release -s -c)" | grep -v 'r-cran-' | cut -d'/' -f1 | xargs -n 32 apt-get install --ignore-missing -y
+# the "|| true" suppresses errors
+cat apt.txt | tail -n +2 | grep "/$(lsb_release -s -c)" | grep -v 'r-cran-' | cut -d'/' -f1 | xargs -n 32 echo | xargs -I{} sh -c "apt-get install --ignore-missing -y {} || true"
 
 apt-get clean autoclean
 apt-get autoremove --yes
