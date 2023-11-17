@@ -22,3 +22,7 @@ set +v
 NVM_DIR=/cocalc/nvm source /cocalc/nvm/nvm.sh
 set -v
 
+# if there is a compute image specific init script, source it
+if [ -f /cocalc-compute-init.sh ]; then
+    source /cocalc-compute-init.sh
+fi

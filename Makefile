@@ -158,3 +158,18 @@ run-deeplearning:
 	docker run -it --rm $(DOCKER_USER)/compute-deeplearning$(ARCH):$(IMAGE_TAG) bash
 
 
+anaconda:
+	cd src/anaconda && docker build -t $(DOCKER_USER)/compute-anaconda:$(IMAGE_TAG) .
+push-anaconda:
+	docker push $(DOCKER_USER)/compute-anaconda:$(IMAGE_TAG)
+run-anaconda:
+	docker run -it --rm $(DOCKER_USER)/compute-anaconda$(ARCH):$(IMAGE_TAG) bash
+
+
+colab:
+	cd src/colab && docker build -t $(DOCKER_USER)/compute-colab:$(IMAGE_TAG) .
+push-colab:
+	docker push $(DOCKER_USER)/compute-colab:$(IMAGE_TAG)
+run-colab:
+	docker run -it --rm $(DOCKER_USER)/compute-colab$(ARCH):$(IMAGE_TAG) bash
+
