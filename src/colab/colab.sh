@@ -51,6 +51,14 @@ pip install -U pip
 # we get rid of google colab itself
 sed -i '/google-colab @ file/d' pip.txt
 
+# do not install packages installed via apt
+cat apt.txt | tail -n +2 | grep "^python3-" | cut -d'/' -f1 | cut -d- -f2 | xargs -I XXX sed -i '/^XXX==/d' pip.txt
+
+# this is special, also installed by apt
+sed -i '/python-apt==/d' pip.txt
+
+
+
 pip --no-cache-dir install -r pip.txt
 
 # pip.txt should contain an ipykernel, we just ensure it is here, no updating!
