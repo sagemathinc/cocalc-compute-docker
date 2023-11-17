@@ -36,7 +36,7 @@ fi
 
 # we --ignore-missing because some R packages are not in that repo, or I don't know yet how to find them
 # the "|| true" suppresses errors
-cat apt.txt | tail -n +2 | grep "/$(lsb_release -s -c)" | grep -v 'r-cran-' | cut -d'/' -f1 | xargs -n 32 echo | xargs -I{} sh -c "apt-get install --ignore-missing -y {} || true"
+cat apt.txt | tail -n +2 | grep "/$(lsb_release -s -c)" | grep -v 'r-cran-' | grep -v 'automatic\]$' | cut -d'/' -f1 | xargs -n 10 echo | xargs -I{} sh -c "apt-get install --ignore-missing -y {} || true"
 
 apt-get clean autoclean
 apt-get autoremove --yes
