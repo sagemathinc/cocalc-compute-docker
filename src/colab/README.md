@@ -1,6 +1,6 @@
 # Colab-like environment
 
-To update, run the following in a fresh colab notebook:
+To update, run the following in a fresh Colab notebook:
 
 ```
 ! pip freeze > env.txt

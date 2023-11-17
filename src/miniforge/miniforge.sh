@@ -13,7 +13,7 @@ mamba upgrade --all --yes
 mamba env update --file environment.yml
 
 # this should end up in '/usr/local/...' for jupyter
-jupyter kernelspec remove python3
+jupyter kernelspec remove -y python3
 python3 -m ipykernel install --name miniconda2023 --display-name "Miniconda 2023 (Anaconda)"
 
 # cleanup
