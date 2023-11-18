@@ -99,8 +99,11 @@ async function main() {
         ),
         metadataFile: process.env.METADATA_FILE,
         cacheTimeout: 20,
-        syncIntervalMin: 15,
-        syncIntervalMax: 60,
+        // we autosync infrequently -- mainly sync happens when user clicks
+        // a button. We may make this more frequent if we make the sync algorithm
+        // more efficient (especially metadata via diffs).
+        syncIntervalMin: 60 * 10,
+        syncIntervalMax: 60 * 30,
       }));
     }
   } catch (err) {
