@@ -76,9 +76,9 @@ run-python:
 
 
 math:
-	make sagemath-10.1 && make rlang && make anaconda
+	make sagemath-10.1 && make rlang && make anaconda && make julia
 push-math:
-	make push-sagemath-10.1 && make push-rlang && make push-anaconda
+	make push-sagemath-10.1 && make push-rlang && make push-anaconda && make push-julia
 
 # This takes a long time to run, since it builds sage from source.  You only ever should do this once per
 # Sage release and architecture.  It results in a directory /usr/local/sage, which gets copied into

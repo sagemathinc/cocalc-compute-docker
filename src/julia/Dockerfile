@@ -7,14 +7,22 @@ USER root
 # Install Julia
 # See https://julialang.org/downloads/ for current version
 
-ARG JULIA=1.9.3
+# The arm64 one looks like this:
+#
+# https://julialang-s3.julialang.org/bin/linux/aarch64/1.9/julia-1.9.4-linux-aarch64.tar.gz
+#
+# and the x86 one:
+#
+# https://julialang-s3.julialang.org/bin/linux/x64/1.9/julia-1.9.4-linux-x86_64.tar.gz
+
+ARG JULIA=1.9.4
 
 RUN cd /tmp \
  && export ARCH1=`uname -m | sed s/x86_64/x64/` \
  && export ARCH2=`uname -m` \
- && curl -s -O https://julialang-s3.julialang.org/bin/linux/${ARCH1}/${JULIA%.*}/julia-${JULIA}-linux-${ARCH2}.tar.gz \
- && tar xf julia-${JULIA}-linux-${ARCH2}.tar.gz -C /opt \
- && rm  -f julia-${JULIA}-linux-${ARCH2}.tar.gz \
+ && curl -fsSL https://julialang-s3.julialang.org/bin/linux/${ARCH1}/${JULIA%.*}/julia-${JULIA}-linux-${ARCH2}.tar.gz > julia.tar.gz \
+ && tar xf julia.tar.gz -C /opt \
+ && rm  -f julia.tar.gz \
  && mv /opt/julia-* /opt/julia \
  && ln -s /opt/julia/bin/julia /usr/local/bin
 
