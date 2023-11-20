@@ -93,7 +93,7 @@ async function main() {
         path: PROJECT_HOME,
         options: { mountOptions: { allowOther: true, nonEmpty: true } },
         unionfs,
-        readTrackingPath: process.env.READ_TRACKING_PATH,
+        readTrackingFile: process.env.READ_TRACKING_FILE,
         exclude: [".*"].concat(
           EXCLUDE_FROM_SYNC ? EXCLUDE_FROM_SYNC.split("|") : [],
         ),

@@ -16,8 +16,8 @@ mkdir -p $UNIONFS_UPPER/.compute-server/
 # Setting it enabled read tracking at the websocketfs level,
 # which is then used by our caching level using unionfs to automatically keep
 # files locally when they are read, so future reads are fast and free.
-export READ_TRACKING_PATH=$UNIONFS_UPPER/.compute-server/read-tracking
-echo "" > $READ_TRACKING_PATH
+export READ_TRACKING_FILE=$UNIONFS_UPPER/.compute-server/read-tracking
+echo "" > $READ_TRACKING_FILE
 
 # WARNING/DANGER! This must match with what is done in
 #    cocalc/src/packages/sync-fs/lib/handle-api-call.ts
