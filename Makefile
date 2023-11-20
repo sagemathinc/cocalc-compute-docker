@@ -158,7 +158,7 @@ run-tensorflow:
 
 
 colab:
-	cd src/colab && docker build  --build-arg -t $(DOCKER_USER)/compute-colab:$(IMAGE_TAG) .
+	cd src/colab && docker build -t $(DOCKER_USER)/compute-colab:$(IMAGE_TAG) .
 push-colab:
 	docker push $(DOCKER_USER)/compute-colab:$(IMAGE_TAG)
 run-colab:
