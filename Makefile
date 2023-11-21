@@ -7,6 +7,8 @@ IMAGE_TAG=latest
 BRANCH=compute  # not master right now while under dev!
 
 COMMIT=$(shell git ls-remote -h https://github.com/sagemathinc/cocalc $(BRANCH) | awk '{print $$1}')
+
+ARCH0=$(shell uname -m | sed 's/x86_64/-x86_64/;s/arm64/-arm64/;s/aarch64/-arm64/')
 # Depending on your platform, set the ARCH variable
 ARCH=$(shell uname -m | sed 's/x86_64//;s/arm64/-arm64/;s/aarch64/-arm64/')
 
@@ -82,22 +84,26 @@ push-math:
 
 # This takes a long time to run, since it builds sage from source.  You only ever should do this once per
 # Sage release and architecture.  It results in a directory /usr/local/sage, which gets copied into
-# the sagemath-10.1 image below.
-sagemath-10.1-core:
-	cd src/sagemath-10.1/core && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH):$(IMAGE_TAG) .
-push-sagemath-10.1-core:
-	docker push $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH):$(IMAGE_TAG)
-run-sagemath-10.1-core:
-	docker run -it --rm $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH):$(IMAGE_TAG) bash
+# the sagemath-10.1 image below.  Run this on both an x86 and arm64 machine, then run
+# sagemath-10.1-core to combine the two docker images together.
+sagemath-10.1-core-arch:
+	cd src/sagemath-10.1/core && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH0):$(IMAGE_TAG) .
+push-sagemath-10.1-core-arch:
+	docker push $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH0):$(IMAGE_TAG)
+run-sagemath-10.1-core-arch:
+	docker run -it --rm $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH0):$(IMAGE_TAG) bash
 
-# this depends on sagemath-10.1-core having been built either locally or pushed to dockerhub at some point:
-sagemath-10.1:
+# Run this *after* sagemath-10.1-core has been run on both x86_64 *and* on arm64.
+sagemath-10.1-core:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/compute-sagemath-10.1-core $(IMAGE_TAG)
+
+# this depends on sagemath-10.1-core having been built
+sagemath-10.1-arch:
 	cd src/sagemath-10.1 && \
 	docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG) -f Dockerfile$(ARCH) .
-
-push-sagemath-10.1:
+push-sagemath-10.1-arch:
 	docker push $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG)
-run-sagemath-10.1:
+run-sagemath-10.1-arch:
 	docker run -it --rm $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG) bash
 
 julia:
