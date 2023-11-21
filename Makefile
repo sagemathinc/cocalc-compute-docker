@@ -53,7 +53,7 @@ push-cocalc:
 		&& npm publish --access=public --no-git-checks
 	rm -rf /tmp/cocalc-npm$(ARCH)
 
-base:
+base-arch:
 	cd src/base && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG) .
 run-base:
 	docker run -it --rm $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG) bash
@@ -86,7 +86,7 @@ push-math:
 # the sagemath-10.1 image below.  Run this on both an x86 and arm64 machine, then run
 # sagemath-10.1-core to combine the two docker images together.
 sagemath-10.1-core-arch:
-	cd src/sagemath-10.1/core && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH0):$(IMAGE_TAG) .
+	cd src/sagemath-10.1/core && docker build  -t $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH0):$(IMAGE_TAG) .
 push-sagemath-10.1-core-arch:
 	docker push $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH0):$(IMAGE_TAG)
 run-sagemath-10.1-core-arch:

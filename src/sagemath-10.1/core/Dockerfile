@@ -1,5 +1,3 @@
-ARG ARCH=
-
 FROM ubuntu:22.04 AS base
 
 USER root
@@ -56,14 +54,14 @@ RUN rm -rf /usr/local/sage/.git
 FROM ubuntu:22.04
 USER root
 
-COPY --from=base /usr/local/sage /usr/local/
+COPY --from=base /usr/local/sage /usr/local/sage
 
 # Add links for sage and sagemath
 RUN  ln -sf "/usr/local/sage/sage" /usr/bin/sage \
   && ln -sf "/usr/local/sage/sage" /usr/bin/sagemath
 
 # Put scripts to start gap, gp, maxima, ... in /usr/local/bin
-RUN sage --nodotsage -c "install_scripts('/usr/local/bin')"
+RUN /usr/local/sage/sage --nodotsage -c "install_scripts('/usr/local/bin')"
 
 # Install packages again, so users can build cython code, etc.
 # Sage assumed these exist when it was built so they better be here.
