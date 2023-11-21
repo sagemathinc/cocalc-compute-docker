@@ -3,8 +3,7 @@ DOCKER_USER=sagemathinc
 IMAGE_TAG=latest
 
 # CoCalc Git parameters
-
-BRANCH=compute  # not master right now while under dev!
+BRANCH=master
 
 COMMIT=$(shell git ls-remote -h https://github.com/sagemathinc/cocalc $(BRANCH) | awk '{print $$1}')
 
