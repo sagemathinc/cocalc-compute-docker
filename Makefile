@@ -54,9 +54,13 @@ push-cocalc:
 	rm -rf /tmp/cocalc-npm$(ARCH)
 
 base-arch:
-	cd src/base && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG) .
-run-base:
-	docker run -it --rm $(DOCKER_USER)/compute-base$(ARCH):$(IMAGE_TAG) bash
+	cd src/base && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-base$(ARCH0):$(IMAGE_TAG) .
+run-base-arch:
+	docker run -it --rm $(DOCKER_USER)/compute-base$(ARCH0):$(IMAGE_TAG) bash
+push-base-arch:
+	docker push $(DOCKER_USER)/compute-base$(ARCH0):$(IMAGE_TAG)
+base:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/compute-base $(IMAGE_TAG)
 
 filesystem:
 	cd src/filesystem && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-filesystem$(ARCH):$(IMAGE_TAG) .
@@ -86,24 +90,27 @@ push-math:
 # the sagemath-10.1 image below.  Run this on both an x86 and arm64 machine, then run
 # sagemath-10.1-core to combine the two docker images together.
 sagemath-10.1-core-arch:
-	cd src/sagemath-10.1/core && docker build  -t $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH0):$(IMAGE_TAG) .
+	cd src/sagemath-10.1/core && docker build  -t $(DOCKER_USER)/sagemath-10.1-core$(ARCH0):$(IMAGE_TAG) .
 push-sagemath-10.1-core-arch:
-	docker push $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH0):$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/sagemath-10.1-core$(ARCH0):$(IMAGE_TAG)
 run-sagemath-10.1-core-arch:
-	docker run -it --rm $(DOCKER_USER)/compute-sagemath-10.1-core$(ARCH0):$(IMAGE_TAG) bash
-
-# Run this *after* sagemath-10.1-core has been run on both x86_64 *and* on arm64.
+	docker run -it --rm $(DOCKER_USER)/sagemath-10.1-core$(ARCH0):$(IMAGE_TAG) bash
+# Run this *after* sagemath-10.1-core-arch has been run on both x86_64 *and* on arm64.
 sagemath-10.1-core:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/compute-sagemath-10.1-core $(IMAGE_TAG)
+	./src/scripts/multiarch.sh $(DOCKER_USER)/sagemath-10.1-core $(IMAGE_TAG)
+run-sagemath-10.1-core:
+	docker run -it --rm $(DOCKER_USER)/sagemath-10.1-core:$(IMAGE_TAG) bash
 
 # this depends on sagemath-10.1-core having been built
 sagemath-10.1-arch:
 	cd src/sagemath-10.1 && \
-	docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG) -f Dockerfile$(ARCH) .
+	docker build -t $(DOCKER_USER)/sagemath-10.1$(ARCH0):$(IMAGE_TAG) -f Dockerfile .
 push-sagemath-10.1-arch:
-	docker push $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/sagemath-10.1$(ARCH0):$(IMAGE_TAG)
 run-sagemath-10.1-arch:
-	docker run -it --rm $(DOCKER_USER)/compute-sagemath-10.1$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/sagemath-10.1$(ARCH0):$(IMAGE_TAG) bash
+sagemath-10.0:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/sagemath-10.1 $(IMAGE_TAG)
 
 julia:
 	cd src/julia && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-julia$(ARCH):$(IMAGE_TAG) .

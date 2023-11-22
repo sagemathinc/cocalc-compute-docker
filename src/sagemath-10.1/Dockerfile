@@ -1,8 +1,6 @@
 # When you change this, be sure to change Dockerfile-arm64 in the same way!!!
 
-ARG ARCH=
-
-FROM sagemathinc/compute-python${ARCH}
+FROM sagemathinc/compute-python
 USER user
 
 COPY --from=sagemathinc/compute-sagemath-10.1-core /usr/local/sage /usr/local/sage

@@ -56,16 +56,16 @@ USER root
 
 COPY --from=base /usr/local/sage /usr/local/sage
 
+# Install packages again, so users can build cython code, etc.
+# Sage assumed these exist when it was built so they better be here.
+COPY install-packages.sh /root
+RUN chmod +x  /root/install-packages.sh && ./root/install-packages.sh && rm /root/install-packages.sh
+
 # Add links for sage and sagemath
 RUN  ln -sf "/usr/local/sage/sage" /usr/bin/sage \
   && ln -sf "/usr/local/sage/sage" /usr/bin/sagemath
 
 # Put scripts to start gap, gp, maxima, ... in /usr/local/bin
 RUN /usr/local/sage/sage --nodotsage -c "install_scripts('/usr/local/bin')"
-
-# Install packages again, so users can build cython code, etc.
-# Sage assumed these exist when it was built so they better be here.
-COPY install-packages.sh /root
-RUN chmod +x  /root/install-packages.sh && ./root/install-packages.sh && rm /root/install-packages.sh
 
 
