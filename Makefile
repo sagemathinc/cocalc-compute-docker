@@ -53,21 +53,23 @@ push-cocalc:
 		&& npm publish --access=public --no-git-checks
 	rm -rf /tmp/cocalc-npm$(ARCH)
 
-base-arch:
-	cd src/base && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-base$(ARCH0):$(IMAGE_TAG) .
-run-base-arch:
-	docker run -it --rm $(DOCKER_USER)/compute-base$(ARCH0):$(IMAGE_TAG) bash
-push-base-arch:
-	docker push $(DOCKER_USER)/compute-base$(ARCH0):$(IMAGE_TAG)
-base:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/compute-base $(IMAGE_TAG)
+build-compute-server-base-arch:
+	cd src/base && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-server-base$(ARCH0):$(IMAGE_TAG) .
+run-compute-server-base-arch:
+	docker run -it --rm $(DOCKER_USER)/compute-server-base$(ARCH0):$(IMAGE_TAG) bash
+push-compute-server-base-arch:
+	docker push $(DOCKER_USER)/compute-server-base$(ARCH0):$(IMAGE_TAG)
+assemble-compute-server-base:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/compute-server-base $(IMAGE_TAG)
 
-filesystem:
-	cd src/filesystem && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-filesystem$(ARCH):$(IMAGE_TAG) .
-run-filesystem:
-	docker run -it --rm $(DOCKER_USER)/compute-filesystem$(ARCH):$(IMAGE_TAG) bash
-push-filesystem:
-	docker push $(DOCKER_USER)/compute-filesystem$(ARCH):$(IMAGE_TAG)
+build-compute-server-filesystem-arch:
+	cd src/filesystem && docker build -t $(DOCKER_USER)/compute-server-filesystem$(ARCH0):$(IMAGE_TAG) .
+run-compute-server-filesystem-arch:
+	docker run -it --rm $(DOCKER_USER)/compute-server-filesystem$(ARCH0):$(IMAGE_TAG) bash
+push-compute-server-filesystem-arch:
+	docker push $(DOCKER_USER)/compute-server-filesystem$(ARCH0):$(IMAGE_TAG)
+assemble-compute-server-filesystem:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/compute-server-filesystem $(IMAGE_TAG)
 
 compute:
 	cd src/compute && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG) .
