@@ -23,6 +23,7 @@ RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 RUN \
   apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+       cron \
        curl \
        fuse \
        libfuse-dev \
