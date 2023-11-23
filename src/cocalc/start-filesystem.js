@@ -98,12 +98,12 @@ async function main() {
           EXCLUDE_FROM_SYNC ? EXCLUDE_FROM_SYNC.split("|") : [],
         ),
         metadataFile: process.env.METADATA_FILE,
-        cacheTimeout: 20,
-        // we autosync infrequently -- mainly sync happens when user clicks
-        // a button. We may make this more frequent if we make the sync algorithm
-        // more efficient (especially metadata via diffs).
-        syncIntervalMin: 60 * 10,
-        syncIntervalMax: 60 * 30,
+        // We autosync infrequently -- mainly sync happens when user clicks
+        // the sync button. We may make this more frequent if we make the sync algorithm
+        // more efficient (especially metadata via diffs) and we can trust it more.
+        syncIntervalMin: 60 * 5,
+        syncIntervalMax: 60 * 15,
+        cacheTimeout: 0, // websocketfs -- critical to not use its cache, which is very painful for cocalc, e.g., when making new files.
       }));
     }
   } catch (err) {
