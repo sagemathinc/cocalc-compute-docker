@@ -39,6 +39,7 @@ push-cocalc:
 	rm -rf /tmp/cocalc-npm$(ARCH)
 	mkdir -p /tmp/cocalc-npm$(ARCH)/dist
 	cp -rv $(COCALC_NPM)/* /tmp/cocalc-npm$(ARCH)
+	docker rm temp-copy-cocalc || true
 	docker create --name temp-copy-cocalc $(DOCKER_USER)/compute-cocalc$(ARCH)
 	docker cp temp-copy-cocalc:/cocalc /tmp/cocalc-npm$(ARCH)/dist/cocalc
 	docker rm temp-copy-cocalc
