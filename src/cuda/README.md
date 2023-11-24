@@ -4,5 +4,5 @@ This is a Docker image for CoCalc's compute server that supports writing CUDA co
 
 ## Tutorials
 
-- [Write a C Program Using a GPU and the CUDA Toolkit](./cuda.md)
+- [Write a C Program Using a GPU and the CUDA Toolkit](https://github.com/sagemathinc/cocalc-howto/blob/main/cuda.md)
 
