@@ -25,8 +25,18 @@ core:
 push-core:
 	make push-cocalc && make push-filesystem && make push-python
 
+## IMAGE: cocalc
+
+# This "cocalc" is the subset needed to run directly on the compute server
+# for supporting websocketfs mounting, terminals, and jupyter notebooks.
+# We build a docker image on the build host, but then copy the files out
+# there, compress them, and push them to npmjs.com!  This is never pushed
+# to dockerhub, and docker is just used for convenience to make the build
+# easier.  We push two packages to npm, one for each arch.
+
 cocalc:
-	cd src/cocalc && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) .
+	cd src/cocalc && docker build --build-arg COMMIT=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) .
+
 run-cocalc:
 	docker run -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) bash
 
@@ -54,14 +64,22 @@ push-cocalc:
 		&& npm publish --access=public --no-git-checks
 	rm -rf /tmp/cocalc-npm$(ARCH)
 
-build-compute-server-base-arch:
-	cd src/base && docker build --build-arg commit=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-server-base$(ARCH0):$(IMAGE_TAG) .
-run-compute-server-base-arch:
-	docker run -it --rm $(DOCKER_USER)/compute-server-base$(ARCH0):$(IMAGE_TAG) bash
-push-compute-server-base-arch:
-	docker push $(DOCKER_USER)/compute-server-base$(ARCH0):$(IMAGE_TAG)
-assemble-compute-server-base:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/compute-server-base $(IMAGE_TAG)
+## IMAGE: base
+# We build base-x86_64 and base-arm64.
+# They are pushed to dockerhub.
+# We also run the assemble target to create the multiplatform
+#     $(DOCKER_USER)/base
+# which is what gets used everywhere else.
+
+build-base-arch:
+	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH0):$(IMAGE_TAG) .
+run-base-arch:
+	docker run -it --rm $(DOCKER_USER)/base$(ARCH0):$(IMAGE_TAG) bash
+push-base-arch:
+	docker push $(DOCKER_USER)/base$(ARCH0):$(IMAGE_TAG)
+assemble-base:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/base $(IMAGE_TAG)
+
 
 build-compute-server-filesystem-arch:
 	cd src/filesystem && docker build -t $(DOCKER_USER)/compute-server-filesystem$(ARCH0):$(IMAGE_TAG) .

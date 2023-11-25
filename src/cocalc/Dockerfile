@@ -34,11 +34,11 @@ RUN \
 
 # Get the commit to checkout and build:
 ARG BRANCH=master
-ARG commit=HEAD
+ARG COMMIT=HEAD
 
 # Pull latest source code for CoCalc and checkout requested commit (or HEAD)
 RUN git clone --depth=1 https://github.com/sagemathinc/cocalc.git \
-  && cd /cocalc && git pull && git fetch -u origin $BRANCH:$BRANCH && git checkout ${commit:-HEAD}
+  && cd /cocalc && git pull && git fetch -u origin $BRANCH:$BRANCH && git checkout ${COMMIT:-HEAD}
 
 RUN  mkdir -p /nvm \
   && cd /cocalc \
