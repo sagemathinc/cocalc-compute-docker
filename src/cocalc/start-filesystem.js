@@ -103,7 +103,8 @@ async function main() {
         // more efficient (especially metadata via diffs) and we can trust it more.
         syncIntervalMin: 60 * 5,
         syncIntervalMax: 60 * 15,
-        cacheTimeout: 0, // websocketfs -- critical to not use its cache, which is very painful for cocalc, e.g., when making new files.
+        // websocketfs -- critical to minimally use its cache.
+        cacheTimeout: parseInt(process.env.WEBSOCKETFS_CACHE_TIMEOUT ?? "3"),
       }));
     }
   } catch (err) {
