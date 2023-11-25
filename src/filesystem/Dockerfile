@@ -1,6 +1,4 @@
-ARG ARCH=
-
-FROM sagemathinc/compute-base${ARCH}
+FROM sagemathinc/base
 
 USER root
 

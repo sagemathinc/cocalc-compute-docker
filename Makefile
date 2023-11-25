@@ -71,34 +71,46 @@ push-cocalc:
 #     $(DOCKER_USER)/base
 # which is what gets used everywhere else.
 
-build-base-arch:
+build-base:
 	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH0):$(IMAGE_TAG) .
-run-base-arch:
+run-base:
 	docker run -it --rm $(DOCKER_USER)/base$(ARCH0):$(IMAGE_TAG) bash
-push-base-arch:
+push-base:
 	docker push $(DOCKER_USER)/base$(ARCH0):$(IMAGE_TAG)
 assemble-base:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/base $(IMAGE_TAG)
 
 
-build-compute-server-filesystem-arch:
-	cd src/filesystem && docker build -t $(DOCKER_USER)/compute-server-filesystem$(ARCH0):$(IMAGE_TAG) .
-run-compute-server-filesystem-arch:
-	docker run -it --rm $(DOCKER_USER)/compute-server-filesystem$(ARCH0):$(IMAGE_TAG) bash
-push-compute-server-filesystem-arch:
-	docker push $(DOCKER_USER)/compute-server-filesystem$(ARCH0):$(IMAGE_TAG)
-assemble-compute-server-filesystem:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/compute-server-filesystem $(IMAGE_TAG)
+## IMAGE: filesystem
+build-filesystem:
+	cd src/filesystem && docker build -t $(DOCKER_USER)/filesystem$(ARCH0):$(IMAGE_TAG) .
+run-filesystem:
+	docker run -it --rm $(DOCKER_USER)/filesystem$(ARCH0):$(IMAGE_TAG) bash
+push-filesystem:
+	docker push $(DOCKER_USER)/filesystem$(ARCH0):$(IMAGE_TAG)
+assemble-filesystem:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/filesystem $(IMAGE_TAG)
 
-compute:
-	cd src/compute && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG) .
+## IMAGE: compute
+build-compute:
+	cd src/compute && docker build -t $(DOCKER_USER)/compute$(ARCH0):$(IMAGE_TAG) .
+run-compute:
+	docker run -it --rm $(DOCKER_USER)/compute$(ARCH0):$(IMAGE_TAG) bash
+push-compute:
+	docker push $(DOCKER_USER)/compute$(ARCH0):$(IMAGE_TAG)
+assemble-compute:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/compute $(IMAGE_TAG)
 
-python:
-	cd src/python && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-python$(ARCH):$(IMAGE_TAG) .
-push-python:
-	docker push $(DOCKER_USER)/compute-python$(ARCH):$(IMAGE_TAG)
+## IMAGE: python
+build-python:
+	cd src/python && docker build -t $(DOCKER_USER)/python$(ARCH0):$(IMAGE_TAG) .
 run-python:
-	docker run -it --rm $(DOCKER_USER)/compute-python$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/python$(ARCH0):$(IMAGE_TAG) bash
+push-python:
+	docker push $(DOCKER_USER)/python$(ARCH0):$(IMAGE_TAG)
+assemble-python:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/python $(IMAGE_TAG)
+
 
 
 math:
