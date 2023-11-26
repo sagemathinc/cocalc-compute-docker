@@ -1,13 +1,13 @@
 # The Anaconda Image
 
-This is an Anaconda based Python environment, based on Miniforge, using [micromamba](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html) \(a self contained very faster rewrite of the conda package manager\).
+This is an Anaconda image, using [micromamba](https://mamba.readthedocs.io/en/latest/user_guide/micromamba.html) \(a drop in replacement for `conda)` for self contained very fast installs.
 
 Anaconda provides many Python packages that run together
 in one Python environment, including [PyTorch](https://pytorch.org/), [Tensorflow](https://www.tensorflow.org/),
-[SciPy](https://scipy.org/) and [SageMath](https://www.sagemath.org/).  It is the easiest way to use a wide
-range of scientific Python tools.
+[SciPy](https://scipy.org/) and [SageMath](https://www.sagemath.org/).  It is the easiest way to install a wide
+range of scientific tools into a single location. It also provides non\-Python software such as [Octave](https://octave.org/) and [Pari](https://pari.math.u-bordeaux.fr/).
 
-It is very easy to install any missing packages you may need.
+It is very easy to install any packages you may need. Open a "Linux Terminal", select your compute server and type:
 
 ```sh
 conda install packagename
@@ -15,5 +15,9 @@ conda install packagename
 
 Pretty much any scientific package you can think of is available! Search at https://anaconda.org/
 
-To install packages open a "Linux Terminal" and select your compute server. 
+If you need to add a channel do
+
+```sh
+conda config append channels 
+```
 

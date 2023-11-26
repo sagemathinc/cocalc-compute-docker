@@ -4,8 +4,11 @@ USER root
 
 RUN apt-get update && apt-get install -qq -y wget curl git vim
 
-RUN mkdir /mamba && chown user:user /mamba
-ENV MAMBA_ROOT_PREFIX=/mamba
+COPY bash.sh /tmp/
+RUN cat /tmp/bash.sh >> /etc/bash.bashrc && rm /tmp/bash.sh
+
+RUN mkdir /conda && chown user:user /conda
+ENV MAMBA_ROOT_PREFIX=/conda
 
 # Install micromamba self-contained binary
 RUN \
@@ -13,28 +16,26 @@ RUN \
   && export CONDA_FORGE_YES=yes \
   && "${SHELL}" <(curl -L micro.mamba.pm/install.sh) </dev/null
 
-RUN echo 'eval "$(micromamba shell hook --shell bash)"' >> /etc/bash.bashrc
-# Activate our default environment, by default
-RUN echo "micromamba activate default" >> /etc/bash.bashrc
 # Micromamba is a fast clean self contained "drop in replacement", so
 # for the muscle memory of people just using this image quickly, let's
 # make it easy on them.
-RUN echo "alias conda=micromamba" >>  /etc/bash.bashrc
-RUN echo "alias mamba=micromamba" >>  /etc/bash.bashrc
+RUN ln -s /usr/local/bin/micromamba /usr/local/bin/conda
+RUN ln -s /usr/local/bin/micromamba /usr/local/bin/mamba
 
 USER user
 
+# Add some common channels and setup the default environment
 RUN \
      micromamba config append channels conda-forge \
   && micromamba config append channels anaconda \
   && micromamba config append channels huggingface \
   && micromamba config append channels pytorch \
-  && micromamba config append channels defaults \
-  && micromamba create --name default python=3.11
+  && micromamba create --name default  python=3.11
 
-USER root
-RUN echo 'echo "-----------------------------------------------------------------------------------"' >>  /etc/bash.bashrc
-RUN echo 'echo "This is a Micromamba Anaconda Python environment."' >>  /etc/bash.bashrc
-RUN echo 'echo "Use conda list to see all packages and conda install to install new ones."' >>  /etc/bash.bashrc
-RUN echo 'echo "-----------------------------------------------------------------------------------"' >>  /etc/bash.bashrc
-USER user
+# Install enough to run a Jupyter notebook, since
+# some users would want to use conda through that.
+COPY install.sh /tmp/
+RUN /tmp/install.sh jupyter
+
+RUN micromamba clean -a -y
+
