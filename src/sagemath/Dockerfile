@@ -1,3 +1,6 @@
+ARG SAGEMATH_VERSION
+FROM sagemathinc/sagemath-core:${SAGEMATH_VERSION} as sagemath
+
 FROM sagemathinc/python
 
 # Install packages that Sage assumes are there
@@ -7,8 +10,7 @@ RUN chmod +x /tmp/install-packages.sh && /tmp/install-packages.sh
 
 USER user
 
-ARG SAGEMATH_VERSION
-COPY --from=sagemathinc/sagemath-core:$SAGEMATH_VERSION /usr/local/sage /usr/local/sage
+COPY --from=sagemath /usr/local/sage /usr/local/sage
 
 # Run sage once; otherwise, the first startup is slow.
 RUN /usr/local/sage/sage < /dev/null
@@ -27,3 +29,7 @@ RUN sage --nodotsage -c "install_scripts('/usr/local/bin')"
 WORKDIR /home/user
 
 USER user
+
+
+# Note there is a trick used above for copying from a specific tag of another image. See
+# https://forums.docker.com/t/how-can-i-expand-a-variable-within-a-copy-command-in-the-dockerfile/113538/7
