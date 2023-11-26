@@ -8,11 +8,20 @@ USER root
 # the latest R, please install it yourself.
 RUN \
   apt-get update \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y r-base r-cran-tidyverse tidy
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+     build-essential r-base \
+     libopenblas-dev liblapack-dev libx11-dev libxt-dev libcurl4-openssl-dev
+
+ARG R_VERSION
+COPY build-r.sh /tmp
+RUN /tmp/build-r.sh ${R_VERSION}
+
+# Did it work?
+RUN /usr/local/bin/R --version
 
 # Install R Jupyter Kernel package into R itself (so the R Jupyter kernel works),
 # and some other packages e.g., rmarkdown which requires reticulate to use Python.
-RUN echo "install.packages(c('repr', 'IRdisplay', 'evaluate', 'crayon', 'pbdZMQ', 'httr', 'devtools', 'uuid', 'digest', 'IRkernel', 'rmarkdown', 'reticulate', 'formatR'), repos='https://cloud.r-project.org')" | R --no-save
+RUN echo "options(Ncpus = 4); install.packages(c('tidyverse', 'repr', 'IRdisplay', 'evaluate', 'crayon', 'pbdZMQ', 'httr', 'devtools', 'uuid', 'digest', 'IRkernel', 'rmarkdown', 'reticulate', 'formatR'), repos='https://cloud.r-project.org')" | R --no-save
 
 COPY ir /usr/local/share/jupyter/kernels/ir
 

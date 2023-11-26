@@ -160,13 +160,22 @@ push-julia:
 assemble-julia:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/julia $(JULIA_VERSION)
 
+# See https://docs.posit.co/resources/install-r-source/#install-required-dependencies
+# NOTE: I tried using just "r" for this docker image and everything works until trying
+# to make thee assembled multiplatform package sagemathinc/r, where we just get a
+# weird permission denied error.  I guess 1-letter docker images have issues.
+R_VERSION=4.3.2
+rstats:
+	cd src/rstats && docker build --build-arg R_VERSION=$(R_VERSION) -t $(DOCKER_USER)/rstats$(ARCH):$(R_VERSION) .
+push-rstats:
+	docker push $(DOCKER_USER)/rstats$(ARCH):$(R_VERSION)
+run-rstats:
+	docker run -it --rm $(DOCKER_USER)/rstats$(ARCH):$(R_VERSION) bash
+assemble-rstats:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/rstats $(R_VERSION)
 
-rlang:
-	cd src/rlang && docker build -t $(DOCKER_USER)/rlang$(ARCH):$(IMAGE_TAG) .
-push-rlang:
-	docker push $(DOCKER_USER)/rlang$(ARCH):$(IMAGE_TAG)
-run-rlang:
-	docker run -it --rm $(DOCKER_USER)/rlang$(ARCH):$(IMAGE_TAG) bash
+
+
 
 anaconda:
 	cd src/anaconda && docker build  --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-anaconda$(ARCH):$(IMAGE_TAG) .
