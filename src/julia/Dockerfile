@@ -1,11 +1,8 @@
-ARG ARCH=
-
-FROM sagemathinc/compute-python${ARCH} AS base
+FROM sagemathinc/python AS base
 
 USER root
 
 # Install Julia
-# See https://julialang.org/downloads/ for current version
 
 # The arm64 one looks like this:
 #
@@ -15,12 +12,12 @@ USER root
 #
 # https://julialang-s3.julialang.org/bin/linux/x64/1.9/julia-1.9.4-linux-x86_64.tar.gz
 
-ARG JULIA=1.9.4
+ARG JULIA_VERSION
 
 RUN cd /tmp \
  && export ARCH1=`uname -m | sed s/x86_64/x64/` \
  && export ARCH2=`uname -m` \
- && curl -fsSL https://julialang-s3.julialang.org/bin/linux/${ARCH1}/${JULIA%.*}/julia-${JULIA}-linux-${ARCH2}.tar.gz > julia.tar.gz \
+ && curl -fsSL https://julialang-s3.julialang.org/bin/linux/${ARCH1}/${JULIA_VERSION%.*}/julia-${JULIA_VERSION}-linux-${ARCH2}.tar.gz > julia.tar.gz \
  && tar xf julia.tar.gz -C /opt \
  && rm  -f julia.tar.gz \
  && mv /opt/julia-* /opt/julia \

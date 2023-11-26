@@ -1,6 +1,4 @@
-ARG ARCH=
-
-FROM sagemathinc/compute-python${ARCH} AS base
+FROM sagemathinc/python AS base
 
 USER root
 

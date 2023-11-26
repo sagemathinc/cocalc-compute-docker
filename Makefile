@@ -7,9 +7,8 @@ BRANCH=master
 
 COMMIT=$(shell git ls-remote -h https://github.com/sagemathinc/cocalc $(BRANCH) | awk '{print $$1}')
 
+ARCH=$(shell uname -m | sed 's/x86_64/-x86_64/;s/arm64/-arm64/;s/aarch64/-arm64/')
 ARCH0=$(shell uname -m | sed 's/x86_64/-x86_64/;s/arm64/-arm64/;s/aarch64/-arm64/')
-# Depending on your platform, set the ARCH variable
-ARCH=$(shell uname -m | sed 's/x86_64//;s/arm64/-arm64/;s/aarch64/-arm64/')
 
 all-x86:
 	make core && make math && make gpu
@@ -71,7 +70,7 @@ push-cocalc:
 #     $(DOCKER_USER)/base
 # which is what gets used everywhere else.
 
-build-base:
+base:
 	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH0):$(IMAGE_TAG) .
 run-base:
 	docker run -it --rm $(DOCKER_USER)/base$(ARCH0):$(IMAGE_TAG) bash
@@ -82,7 +81,7 @@ assemble-base:
 
 
 ## IMAGE: filesystem
-build-filesystem:
+filesystem:
 	cd src/filesystem && docker build -t $(DOCKER_USER)/filesystem$(ARCH0):$(IMAGE_TAG) .
 run-filesystem:
 	docker run -it --rm $(DOCKER_USER)/filesystem$(ARCH0):$(IMAGE_TAG) bash
@@ -92,7 +91,7 @@ assemble-filesystem:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/filesystem $(IMAGE_TAG)
 
 ## IMAGE: compute
-build-compute:
+compute:
 	cd src/compute && docker build -t $(DOCKER_USER)/compute$(ARCH0):$(IMAGE_TAG) .
 run-compute:
 	docker run -it --rm $(DOCKER_USER)/compute$(ARCH0):$(IMAGE_TAG) bash
@@ -102,7 +101,7 @@ assemble-compute:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/compute $(IMAGE_TAG)
 
 ## IMAGE: python
-build-python:
+python:
 	cd src/python && docker build -t $(DOCKER_USER)/python$(ARCH0):$(IMAGE_TAG) .
 run-python:
 	docker run -it --rm $(DOCKER_USER)/python$(ARCH0):$(IMAGE_TAG) bash
@@ -112,52 +111,60 @@ assemble-python:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/python $(IMAGE_TAG)
 
 
-
 math:
-	make sagemath-10.1 && make rlang && make anaconda && make julia
+	make sagemath && make rlang && make anaconda && make julia
 push-math:
-	make push-sagemath-10.1 && make push-rlang && make push-anaconda && make push-julia
+	make push-sagemath && make push-rlang && make push-anaconda && make push-julia
 
-# This takes a long time to run, since it builds sage from source.  You only ever should do this once per
-# Sage release and architecture.  It results in a directory /usr/local/sage, which gets copied into
-# the sagemath-10.1 image below.  Run this on both an x86 and arm64 machine, then run
-# sagemath-10.1-core to combine the two docker images together.
-sagemath-10.1-core-arch:
-	cd src/sagemath-10.1/core && docker build  -t $(DOCKER_USER)/sagemath-10.1-core$(ARCH0):$(IMAGE_TAG) .
-push-sagemath-10.1-core-arch:
-	docker push $(DOCKER_USER)/sagemath-10.1-core$(ARCH0):$(IMAGE_TAG)
-run-sagemath-10.1-core-arch:
-	docker run -it --rm $(DOCKER_USER)/sagemath-10.1-core$(ARCH0):$(IMAGE_TAG) bash
-# Run this *after* sagemath-10.1-core-arch has been run on both x86_64 *and* on arm64.
-sagemath-10.1-core:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/sagemath-10.1-core $(IMAGE_TAG)
-run-sagemath-10.1-core:
-	docker run -it --rm $(DOCKER_USER)/sagemath-10.1-core:$(IMAGE_TAG) bash
+## IMAGE: sagemath-core
 
-# this depends on sagemath-10.1-core having been built
-sagemath-10.1-arch:
-	cd src/sagemath-10.1 && \
-	docker build -t $(DOCKER_USER)/sagemath-10.1$(ARCH0):$(IMAGE_TAG) -f Dockerfile .
-push-sagemath-10.1-arch:
-	docker push $(DOCKER_USER)/sagemath-10.1$(ARCH0):$(IMAGE_TAG)
-run-sagemath-10.1-arch:
-	docker run -it --rm $(DOCKER_USER)/sagemath-10.1$(ARCH0):$(IMAGE_TAG) bash
-sagemath-10.0:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/sagemath-10.1 $(IMAGE_TAG)
+# This takes a long time to run (e.g., hours!), since it **builds sage from source**.
+# You only ever should do this once per Sage release and architecture.  It results
+# in a directory /usr/local/sage, which gets copied into
+# the sagemath image below.  Run this on both an x86 and arm64 machine, then run
+# sagemath-core to combine the two docker images together.
+SAGEMATH_VERSION=10.1
+sagemath-core:
+	cd src/sagemath/core && docker build  -t $(DOCKER_USER)/sagemath-core$(ARCH0):$(SAGEMATH_VERSION) .
+run-sagemath-core:
+	docker run -it --rm $(DOCKER_USER)/sagemath-core$(ARCH0):$(SAGEMATH_VERSION) bash
+push-sagemath-core:
+	docker push $(DOCKER_USER)/sagemath-core$(ARCH0):$(SAGEMATH_VERSION)
+assemble-sagemath-core:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_VERSION)
 
+## IMAGE: sagemath
+# this depends on sagemath-core existing
+sagemath:
+	cd src/sagemath && \
+	docker build --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemath$(ARCH0):$(SAGEMATH_VERSION) -f Dockerfile .
+run-sagemath:
+	docker run -it --rm $(DOCKER_USER)/sagemath$(ARCH0):$(SAGEMATH_VERSION) bash
+push-sagemath:
+	docker push $(DOCKER_USER)/sagemath$(ARCH0):$(SAGEMATH_VERSION)
+assemble-sagemath:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/sagemath $(SAGEMATH_VERSION)
+
+## IMAGE: julia
+
+# See https://julialang.org/downloads/ for current version
+JULIA_VERSION=1.9.4
 julia:
-	cd src/julia && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-julia$(ARCH):$(IMAGE_TAG) .
-push-julia:
-	docker push $(DOCKER_USER)/compute-julia$(ARCH):$(IMAGE_TAG)
+	cd src/julia && docker build --build-arg JULIA_VERSION=$(JULIA_VERSION) -t $(DOCKER_USER)/julia$(ARCH0):$(JULIA_VERSION) .
 run-julia:
-	docker run -it --rm $(DOCKER_USER)/compute-julia$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/julia$(ARCH0):$(JULIA_VERSION) bash
+push-julia:
+	docker push $(DOCKER_USER)/julia$(ARCH0):$(JULIA_VERSION)
+assemble-julia:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/julia $(JULIA_VERSION)
+
 
 rlang:
-	cd src/rlang && docker build --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-rlang$(ARCH):$(IMAGE_TAG) .
+	cd src/rlang && docker build -t $(DOCKER_USER)/rlang$(ARCH):$(IMAGE_TAG) .
 push-rlang:
-	docker push $(DOCKER_USER)/compute-rlang$(ARCH):$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/rlang$(ARCH):$(IMAGE_TAG)
 run-rlang:
-	docker run -it --rm $(DOCKER_USER)/compute-rlang$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/rlang$(ARCH):$(IMAGE_TAG) bash
 
 anaconda:
 	cd src/anaconda && docker build  --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-anaconda$(ARCH):$(IMAGE_TAG) .
