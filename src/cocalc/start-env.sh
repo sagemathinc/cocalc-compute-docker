@@ -32,7 +32,7 @@ export DEBUG=$(test -f /cocalc/conf/debug && cat /cocalc/conf/debug || echo "")
 export UNIONFS_UPPER=/data/.cache
 
 # Where websocketfs is mounted
-export UNIONFS_LOWER=/data/.websocketf
+export UNIONFS_LOWER=/data/.websocketfs
 
 # Where user home directory is mounted
 export PROJECT_HOME=/home/user

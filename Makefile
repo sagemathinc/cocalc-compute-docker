@@ -160,6 +160,8 @@ push-julia:
 assemble-julia:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/julia $(JULIA_VERSION)
 
+## IMAGE: rstats
+
 # See https://docs.posit.co/resources/install-r-source/#install-required-dependencies
 # NOTE: I tried using just "r" for this docker image and everything works until trying
 # to make thee assembled multiplatform package sagemathinc/r, where we just get a
@@ -175,14 +177,16 @@ assemble-rstats:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/rstats $(R_VERSION)
 
 
-
+## IMAGE: anaconda
 
 anaconda:
-	cd src/anaconda && docker build  --build-arg ARCH=$(ARCH) -t $(DOCKER_USER)/compute-anaconda$(ARCH):$(IMAGE_TAG) .
+	cd src/anaconda && docker build -t $(DOCKER_USER)/anaconda$(ARCH):$(IMAGE_TAG) .
 push-anaconda:
-	docker push $(DOCKER_USER)/compute-anaconda$(ARCH):$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/anaconda$(ARCH):$(IMAGE_TAG)
 run-anaconda:
-	docker run -it --rm $(DOCKER_USER)/compute-anaconda$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/anaconda$(ARCH):$(IMAGE_TAG) bash
+assemble-anaconda:
+	./src/scripts/multiarch.sh $(DOCKER_USER)/anaconda $(IMAGE_TAG)
 
 
 #####
