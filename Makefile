@@ -1,6 +1,6 @@
 # Docker image parameters
 DOCKER_USER=sagemathinc
-IMAGE_TAG=latest
+TAG=
 
 # CoCalc Git parameters
 BRANCH=master
@@ -33,10 +33,10 @@ push-core:
 # easier.  We push two packages to npm, one for each arch.
 
 cocalc:
-	cd src/cocalc && docker build --build-arg COMMIT=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) .
+	cd src/cocalc && docker build --build-arg COMMIT=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(TAG) .
 
 run-cocalc:
-	docker run -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(TAG) bash
 
 # Copy from docker image and publish @cocalc/compute-cocalc$(ARCH)
 # to the npm registry.  This only works, of course, if you are signed
@@ -73,44 +73,44 @@ push-cocalc:
 # which is what gets used everywhere else.
 
 base:
-	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH):$(IMAGE_TAG) .
+	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH):$(TAG) .
 run-base:
-	docker run -it --rm $(DOCKER_USER)/base$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/base$(ARCH):$(TAG) bash
 push-base:
-	docker push $(DOCKER_USER)/base$(ARCH):$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/base$(ARCH):$(TAG)
 assemble-base:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/base $(IMAGE_TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/base $(TAG)
 
 
 ## IMAGE: filesystem
 filesystem:
-	cd src/filesystem && docker build -t $(DOCKER_USER)/filesystem$(ARCH):$(IMAGE_TAG) .
+	cd src/filesystem && docker build -t $(DOCKER_USER)/filesystem$(ARCH):$(TAG) .
 run-filesystem:
-	docker run -it --rm $(DOCKER_USER)/filesystem$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/filesystem$(ARCH):$(TAG) bash
 push-filesystem:
-	docker push $(DOCKER_USER)/filesystem$(ARCH):$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/filesystem$(ARCH):$(TAG)
 assemble-filesystem:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/filesystem $(IMAGE_TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/filesystem $(TAG)
 
 ## IMAGE: compute
 compute:
-	cd src/compute && docker build -t $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG) .
+	cd src/compute && docker build -t $(DOCKER_USER)/compute$(ARCH):$(TAG) .
 run-compute:
-	docker run -it --rm $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/compute$(ARCH):$(TAG) bash
 push-compute:
-	docker push $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/compute$(ARCH):$(TAG)
 assemble-compute:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/compute $(IMAGE_TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/compute $(TAG)
 
 ## IMAGE: python
 python:
-	cd src/python && docker build -t $(DOCKER_USER)/python$(ARCH):$(IMAGE_TAG) .
+	cd src/python && docker build -t $(DOCKER_USER)/python$(ARCH):$(TAG) .
 run-python:
-	docker run -it --rm $(DOCKER_USER)/python$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/python$(ARCH):$(TAG) bash
 push-python:
-	docker push $(DOCKER_USER)/python$(ARCH):$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/python$(ARCH):$(TAG)
 assemble-python:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/python $(IMAGE_TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/python $(TAG)
 
 
 math:
@@ -133,7 +133,7 @@ run-sagemath-core:
 push-sagemath-core:
 	docker push $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_VERSION)
 assemble-sagemath-core:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_VERSION)
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_VERSION)
 
 ## IMAGE: sagemath
 # this depends on sagemath-core existing
@@ -145,7 +145,7 @@ run-sagemath:
 push-sagemath:
 	docker push $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION)
 assemble-sagemath:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/sagemath $(SAGEMATH_VERSION)
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath $(SAGEMATH_VERSION)
 
 ## IMAGE: julia
 
@@ -158,7 +158,7 @@ run-julia:
 push-julia:
 	docker push $(DOCKER_USER)/julia$(ARCH):$(JULIA_VERSION)
 assemble-julia:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/julia $(JULIA_VERSION)
+	./src/scripts/assemble.sh $(DOCKER_USER)/julia $(JULIA_VERSION)
 
 ## IMAGE: rstats
 
@@ -174,19 +174,19 @@ push-rstats:
 run-rstats:
 	docker run -it --rm $(DOCKER_USER)/rstats$(ARCH):$(R_VERSION) bash
 assemble-rstats:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/rstats $(R_VERSION)
+	./src/scripts/assemble.sh $(DOCKER_USER)/rstats $(R_VERSION)
 
 
 ## IMAGE: anaconda
 
 anaconda:
-	cd src/anaconda && docker build -t $(DOCKER_USER)/anaconda$(ARCH):$(IMAGE_TAG) .
+	cd src/anaconda && docker build -t $(DOCKER_USER)/anaconda$(ARCH):$(TAG) .
 push-anaconda:
-	docker push $(DOCKER_USER)/anaconda$(ARCH):$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/anaconda$(ARCH):$(TAG)
 run-anaconda:
-	docker run -it --rm $(DOCKER_USER)/anaconda$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/anaconda$(ARCH):$(TAG) bash
 assemble-anaconda:
-	./src/scripts/multiarch.sh $(DOCKER_USER)/anaconda $(IMAGE_TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/anaconda $(TAG)
 
 
 #####
@@ -199,45 +199,36 @@ push-gpu:
 	make push-cuda && make push-pytorch && make push-tensorflow && make push-colab
 
 cuda:
-	cd src/cuda && docker build -t $(DOCKER_USER)/compute-cuda:$(IMAGE_TAG) .
+	cd src/cuda && docker build -t $(DOCKER_USER)/compute-cuda:$(TAG) .
 push-cuda:
-	docker push $(DOCKER_USER)/compute-cuda:$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/compute-cuda:$(TAG)
 run-cuda:
-	docker run -it --rm $(DOCKER_USER)/compute-cuda$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/compute-cuda$(ARCH):$(TAG) bash
 
 
 pytorch:
-	cd src/pytorch && docker build -t $(DOCKER_USER)/compute-pytorch:$(IMAGE_TAG) .
+	cd src/pytorch && docker build -t $(DOCKER_USER)/compute-pytorch:$(TAG) .
 push-pytorch:
-	docker push $(DOCKER_USER)/compute-pytorch:$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/compute-pytorch:$(TAG)
 run-pytorch:
-	docker run -it --rm $(DOCKER_USER)/compute-pytorch$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/compute-pytorch$(ARCH):$(TAG) bash
 
 
 tensorflow:
 	# do not cd to tensorflow directory, because we need to access start.js which is here.
 	# We want the build context to be bigger.
-	cd src/tensorflow && docker build -t $(DOCKER_USER)/compute-tensorflow:$(IMAGE_TAG) .
+	cd src/tensorflow && docker build -t $(DOCKER_USER)/compute-tensorflow:$(TAG) .
 push-tensorflow:
-	docker push $(DOCKER_USER)/compute-tensorflow:$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/compute-tensorflow:$(TAG)
 run-tensorflow:
-	docker run -it --rm $(DOCKER_USER)/compute-tensorflow$(ARCH):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/compute-tensorflow$(ARCH):$(TAG) bash
 
 
 colab:
-	cd src/colab && docker build -t $(DOCKER_USER)/compute-colab:$(IMAGE_TAG) .
+	cd src/colab && docker build -t $(DOCKER_USER)/compute-colab:$(TAG) .
 push-colab:
-	docker push $(DOCKER_USER)/compute-colab:$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/compute-colab:$(TAG)
 run-colab:
-	docker run -it --rm $(DOCKER_USER)/compute-colab:$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/compute-colab:$(TAG) bash
 
 
-
-
-# # Everything for deep learning: tensorflow + pytorch + transformers all in one
-# deeplearning:
-# 	cd src/deeplearning && docker build -t $(DOCKER_USER)/compute-deeplearning:$(IMAGE_TAG) .
-# push-deeplearning:
-# 	docker push $(DOCKER_USER)/compute-deeplearning:$(IMAGE_TAG)
-# run-deeplearning:
-# 	docker run -it --rm $(DOCKER_USER)/compute-deeplearning$(ARCH):$(IMAGE_TAG) bash
