@@ -8,7 +8,6 @@ BRANCH=master
 COMMIT=$(shell git ls-remote -h https://github.com/sagemathinc/cocalc $(BRANCH) | awk '{print $$1}')
 
 ARCH=$(shell uname -m | sed 's/x86_64/-x86_64/;s/arm64/-arm64/;s/aarch64/-arm64/')
-ARCH0=$(shell uname -m | sed 's/x86_64/-x86_64/;s/arm64/-arm64/;s/aarch64/-arm64/')
 
 all-x86:
 	make core && make math && make gpu
@@ -45,23 +44,26 @@ run-cocalc:
 # This automatically publishes as the next available minor version of
 # the package (but doesn't modify local git at all).
 COCALC_NPM=src/cocalc-npm
+# Depending on your platform, set the ARCH0 variable. This is only set on arm64 to "-arm64", and is blank on x86_64.
+ARCH0=$(shell uname -m | sed 's/x86_64//;s/arm64/-arm64/;s/aarch64/-arm64/')
 push-cocalc:
-	rm -rf /tmp/cocalc-npm$(ARCH)
-	mkdir -p /tmp/cocalc-npm$(ARCH)/dist
-	cp -rv $(COCALC_NPM)/* /tmp/cocalc-npm$(ARCH)
+	rm -rf /tmp/cocalc-npm$(ARCH0)
+	mkdir -p /tmp/cocalc-npm$(ARCH0)/dist
+	cp -rv $(COCALC_NPM)/* /tmp/cocalc-npm$(ARCH0)
 	docker rm temp-copy-cocalc || true
-	docker create --name temp-copy-cocalc $(DOCKER_USER)/compute-cocalc$(ARCH)
-	docker cp temp-copy-cocalc:/cocalc /tmp/cocalc-npm$(ARCH)/dist/cocalc
+	docker create --name temp-copy-cocalc $(DOCKER_USER)/compute-cocalc$(ARCH0)
+	docker cp temp-copy-cocalc:/cocalc /tmp/cocalc-npm$(ARCH0)/dist/cocalc
 	docker rm temp-copy-cocalc
-	cd /tmp/cocalc-npm$(ARCH)/dist/ && tar -zcf cocalc.tar.gz cocalc
-	rm -r /tmp/cocalc-npm$(ARCH)/dist/cocalc/
+	cd /tmp/cocalc-npm$(ARCH0)/dist/ && tar -zcf cocalc.tar.gz cocalc
+	rm -r /tmp/cocalc-npm$(ARCH0)/dist/cocalc/
 	# Add -arm64 extension to package name, if necessary.
-	@if [ -n "$(ARCH)" ]; then sed -i.bak 's/compute-server/compute-server-arm64/g' /tmp/cocalc-npm$(ARCH)/package.json; fi
-	cd /tmp/cocalc-npm$(ARCH) \
-		&& npm version `npm view @cocalc/compute-server$(ARCH) version` || true \
+	@if [ -n "$(ARCH0)" ]; then sed -i.bak 's/compute-server/compute-server-arm64/g' /tmp/cocalc-npm$(ARCH0)/package.json; fi
+	cd /tmp/cocalc-npm$(ARCH0) \
+		&& npm version `npm view @cocalc/compute-server$(ARCH0) version` || true \
 		&& npm version minor \
 		&& npm publish --access=public --no-git-checks
-	rm -rf /tmp/cocalc-npm$(ARCH)
+	# Comment this line out if you want to do something brutal, like explicitly set the version number on npmjs.
+	rm -rf /tmp/cocalc-npm$(ARCH0)
 
 ## IMAGE: base
 # We build base-x86_64 and base-arm64.
@@ -71,42 +73,42 @@ push-cocalc:
 # which is what gets used everywhere else.
 
 base:
-	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH0):$(IMAGE_TAG) .
+	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH):$(IMAGE_TAG) .
 run-base:
-	docker run -it --rm $(DOCKER_USER)/base$(ARCH0):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/base$(ARCH):$(IMAGE_TAG) bash
 push-base:
-	docker push $(DOCKER_USER)/base$(ARCH0):$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/base$(ARCH):$(IMAGE_TAG)
 assemble-base:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/base $(IMAGE_TAG)
 
 
 ## IMAGE: filesystem
 filesystem:
-	cd src/filesystem && docker build -t $(DOCKER_USER)/filesystem$(ARCH0):$(IMAGE_TAG) .
+	cd src/filesystem && docker build -t $(DOCKER_USER)/filesystem$(ARCH):$(IMAGE_TAG) .
 run-filesystem:
-	docker run -it --rm $(DOCKER_USER)/filesystem$(ARCH0):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/filesystem$(ARCH):$(IMAGE_TAG) bash
 push-filesystem:
-	docker push $(DOCKER_USER)/filesystem$(ARCH0):$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/filesystem$(ARCH):$(IMAGE_TAG)
 assemble-filesystem:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/filesystem $(IMAGE_TAG)
 
 ## IMAGE: compute
 compute:
-	cd src/compute && docker build -t $(DOCKER_USER)/compute$(ARCH0):$(IMAGE_TAG) .
+	cd src/compute && docker build -t $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG) .
 run-compute:
-	docker run -it --rm $(DOCKER_USER)/compute$(ARCH0):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG) bash
 push-compute:
-	docker push $(DOCKER_USER)/compute$(ARCH0):$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/compute$(ARCH):$(IMAGE_TAG)
 assemble-compute:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/compute $(IMAGE_TAG)
 
 ## IMAGE: python
 python:
-	cd src/python && docker build -t $(DOCKER_USER)/python$(ARCH0):$(IMAGE_TAG) .
+	cd src/python && docker build -t $(DOCKER_USER)/python$(ARCH):$(IMAGE_TAG) .
 run-python:
-	docker run -it --rm $(DOCKER_USER)/python$(ARCH0):$(IMAGE_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/python$(ARCH):$(IMAGE_TAG) bash
 push-python:
-	docker push $(DOCKER_USER)/python$(ARCH0):$(IMAGE_TAG)
+	docker push $(DOCKER_USER)/python$(ARCH):$(IMAGE_TAG)
 assemble-python:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/python $(IMAGE_TAG)
 
@@ -125,11 +127,11 @@ push-math:
 # sagemath-core to combine the two docker images together.
 SAGEMATH_VERSION=10.1
 sagemath-core:
-	cd src/sagemath/core && docker build  -t $(DOCKER_USER)/sagemath-core$(ARCH0):$(SAGEMATH_VERSION) .
+	cd src/sagemath/core && docker build  -t $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_VERSION) .
 run-sagemath-core:
-	docker run -it --rm $(DOCKER_USER)/sagemath-core$(ARCH0):$(SAGEMATH_VERSION) bash
+	docker run -it --rm $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_VERSION) bash
 push-sagemath-core:
-	docker push $(DOCKER_USER)/sagemath-core$(ARCH0):$(SAGEMATH_VERSION)
+	docker push $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_VERSION)
 assemble-sagemath-core:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_VERSION)
 
@@ -137,11 +139,11 @@ assemble-sagemath-core:
 # this depends on sagemath-core existing
 sagemath:
 	cd src/sagemath && \
-	docker build --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemath$(ARCH0):$(SAGEMATH_VERSION) -f Dockerfile .
+	docker build --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
 run-sagemath:
-	docker run -it --rm $(DOCKER_USER)/sagemath$(ARCH0):$(SAGEMATH_VERSION) bash
+	docker run -it --rm $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) bash
 push-sagemath:
-	docker push $(DOCKER_USER)/sagemath$(ARCH0):$(SAGEMATH_VERSION)
+	docker push $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION)
 assemble-sagemath:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/sagemath $(SAGEMATH_VERSION)
 
@@ -150,11 +152,11 @@ assemble-sagemath:
 # See https://julialang.org/downloads/ for current version
 JULIA_VERSION=1.9.4
 julia:
-	cd src/julia && docker build --build-arg JULIA_VERSION=$(JULIA_VERSION) -t $(DOCKER_USER)/julia$(ARCH0):$(JULIA_VERSION) .
+	cd src/julia && docker build --build-arg JULIA_VERSION=$(JULIA_VERSION) -t $(DOCKER_USER)/julia$(ARCH):$(JULIA_VERSION) .
 run-julia:
-	docker run -it --rm $(DOCKER_USER)/julia$(ARCH0):$(JULIA_VERSION) bash
+	docker run -it --rm $(DOCKER_USER)/julia$(ARCH):$(JULIA_VERSION) bash
 push-julia:
-	docker push $(DOCKER_USER)/julia$(ARCH0):$(JULIA_VERSION)
+	docker push $(DOCKER_USER)/julia$(ARCH):$(JULIA_VERSION)
 assemble-julia:
 	./src/scripts/multiarch.sh $(DOCKER_USER)/julia $(JULIA_VERSION)
 
