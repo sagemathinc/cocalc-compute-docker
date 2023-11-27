@@ -3,7 +3,7 @@
   "argv": [
     "R",
     "-e",
-    "options(jupyter.plot_mimetypes = c('image/svg+xml')); IRkernel::main()",
+    "options(bitmapType='cairo', jupyter.plot_mimetypes = c('image/svg+xml')); IRkernel::main()",
     "--args",
     "{connection_file}"
   ],
