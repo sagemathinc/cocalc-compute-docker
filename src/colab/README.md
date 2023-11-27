@@ -1,20 +1,10 @@
-# Colab-like environment
+# The Official Google Colab Environment
 
-To update, run the following in a fresh Colab notebook:
+This is the official Google Colab Runtime Environment, as described
+here:
 
-```bash
-! pip freeze > pip.txt
-```
+https://research.google.com/colaboratory/local-runtimes.html
 
-and the download the file and put it in here
-
-```bash
-from google.colab import files
-files.download('pip.txt')
-```
-
-Similarly, to get the `apt.txt` file, run
-
-```bash
-! apt list --installed > apt.txt
-```
+If you want to use and support both CoCalc and Colab, this should make your job
+easier, since it provides an easy way on CoCalc to get the exact same 
+environment as Colab.

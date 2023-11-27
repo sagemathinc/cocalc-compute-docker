@@ -1,13 +1,8 @@
-# See https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch
-FROM nvcr.io/nvidia/pytorch:23.10-py3
+ARG PYTORCH_TAG
+FROM nvcr.io/nvidia/pytorch:${PYTORCH_TAG}
 
-# To easily install certain things from Hugging Face, we install
-# libraries that huggingface libraries use.
-RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6
-RUN pip install diffusers transformers diffusers invisible_watermark accelerate safetensors sentencepiece
-
-# Also, some popular python libraries
-RUN pip install matplotlib pandas numpy scipy scikit-learn requests beautifulsoup4 sympy mpmath pyyaml networkx
+COPY pytorch/install-python-support.sh /tmp
+RUN /tmp/install-python-support.sh && rm /tmp/install-python-support.sh
 
 # Standard CoCalc compute setup:
 ENV LC_ALL=C.UTF-8

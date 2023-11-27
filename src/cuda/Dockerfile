@@ -1,5 +1,5 @@
-ARG CUDA_VERSION
-FROM nvcr.io/nvidia/cuda:${CUDA_VERSION}
+ARG CUDA_TAG
+FROM nvcr.io/nvidia/cuda:${CUDA_TAG}
 
 MAINTAINER William Stein <wstein@sagemath.com>
 

@@ -178,7 +178,6 @@ assemble-rstats:
 
 
 ## IMAGE: anaconda
-
 anaconda:
 	cd src/anaconda && docker build -t $(DOCKER_USER)/anaconda$(ARCH):$(TAG) .
 push-anaconda:
@@ -201,40 +200,52 @@ push-gpu:
 
 ## See https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/supported-tags.md for the
 # available supported versions.
-CUDA_VERSION=12.3.0-devel-ubuntu22.04
+CUDA_TAG=12.3.0-devel-ubuntu22.04
 cuda:
-	cd src && docker build --build-arg CUDA_VERSION=$(CUDA_VERSION) -t $(DOCKER_USER)/cuda:$(CUDA_VERSION) . -f cuda/Dockerfile
+	cd src && docker build --build-arg CUDA_TAG=$(CUDA_TAG) -t $(DOCKER_USER)/cuda:$(CUDA_TAG) . -f cuda/Dockerfile
 push-cuda:
-	docker push $(DOCKER_USER)/cuda:$(CUDA_VERSION)
+	docker push $(DOCKER_USER)/cuda:$(CUDA_TAG)
 run-cuda:
-	docker run --gpus all -it --rm $(DOCKER_USER)/cuda:$(CUDA_VERSION) bash
+	docker run --gpus all -it --rm $(DOCKER_USER)/cuda:$(CUDA_TAG) bash
 run-coda-nogpu:
-	docker run -it --rm $(DOCKER_USER)/cuda:$(CUDA_VERSION) bash
+	docker run -it --rm $(DOCKER_USER)/cuda:$(CUDA_TAG) bash
 
-
+# See https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch/tags
+PYTORCH_TAG=23.10-py3
 pytorch:
-	cd src/pytorch && docker build -t $(DOCKER_USER)/pytorch:$(TAG) .
+	cd src && docker build --build-arg PYTORCH_TAG=$(PYTORCH_TAG) -t $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) . -f pytorch/Dockerfile
 push-pytorch:
-	docker push $(DOCKER_USER)/pytorch:$(TAG)
+	docker push $(DOCKER_USER)/pytorch:$(PYTORCH_TAG)
 run-pytorch:
-	docker run -it --rm $(DOCKER_USER)/pytorch:$(TAG) bash
+	docker run --gpus all -it --rm $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) bash
+run-pytorch-nogpu:
+	docker run -it --rm $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) bash
 
-
+# See https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tensorflow for the tag.
+# fortunately nvcr.io/nvidia/tensorflow uses Ubuntu 22.04LTS too.
+TENSORFLOW_TAG=23.10-tf2-py3
 tensorflow:
 	# do not cd to tensorflow directory, because we need to access start.js which is here.
 	# We want the build context to be bigger.
-	cd src/tensorflow && docker build -t $(DOCKER_USER)/tensorflow:$(TAG) .
+	cd src && docker build  --build-arg TENSORFLOW_TAG=$(TENSORFLOW_TAG) -t $(DOCKER_USER)/tensorflow:$(TENSORFLOW_TAG) . -f tensorflow/Dockerfile
 push-tensorflow:
-	docker push $(DOCKER_USER)/tensorflow:$(TAG)
+	docker push $(DOCKER_USER)/tensorflow:$(TENSORFLOW_TAG)
 run-tensorflow:
-	docker run -it --rm $(DOCKER_USER)/tensorflow:$(TAG) bash
+	docker run --gpus all -it --rm $(DOCKER_USER)/tensorflow:$(TENSORFLOW_TAG) bash
+run-tensorflow-nogpu:
+	docker run -it --rm $(DOCKER_USER)/tensorflow:$(TENSORFLOW_TAG) bash
 
-
+# For tags see
+#    https://console.cloud.google.com/artifacts/docker/colab-images/us/public/runtime
+# They seem to do releases about once per month.
+COLAB_TAG=release-colab_20230921-060057_RC00
 colab:
-	cd src/colab && docker build -t $(DOCKER_USER)/colab:$(TAG) .
+	cd src && docker build --build-arg COLAB_TAG=$(COLAB_TAG) -t $(DOCKER_USER)/colab:$(COLAB_TAG) . -f colab/Dockerfile
 push-colab:
-	docker push $(DOCKER_USER)/colab:$(TAG)
+	docker push $(DOCKER_USER)/colab:$(COLAB_TAG)
 run-colab:
-	docker run -it --rm $(DOCKER_USER)/colab:$(TAG) bash
+	docker run --gpus all -it --rm $(DOCKER_USER)/colab:$(COLAB_TAG) bash
+run-colab-nogpu:
+	docker run -it --rm $(DOCKER_USER)/colab:$(COLAB_TAG) bash
 
 
