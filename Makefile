@@ -7,7 +7,15 @@ BRANCH=master
 
 COMMIT=$(shell git ls-remote -h https://github.com/sagemathinc/cocalc $(BRANCH) | awk '{print $$1}')
 
+# ARCH = '-x86_64' or '-arm64'
 ARCH=$(shell uname -m | sed 's/x86_64/-x86_64/;s/arm64/-arm64/;s/aarch64/-arm64/')
+
+# ARCH0 = '' or '-arm64'
+ARCH0=$(shell uname -m | sed 's/x86_64//;s/arm64/-arm64/;s/aarch64/-arm64/')
+
+# ARCH1 = 'amd64' or 'arm64'
+ARCH1=$(shell uname -m | sed 's/x86_64/amd64/;s/arm64/arm64/;s/aarch64/arm64/')
+
 
 all-x86:
 	make core && make math && make gpu
@@ -44,8 +52,6 @@ run-cocalc:
 # This automatically publishes as the next available minor version of
 # the package (but doesn't modify local git at all).
 COCALC_NPM=src/cocalc-npm
-# Depending on your platform, set the ARCH0 variable. This is only set on arm64 to "-arm64", and is blank on x86_64.
-ARCH0=$(shell uname -m | sed 's/x86_64//;s/arm64/-arm64/;s/aarch64/-arm64/')
 push-cocalc:
 	rm -rf /tmp/cocalc-npm$(ARCH0)
 	mkdir -p /tmp/cocalc-npm$(ARCH0)/dist
@@ -113,6 +119,20 @@ assemble-python:
 	./src/scripts/assemble.sh $(DOCKER_USER)/python $(TAG)
 
 
+## IMAGE: ollama
+# See https://github.com/jmorganca/ollama/releases for versions
+OLLAMA_VERSION=0.1.12
+OLLAMA_TAG=0.1.12
+ollama:
+	cd src/ollama && docker build --build-arg ARCH1=$(ARCH1) --build-arg OLLAMA_VERSION=$(OLLAMA_VERSION) -t $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG) .
+run-ollama:
+	docker run -it --rm $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG) bash
+push-ollama:
+	docker push $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG)
+assemble-ollama:
+	./src/scripts/assemble.sh $(DOCKER_USER)/ollama $(OLLAMA_TAG)
+
+
 math:
 	make sagemath && make rlang && make anaconda && make julia
 push-math:
@@ -127,7 +147,9 @@ push-math:
 # sagemath-core to combine the two docker images together.
 SAGEMATH_VERSION=10.1
 sagemath-core:
-	cd src/sagemath/core && docker build  -t $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_VERSION) .
+	# TODO: this currently just builds the latest released version of sage -- need to change it to build
+	# the version specified by SAGEMATH_VERSION!
+	cd src/sagemath/core && docker build -t $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_VERSION) .
 run-sagemath-core:
 	docker run -it --rm $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_VERSION) bash
 push-sagemath-core:
