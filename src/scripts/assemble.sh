@@ -14,12 +14,6 @@ echo IMAGE=$IMAGE
 echo TAG=$TAG
 
 docker manifest create   $IMAGE:$TAG $IMAGE-x86_64:$TAG $IMAGE-arm64:$TAG --amend
-if [ "$TAG" != 'latest' ]; then
-    docker manifest create $IMAGE:latest $IMAGE-x86_64:$TAG $IMAGE-arm64:$TAG --amend
-fi
 docker manifest annotate $IMAGE:$TAG $IMAGE-x86_64:$TAG --os linux --arch amd64
 docker manifest annotate $IMAGE:$TAG $IMAGE-arm64:$TAG  --os linux --arch arm64
 docker manifest push     $IMAGE:$TAG
-if [ "$TAG" != 'latest' ]; then
-    docker manifest push $IMAGE:latest
-fi

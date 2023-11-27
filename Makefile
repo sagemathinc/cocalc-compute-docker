@@ -198,37 +198,43 @@ gpu:
 push-gpu:
 	make push-cuda && make push-pytorch && make push-tensorflow && make push-colab
 
+
+## See https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/supported-tags.md for the
+# available supported versions.
+CUDA_VERSION=12.3.0-devel-ubuntu22.04
 cuda:
-	cd src/cuda && docker build -t $(DOCKER_USER)/compute-cuda:$(TAG) .
+	cd src && docker build --build-arg CUDA_VERSION=$(CUDA_VERSION) -t $(DOCKER_USER)/cuda:$(CUDA_VERSION) . -f cuda/Dockerfile
 push-cuda:
-	docker push $(DOCKER_USER)/compute-cuda:$(TAG)
+	docker push $(DOCKER_USER)/cuda:$(CUDA_VERSION)
 run-cuda:
-	docker run -it --rm $(DOCKER_USER)/compute-cuda$(ARCH):$(TAG) bash
+	docker run --gpus all -it --rm $(DOCKER_USER)/cuda:$(CUDA_VERSION) bash
+run-coda-nogpu:
+	docker run -it --rm $(DOCKER_USER)/cuda:$(CUDA_VERSION) bash
 
 
 pytorch:
-	cd src/pytorch && docker build -t $(DOCKER_USER)/compute-pytorch:$(TAG) .
+	cd src/pytorch && docker build -t $(DOCKER_USER)/pytorch:$(TAG) .
 push-pytorch:
-	docker push $(DOCKER_USER)/compute-pytorch:$(TAG)
+	docker push $(DOCKER_USER)/pytorch:$(TAG)
 run-pytorch:
-	docker run -it --rm $(DOCKER_USER)/compute-pytorch$(ARCH):$(TAG) bash
+	docker run -it --rm $(DOCKER_USER)/pytorch:$(TAG) bash
 
 
 tensorflow:
 	# do not cd to tensorflow directory, because we need to access start.js which is here.
 	# We want the build context to be bigger.
-	cd src/tensorflow && docker build -t $(DOCKER_USER)/compute-tensorflow:$(TAG) .
+	cd src/tensorflow && docker build -t $(DOCKER_USER)/tensorflow:$(TAG) .
 push-tensorflow:
-	docker push $(DOCKER_USER)/compute-tensorflow:$(TAG)
+	docker push $(DOCKER_USER)/tensorflow:$(TAG)
 run-tensorflow:
-	docker run -it --rm $(DOCKER_USER)/compute-tensorflow$(ARCH):$(TAG) bash
+	docker run -it --rm $(DOCKER_USER)/tensorflow:$(TAG) bash
 
 
 colab:
-	cd src/colab && docker build -t $(DOCKER_USER)/compute-colab:$(TAG) .
+	cd src/colab && docker build -t $(DOCKER_USER)/colab:$(TAG) .
 push-colab:
-	docker push $(DOCKER_USER)/compute-colab:$(TAG)
+	docker push $(DOCKER_USER)/colab:$(TAG)
 run-colab:
-	docker run -it --rm $(DOCKER_USER)/compute-colab:$(TAG) bash
+	docker run -it --rm $(DOCKER_USER)/colab:$(TAG) bash
 
 
