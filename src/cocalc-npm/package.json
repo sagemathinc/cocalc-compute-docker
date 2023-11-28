@@ -6,5 +6,5 @@
     "@cocalc/compute-server": "./index.js"
   },
   "main": "index.js",
-  "license": "AGPL"
+  "license": "AGPL + noncommercial"
 }
