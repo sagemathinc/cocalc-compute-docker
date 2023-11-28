@@ -15,7 +15,7 @@ sudo service cron start || true
 # If supervisord is there, start it.
 if [ -f /etc/supervisor/conf.d/supervisord.conf ]; then
     echo "starting supervisord"
-    sudo /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf || true
+    /usr/bin/supervisord --configuration /etc/supervisor/conf.d/supervisord.conf || true
 fi
 
 if [ -f /cocalc/src/compute/compute/start-compute.js ]; then

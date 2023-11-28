@@ -130,7 +130,7 @@ OLLAMA_TAG=0.1.12
 ollama:
 	cd src/ollama && docker build --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) --build-arg OLLAMA_VERSION=$(OLLAMA_VERSION) -t $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG) .
 run-ollama:
-	docker run -it --rm $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG)
+	docker run -it --rm --network=host $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG)
 push-ollama:
 	docker push $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG)
 assemble-ollama:
