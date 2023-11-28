@@ -1,4 +1,5 @@
-FROM sagemathinc/compute
+ARG ARCH=
+FROM sagemathinc/compute${ARCH}
 
 USER root
 

@@ -1,4 +1,5 @@
-FROM sagemathinc/python AS base
+ARG ARCH=
+FROM sagemathinc/python${ARCH} AS base
 
 USER root
 

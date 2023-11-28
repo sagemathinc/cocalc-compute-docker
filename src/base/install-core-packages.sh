@@ -23,4 +23,5 @@ apt-get install -y \
        sudo \
        python-is-python3 \
        tmux \
-       htop
+       htop \
+       supervisor

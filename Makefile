@@ -77,46 +77,50 @@ push-cocalc:
 # We also run the assemble target to create the multiplatform
 #     $(DOCKER_USER)/base
 # which is what gets used everywhere else.
-
+# TODO: most other code doesn't use this base tag, but needs to. We're
+# using latest until all the other containers use it properly.
+BASE_TAG=latest
 base:
-	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH):$(TAG) .
+	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH):$(BASE_TAG) .
 run-base:
-	docker run -it --rm $(DOCKER_USER)/base$(ARCH):$(TAG) bash
+	docker run -it --rm $(DOCKER_USER)/base$(ARCH):$(BASE_TAG) bash
 push-base:
-	docker push $(DOCKER_USER)/base$(ARCH):$(TAG)
+	docker push $(DOCKER_USER)/base$(ARCH):$(BASE_TAG)
 assemble-base:
-	./src/scripts/assemble.sh $(DOCKER_USER)/base $(TAG)
-
+	./src/scripts/assemble.sh $(DOCKER_USER)/base $(BASE_TAG)
 
 ## IMAGE: filesystem
+FILESYSTEM_TAG=latest
 filesystem:
-	cd src/filesystem && docker build -t $(DOCKER_USER)/filesystem$(ARCH):$(TAG) .
+	cd src && docker build  --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG) . -f filesystem/Dockerfile
 run-filesystem:
-	docker run -it --rm $(DOCKER_USER)/filesystem$(ARCH):$(TAG) bash
+	docker run -it --rm $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG)
 push-filesystem:
-	docker push $(DOCKER_USER)/filesystem$(ARCH):$(TAG)
+	docker push $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG)
 assemble-filesystem:
-	./src/scripts/assemble.sh $(DOCKER_USER)/filesystem $(TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/filesystem $(FILESYSTEM_TAG)
 
 ## IMAGE: compute
+COMPUTE_TAG=latest
 compute:
-	cd src/compute && docker build -t $(DOCKER_USER)/compute$(ARCH):$(TAG) .
+	cd src && docker build --build-arg ARCH=${ARCH} --build-arg BASE_TAG=$(BASE_TAG)  -t $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG) . -f compute/Dockerfile
 run-compute:
-	docker run -it --rm $(DOCKER_USER)/compute$(ARCH):$(TAG) bash
+	docker run -it --rm $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG)
 push-compute:
-	docker push $(DOCKER_USER)/compute$(ARCH):$(TAG)
+	docker push $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG)
 assemble-compute:
-	./src/scripts/assemble.sh $(DOCKER_USER)/compute $(TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/compute $(COMPUTE_TAG)
 
 ## IMAGE: python
+PYTHON_TAG=latest
 python:
-	cd src/python && docker build -t $(DOCKER_USER)/python$(ARCH):$(TAG) .
+	cd src/python && docker build --build-arg COMPUTE_TAG=$(COMPUTE_TAG)  -t $(DOCKER_USER)/python$(ARCH):$(PYTHON_TAG) .
 run-python:
-	docker run -it --rm $(DOCKER_USER)/python$(ARCH):$(TAG) bash
+	docker run -it --rm $(DOCKER_USER)/python$(ARCH):$(PYTHON_TAG) bash
 push-python:
-	docker push $(DOCKER_USER)/python$(ARCH):$(TAG)
+	docker push $(DOCKER_USER)/python$(ARCH):$(PYTHON_TAG)
 assemble-python:
-	./src/scripts/assemble.sh $(DOCKER_USER)/python $(TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/python $(PYTHON_TAG)
 
 
 ## IMAGE: ollama
@@ -124,9 +128,9 @@ assemble-python:
 OLLAMA_VERSION=0.1.12
 OLLAMA_TAG=0.1.12
 ollama:
-	cd src/ollama && docker build --build-arg ARCH1=$(ARCH1) --build-arg OLLAMA_VERSION=$(OLLAMA_VERSION) -t $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG) .
+	cd src/ollama && docker build --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) --build-arg OLLAMA_VERSION=$(OLLAMA_VERSION) -t $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG) .
 run-ollama:
-	docker run -it --rm $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG)
 push-ollama:
 	docker push $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG)
 assemble-ollama:
@@ -161,7 +165,7 @@ assemble-sagemath-core:
 # this depends on sagemath-core existing
 sagemath:
 	cd src/sagemath && \
-	docker build --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
+	docker build  --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
 run-sagemath:
 	docker run -it --rm $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) bash
 push-sagemath:
@@ -174,7 +178,7 @@ assemble-sagemath:
 # See https://julialang.org/downloads/ for current version
 JULIA_VERSION=1.9.4
 julia:
-	cd src/julia && docker build --build-arg JULIA_VERSION=$(JULIA_VERSION) -t $(DOCKER_USER)/julia$(ARCH):$(JULIA_VERSION) .
+	cd src/julia && docker build  --build-arg ARCH=${ARCH} --build-arg JULIA_VERSION=$(JULIA_VERSION) -t $(DOCKER_USER)/julia$(ARCH):$(JULIA_VERSION) .
 run-julia:
 	docker run -it --rm $(DOCKER_USER)/julia$(ARCH):$(JULIA_VERSION) bash
 push-julia:
@@ -190,7 +194,7 @@ assemble-julia:
 # weird permission denied error.  I guess 1-letter docker images have issues.
 R_VERSION=4.3.2
 rstats:
-	cd src/rstats && docker build --build-arg R_VERSION=$(R_VERSION) -t $(DOCKER_USER)/rstats$(ARCH):$(R_VERSION) .
+	cd src/rstats && docker build  --build-arg ARCH=${ARCH} --build-arg R_VERSION=$(R_VERSION) -t $(DOCKER_USER)/rstats$(ARCH):$(R_VERSION) .
 push-rstats:
 	docker push $(DOCKER_USER)/rstats$(ARCH):$(R_VERSION)
 run-rstats:
@@ -201,7 +205,7 @@ assemble-rstats:
 
 ## IMAGE: anaconda
 anaconda:
-	cd src/anaconda && docker build -t $(DOCKER_USER)/anaconda$(ARCH):$(TAG) .
+	cd src/anaconda && docker build  --build-arg ARCH=${ARCH} -t $(DOCKER_USER)/anaconda$(ARCH):$(TAG) .
 push-anaconda:
 	docker push $(DOCKER_USER)/anaconda$(ARCH):$(TAG)
 run-anaconda:

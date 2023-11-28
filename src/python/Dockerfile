@@ -1,6 +1,6 @@
+ARG COMPUTE_TAG=
 ARG ARCH=
-
-FROM sagemathinc/compute
+FROM sagemathinc/compute${ARCH}:${COMPUTE_TAG}
 
 USER root
 

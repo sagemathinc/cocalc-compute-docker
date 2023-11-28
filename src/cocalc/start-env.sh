@@ -44,6 +44,8 @@ export WEBSOCKETFS_CACHE_TIMEOUT=3
 # Make the cocalc version of nodejs available.
 # this is VERY verbose hence "set +v"
 set +v
-NVM_DIR=/cocalc/nvm source /cocalc/nvm/nvm.sh
+if [ -f /cocalc/nvm/nvm.sh ]; then
+    NVM_DIR=/cocalc/nvm source /cocalc/nvm/nvm.sh
+fi;
 set -v
 
