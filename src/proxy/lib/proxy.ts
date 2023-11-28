@@ -1,33 +1,30 @@
 import debug from "debug";
+import type { Application } from "express";
 import { createProxyServer } from "http-proxy";
 
 const log = debug("proxy");
 
-export default function createProxy() {
+/* Example config:
+[
+  { path: "/api", target: "http://localhost:11434/api" },
+  { path: "/", target: "http://localhost:8080", ws: true },
+];
+*/
+
+export type Configuration = { path: string; target: string; ws?: boolean }[];
+
+export default function createProxy(app: Application, config: Configuration) {
   log("creating proxy server");
 
-  const proxy = createProxyServer({
-    ws: false,
-    target: "http://localhost:8080",
-  });
-  proxy.on("error", (err) => {
-    log("proxy error: ", err);
-  });
-
-  const apiProxy = createProxyServer({
-    ws: false,
-    target: "http://localhost:11434/api",
-  });
-  apiProxy.on("error", (err) => {
-    log("proxy error: ", err);
-  });
-
-  return (req, res) => {
-    const v = req.url.split("/");
-    if (v[1] == "api") {
-      apiProxy.web(req, res);
-    } else {
-      proxy.web(req, res);
+  for (const { path, target, ws } of config) {
+    const proxy = createProxyServer({ ws, target });
+    log(`proxy: ${path} --> ${target}  ${ws ? "(+ websockets enabled)" : ""}`);
+    proxy.on("error", (err) => {
+      log(`proxy ${path} error: `, err);
+    });
+    app.use(path, proxy.web.bind(proxy));
+    if (ws) {
+      app.on("upgrade", proxy.ws.bind(proxy));
     }
-  };
+  }
 }

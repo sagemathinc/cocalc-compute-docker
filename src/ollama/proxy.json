@@ -1,0 +1,4 @@
+[
+  { "path": "/api", "target": "http://localhost:11434/api" },
+  { "path": "/", "target": "http://localhost:8080", "ws": true }
+]

@@ -1,6 +1,6 @@
 {
   "name": "@cocalc/compute-server-proxy",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "description": "A Proxy for compute servers",
   "main": "dist/lib/https-server.js",
   "scripts": {

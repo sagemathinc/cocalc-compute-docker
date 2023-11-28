@@ -33,6 +33,15 @@ RUN apt-get update && apt-get install -y python3-pip
 
 RUN cd /app/backend && pip3 install -r requirements.txt
 
+# Proxy server configuration
+COPY proxy.json /app/proxy.json
+ENV PROXY_CONFIG=/app/proxy.json
+ENV PROXY_PORT=443
+ENV PROXY_HOSTNAME=0.0.0.0
+ENV PROXY_AUTH_TOKEN_FILE=/cocalc/conf/auth_token
+# Create a token just for testing.  In production use, this /cocalc will get bind mounted over.
+RUN mkdir -p /cocalc/conf && echo "test" > /cocalc/conf/auth_token && chmod og-rwx /cocalc/conf/auth_token
+
 # Install nodejs and our custom proxy server
 RUN  mkdir -p /opt/proxy/nvm \
   && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | NVM_DIR=/opt/proxy/nvm bash \
@@ -41,14 +50,9 @@ RUN  mkdir -p /opt/proxy/nvm \
 
 ARG PROXY_VERSION=latest
 RUN source /opt/proxy/nvm/nvm.sh && npm install -g @cocalc/compute-server-proxy@${PROXY_VERSION}
-
 COPY start-proxy.sh /opt/proxy/start-proxy.sh
 
 RUN mkdir -p /var/log/supervisor && chown -R user:user /var/log/supervisor
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Create a token just for testing.  In production use,
-# this /cocalc will get bind mounted over.
-RUN mkdir -p /cocalc/conf && echo "test" > /cocalc/conf/auth_token && chmod og-rwx /cocalc/conf/auth_token
 
 USER user
