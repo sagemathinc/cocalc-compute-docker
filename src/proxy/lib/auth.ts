@@ -32,16 +32,24 @@ import cookieParser from "cookie-parser";
 
 // HTML page that asks the user to paste the auth token
 const signInPage = (req: Request, incorrectToken: boolean = false): string => `
-  <form method="POST">
-    ${
-      incorrectToken
-        ? '<p style="color: red;">Incorrect Authentication Token. Please try again.</p>'
-        : ""
-    }
-    <input name="authToken" type="password" placeholder="Paste authentication token here"/>
-    <input type="hidden" name="returnTo" value="${req.originalUrl}" />
-    <input type="submit" value="Authentication Token"/>
-  </form>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <div style="text-align: center; font-family: Arial, sans-serif; display: flex; justify-content: center; flex-direction: column; height: 100%;">
+      <h1 style="color: #444;">Authentication Required</h1>
+      ${
+        incorrectToken
+          ? `<p style="color: red;">Incorrect Authentication Token. Please try again.</p>`
+          : `<p>Please enter the authentication token to proceed:</p>`
+      }
+      <form method="POST" style="margin: 20px auto; display: inline-block;">
+        <input name="authToken" type="password" placeholder="Paste authentication token here..." style="padding: 6.5px 10px; width: 300px; margin-right: 10px; border-radius: 5px; border: 1px solid #ccc; font-size:12pt; margin-bottom:15px"/>
+        <input type="hidden" name="returnTo" value="${req.originalUrl}" />
+        <button type="submit" style="padding: 6.5px 15px; border-radius:5px; background-color: #007bff; color: white; border: none; cursor: pointer;font-size:12pt">Authenticate</button>
+      </form>
+    </div>
+  </body>
 `;
 
 // Main function
