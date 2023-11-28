@@ -41,7 +41,6 @@ RUN git clone --depth=1 https://github.com/sagemathinc/cocalc.git \
   && cd /cocalc && git pull && git fetch -u origin $BRANCH:$BRANCH && git checkout ${COMMIT:-HEAD}
 
 RUN  mkdir -p /nvm \
-  && cd /cocalc \
   && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | NVM_DIR=/nvm bash \
   && source /nvm/nvm.sh \
   && nvm install --no-progress 18.17.1 \

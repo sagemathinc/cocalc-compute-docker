@@ -17,9 +17,6 @@ ARG OLLAMA_VERSION=
 RUN curl -fSL -o /usr/local/bin/ollama https://github.com/jmorganca/ollama/releases/download/v${OLLAMA_VERSION}/ollama-linux-${ARCH1} \
   && chmod a+rx /usr/local/bin/ollama
 
-ENV OLLAMA_HOST=0.0.0.0
-ENV OLLAMA_ORIGINS=*
-
 # Install ollama-webui
 # See https://github.com/ollama-webui/ollama-webui/pkgs/container/ollama-webui
 
@@ -35,6 +32,16 @@ COPY --from=ghcr.io/ollama-webui/ollama-webui:main /app /app
 RUN apt-get update && apt-get install -y python3-pip
 
 RUN cd /app/backend && pip3 install -r requirements.txt
+
+# Install nodejs and our custom proxy server
+RUN  mkdir -p /opt/proxy/nvm \
+  && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | NVM_DIR=/opt/proxy/nvm bash \
+  && source /opt/proxy/nvm/nvm.sh \
+  && nvm install --no-progress 20
+
+RUN source /opt/proxy/nvm/nvm.sh && npm install -g @cocalc/compute-server-proxy
+
+COPY start-proxy.sh /opt/proxy/start-proxy.sh
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
