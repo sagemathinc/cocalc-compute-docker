@@ -39,10 +39,12 @@ RUN  mkdir -p /opt/proxy/nvm \
   && source /opt/proxy/nvm/nvm.sh \
   && nvm install --no-progress 20
 
-RUN source /opt/proxy/nvm/nvm.sh && npm install -g @cocalc/compute-server-proxy
+ARG PROXY_VERSION=latest
+RUN source /opt/proxy/nvm/nvm.sh && npm install -g @cocalc/compute-server-proxy@${PROXY_VERSION}
 
 COPY start-proxy.sh /opt/proxy/start-proxy.sh
 
+RUN mkdir -p /var/log/supervisord && chown user:user /var/log/supervisord
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 USER user
