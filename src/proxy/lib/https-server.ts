@@ -10,17 +10,10 @@ import enableAuth from "./auth";
 
 const log = debug("http-server");
 
-const AUTH_TOKEN = process.env.AUTH_TOKEN ?? "";
-if (process.env.AUTH_TOKEN) {
-  delete process.env.AUTH_TOKEN;
-}
-
 export default async function httpsServer({
   port = process.env.PORT ? parseInt(process.env.PORT) : 443,
   host = process.env.HOST ?? "0.0.0.0",
-  // If given, user must visit https://host:port/authToken once to set a cookie.
-  // They are then redirected to https://host:port/
-  authToken = AUTH_TOKEN,
+  authToken = "",
 }: {
   port?: number;
   host?: string;

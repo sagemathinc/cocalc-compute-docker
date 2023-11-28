@@ -127,7 +127,7 @@ assemble-python:
 # See https://github.com/jmorganca/ollama/releases for versions
 OLLAMA_VERSION=0.1.12
 OLLAMA_TAG=0.1.12
-PROXY_VERSION=0.4.0
+PROXY_VERSION=0.5.0
 ollama:
 	cd src/ollama && docker build --build-arg PROXY_VERSION=${PROXY_VERSION} --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) --build-arg OLLAMA_VERSION=$(OLLAMA_VERSION) -t $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG) .
 run-ollama:

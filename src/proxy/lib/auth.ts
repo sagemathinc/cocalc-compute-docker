@@ -53,12 +53,12 @@ export default function createAuth(app: Application, authToken: string) {
 
   const handle = (req: Request, res: Response, next) => {
     const reqAuthToken =
-      req.cookies.AUTH_TOKEN || req.query.auth_token || req.body.authToken;
+      req.body.authToken || req.query.auth_token || req.cookies.AUTH_TOKEN;
     const incorrectToken = req.method === "POST" && reqAuthToken !== authToken;
 
     if (reqAuthToken === authToken) {
-      // if the Auth token is correct
-      if (!req.cookies.AUTH_TOKEN) {
+      // if the token is correct
+      if (req.cookies.AUTH_TOKEN != authToken) {
         // set cookie
         new cookies(req, res).set("AUTH_TOKEN", authToken, { secure: true });
       }

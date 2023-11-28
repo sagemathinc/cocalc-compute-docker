@@ -44,7 +44,11 @@ RUN source /opt/proxy/nvm/nvm.sh && npm install -g @cocalc/compute-server-proxy@
 
 COPY start-proxy.sh /opt/proxy/start-proxy.sh
 
-RUN mkdir -p /var/log/supervisord && chown user:user /var/log/supervisord
+RUN mkdir -p /var/log/supervisor && chown -R user:user /var/log/supervisor
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Create a token just for testing.  In production use,
+# this /cocalc will get bind mounted over.
+RUN mkdir -p /cocalc/conf && echo "test" > /cocalc/conf/auth_token && chmod og-rwx /cocalc/conf/auth_token
 
 USER user
