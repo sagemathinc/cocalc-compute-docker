@@ -24,6 +24,8 @@ This is an express handler that does the following:
   receives the authToken, sets the cookie AUTH_TOKEN as above, and directs the
   user back to the page they were trying to open.
 
+TODO: rate limiting, to slightly mittigate DOS attacks and/or brute force attacks.
+
 */
 
 import { Application, Request, Response, urlencoded } from "express";
