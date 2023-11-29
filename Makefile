@@ -39,12 +39,12 @@ push-core:
 # there, compress them, and push them to npmjs.com!  This is never pushed
 # to dockerhub, and docker is just used for convenience to make the build
 # easier.  We push two packages to npm, one for each arch.
-
+COCALC_TAG=latest
 cocalc:
-	cd src/cocalc && docker build --build-arg COMMIT=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(TAG) .
+	cd src/cocalc && docker build --build-arg COMMIT=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(COCALC_TAG) .
 
 run-cocalc:
-	docker run -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(TAG) bash
+	docker run -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(COCALC_TAG) bash
 
 # Copy from docker image and publish @cocalc/compute-cocalc$(ARCH)
 # to the npm registry.  This only works, of course, if you are signed
@@ -57,7 +57,7 @@ push-cocalc:
 	mkdir -p /tmp/cocalc-npm$(ARCH0)/dist
 	cp -rv $(COCALC_NPM)/* /tmp/cocalc-npm$(ARCH0)
 	docker rm temp-copy-cocalc || true
-	docker create --name temp-copy-cocalc $(DOCKER_USER)/compute-cocalc$(ARCH0)
+	docker create --name temp-copy-cocalc $(DOCKER_USER)/compute-cocalc$(ARCH):$(COCALC_TAG)
 	docker cp temp-copy-cocalc:/cocalc /tmp/cocalc-npm$(ARCH0)/dist/cocalc
 	docker rm temp-copy-cocalc
 	cd /tmp/cocalc-npm$(ARCH0)/dist/ && tar -zcf cocalc.tar.gz cocalc
@@ -126,8 +126,8 @@ assemble-python:
 ## IMAGE: ollama
 # See https://github.com/jmorganca/ollama/releases for versions
 OLLAMA_VERSION=0.1.12
-OLLAMA_TAG=0.1.12
-PROXY_VERSION=0.7.0
+OLLAMA_TAG=0.1.12.p2
+PROXY_VERSION=0.9.0
 ollama:
 	cd src/ollama && docker build --build-arg PROXY_VERSION=${PROXY_VERSION} --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) --build-arg OLLAMA_VERSION=$(OLLAMA_VERSION) -t $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG) .
 run-ollama:

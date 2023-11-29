@@ -19,6 +19,7 @@ if [ -f /etc/supervisor/conf.d/supervisord.conf ]; then
 fi
 
 if [ -f /cocalc/src/compute/compute/start-compute.js ]; then
+    cd /cocalc/src/compute/compute/
     node ./start-compute.js
 else
     echo "start-compute does not exist. Starting bash."

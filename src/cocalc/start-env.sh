@@ -41,6 +41,11 @@ export PROJECT_HOME=/home/user
 # if zero, then using nvcc is very slow and ls is very slow.
 export WEBSOCKETFS_CACHE_TIMEOUT=3
 
+# For images that use an https proxy server
+export PROXY_PORT=443
+export PROXY_HOSTNAME=0.0.0.0
+export PROXY_AUTH_TOKEN_FILE=/cocalc/conf/auth_token
+
 # Make the cocalc version of nodejs available.
 # this is VERY verbose hence "set +v"
 set +v

@@ -67,28 +67,33 @@ export default function createAuth(app: Application, authToken: string) {
     const incorrectToken = req.method === "POST" && reqAuthToken !== authToken;
 
     if (reqAuthToken === authToken) {
-      // if the token is correct
+      // the token is correct
       if (req.cookies.AUTH_TOKEN != authToken) {
-        // set cookie
+        // but the cookie isn't, then they just authenticated, so we store
+        // the correct cookie
         new cookies(req, res).set("AUTH_TOKEN", authToken, { secure: true });
+        if (req.method === "POST") {
+          // and also redirect them if they really did just authenticate via the form
+          res.redirect(req.body.returnTo || "/");
+          return;
+        }
       }
-      if (req.method === "GET") {
-        next();
-      } else if (req.method === "POST") {
-        res.redirect(req.body.returnTo || "/");
-      }
-    } else if (req.method === "POST") {
-      // they just attempted to sign in
-      if (incorrectToken) {
-        // wrong token -- try again
-        res.send(signInPage(req, incorrectToken));
-      } else {
-        // correct -- redirect them to the page they wanted to go to.
-        res.redirect(req.body.returnTo || "/");
-      }
+      next();
     } else {
-      // send them to sign in page
-      res.send(signInPage(req));
+      // token is NOT correct -- they messed up or need to be sent to the sign in page.
+      if (req.method === "POST") {
+        // they just attempted to sign in
+        if (incorrectToken) {
+          // wrong token -- try again
+          res.send(signInPage(req, incorrectToken));
+        } else {
+          // correct -- redirect them to the page they wanted to go to.
+          res.redirect(req.body.returnTo || "/");
+        }
+      } else {
+        // send them to sign in page
+        res.send(signInPage(req));
+      }
     }
   };
 
