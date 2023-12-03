@@ -33,7 +33,7 @@ import cookies from "cookies";
 import cookieParser from "cookie-parser";
 
 // HTML page that asks the user to paste the auth token
-const signInPage = (req: Request, incorrectToken: boolean = false): string => `
+const signInPage = (req: Request, postSubmissionWithIncorrectToken: boolean = false): string => `
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
@@ -41,7 +41,7 @@ const signInPage = (req: Request, incorrectToken: boolean = false): string => `
     <div style="text-align: center; font-family: Arial, sans-serif; display: flex; justify-content: center; flex-direction: column; height: 100%;">
       <h1 style="color: #444;">Authentication Required</h1>
       ${
-        incorrectToken
+        postSubmissionWithIncorrectToken
           ? `<p style="color: red;">Incorrect Authentication Token. Please try again.</p>`
           : `<p>Please enter the authentication token to proceed:</p>`
       }
@@ -64,14 +64,17 @@ export default function createAuth(app: Application, authToken: string) {
   const handle = (req: Request, res: Response, next) => {
     const reqAuthToken =
       req.body.authToken || req.query.auth_token || req.cookies.AUTH_TOKEN;
-    const incorrectToken = req.method === "POST" && reqAuthToken !== authToken;
+    const postSubmissionWithIncorrectToken = req.method === "POST" && reqAuthToken !== authToken;
 
     if (reqAuthToken === authToken) {
       // the token is correct
       if (req.cookies.AUTH_TOKEN != authToken) {
         // but the cookie isn't, then they just authenticated, so we store
         // the correct cookie
-        new cookies(req, res).set("AUTH_TOKEN", authToken, { secure: true });
+        new cookies(req, res).set("AUTH_TOKEN", authToken, {
+          secure: true,
+          httpOnly: true,
+        });
         if (req.method === "POST") {
           // and also redirect them if they really did just authenticate via the form
           res.redirect(req.body.returnTo || "/");
@@ -83,9 +86,9 @@ export default function createAuth(app: Application, authToken: string) {
       // token is NOT correct -- they messed up or need to be sent to the sign in page.
       if (req.method === "POST") {
         // they just attempted to sign in
-        if (incorrectToken) {
+        if (postSubmissionWithIncorrectToken) {
           // wrong token -- try again
-          res.send(signInPage(req, incorrectToken));
+          res.send(signInPage(req, postSubmissionWithIncorrectToken));
         } else {
           // correct -- redirect them to the page they wanted to go to.
           res.redirect(req.body.returnTo || "/");
