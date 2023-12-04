@@ -151,16 +151,17 @@ push-math:
 # the sagemath image below.  Run this on both an x86 and arm64 machine, then run
 # sagemath-core to combine the two docker images together.
 SAGEMATH_VERSION=10.1
+SAGEMATH_TAG=10.1
 sagemath-core:
 	# TODO: this currently just builds the latest released version of sage -- need to change it to build
 	# the version specified by SAGEMATH_VERSION!
-	cd src/sagemath/core && docker build -t $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_VERSION) .
+	cd src/sagemath/core && docker build -t $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG) .
 run-sagemath-core:
-	docker run -it --rm $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_VERSION) bash
+	docker run -it --rm $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG) bash
 push-sagemath-core:
-	docker push $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_VERSION)
+	docker push $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG)
 assemble-sagemath-core:
-	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_VERSION)
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_TAG)
 
 ## IMAGE: sagemath
 # this depends on sagemath-core existing
@@ -275,4 +276,17 @@ run-colab:
 run-colab-nogpu:
 	docker run -it --rm $(DOCKER_USER)/colab:$(COLAB_TAG) bash
 
+# See https://catalog.ngc.nvidia.com/orgs/nvidia/containers/jax for the tag.
+JAX_VERSION=23.10-paxml-py3
+JAX_TAG=23.10-paxml-py3
+jax:
+	# do not cd to jax directory, because we need to access start.js which is here.
+	# We want the build context to be bigger.
+	cd src && docker build  --build-arg JAX_VERSION=$(JAX_VERSION) -t $(DOCKER_USER)/jax:$(JAX_TAG) . -f jax/Dockerfile
+push-jax:
+	docker push $(DOCKER_USER)/jax:$(JAX_TAG)
+run-jax:
+	docker run --gpus all -it --rm $(DOCKER_USER)/jax:$(JAX_TAG) bash
+run-jax-nogpu:
+	docker run -it --rm $(DOCKER_USER)/jax:$(JAX_TAG) bash
 
