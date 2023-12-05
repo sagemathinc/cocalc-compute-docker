@@ -1,3 +1,4 @@
+# Version of sage to build
 FROM ubuntu:22.04 AS base
 
 USER root
@@ -5,12 +6,11 @@ USER root
 COPY install-packages.sh /root
 RUN chmod +x  /root/install-packages.sh && ./root/install-packages.sh && rm /root/install-packages.sh
 
-# Version of sage to build
-ARG SAGE_VERSION=10.1
-
 # Grab source code
+ARG SAGEMATH_VERSION=
+
 RUN  cd /usr/local \
-  && git clone --depth 1 --branch ${SAGE_VERSION} https://github.com/sagemath/sage.git
+  && git clone --depth 1 --branch ${SAGEMATH_VERSION} https://github.com/sagemath/sage.git
 
 # Configure
 RUN  export SAGE_FAT_BINARY="yes" \

@@ -150,18 +150,20 @@ push-math:
 # in a directory /usr/local/sage, which gets copied into
 # the sagemath image below.  Run this on both an x86 and arm64 machine, then run
 # sagemath-core to combine the two docker images together.
-SAGEMATH_VERSION=10.1
-SAGEMATH_TAG=10.1
+SAGEMATH_VERSION=10.2
+SAGEMATH_TAG=10.2
 sagemath-core:
 	# TODO: this currently just builds the latest released version of sage -- need to change it to build
 	# the version specified by SAGEMATH_VERSION!
-	cd src/sagemath/core && docker build -t $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG) .
+	cd src/sagemath/core && docker build --build-arg SAGEMATH_VERSION=${SAGEMATH_VERSION} -t $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG) .
 run-sagemath-core:
 	docker run -it --rm $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG) bash
 push-sagemath-core:
 	docker push $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG)
 assemble-sagemath-core:
-	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_TAG) $(SAGEMATH_TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_TAG) latest
+
 
 ## IMAGE: sagemath
 # this depends on sagemath-core existing
