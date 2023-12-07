@@ -230,9 +230,10 @@ push-gpu:
 
 ## See https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/supported-tags.md for the
 # available supported versions.
-CUDA_TAG=12.3.0-devel-ubuntu22.04
+CUDA_VERSION=12.3.0-devel-ubuntu22.04
+CUDA_TAG=12.3.0p1
 cuda:
-	cd src && docker build --build-arg CUDA_TAG=$(CUDA_TAG) -t $(DOCKER_USER)/cuda:$(CUDA_TAG) . -f cuda/Dockerfile
+	cd src && docker build --build-arg CUDA_VERSION=$(CUDA_VERSION) -t $(DOCKER_USER)/cuda:$(CUDA_TAG) . -f cuda/Dockerfile
 push-cuda:
 	docker push $(DOCKER_USER)/cuda:$(CUDA_TAG)
 run-cuda:
