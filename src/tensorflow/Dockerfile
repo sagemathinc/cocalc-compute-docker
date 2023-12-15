@@ -1,5 +1,5 @@
-ARG TENSORFLOW_TAG
-FROM nvcr.io/nvidia/tensorflow:${TENSORFLOW_TAG}
+ARG TENSORFLOW_VERSION
+FROM nvcr.io/nvidia/tensorflow:${TENSORFLOW_VERSION}
 
 COPY pytorch/install-python-support.sh /tmp
 RUN /tmp/install-python-support.sh && rm /tmp/install-python-support.sh

@@ -12,6 +12,7 @@ export ARCH_TAG="${2:-latest}"
 export TAG="${3:-$ARCH_TAG}"
 
 echo IMAGE=$IMAGE
+echo ARCH_TAG=$ARCH_TAG
 echo TAG=$TAG
 
 docker manifest create   $IMAGE:$TAG $IMAGE-x86_64:$ARCH_TAG $IMAGE-arm64:$ARCH_TAG --amend

@@ -1,5 +1,5 @@
-ARG PYTORCH_TAG
-FROM nvcr.io/nvidia/pytorch:${PYTORCH_TAG}
+ARG PYTORCH_VERSION
+FROM nvcr.io/nvidia/pytorch:${PYTORCH_VERSION}
 
 COPY pytorch/install-python-support.sh /tmp
 RUN /tmp/install-python-support.sh && rm /tmp/install-python-support.sh

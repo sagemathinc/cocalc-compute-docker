@@ -125,12 +125,14 @@ assemble-python:
 
 ## IMAGE: ollama
 # See https://github.com/jmorganca/ollama/releases for versions
-OLLAMA_VERSION=0.1.12
-OLLAMA_TAG=0.1.12.p2
+OLLAMA_VERSION=0.1.15
+OLLAMA_TAG=0.1.15
 PROXY_VERSION=0.9.0
 ollama:
 	cd src/ollama && docker build --build-arg PROXY_VERSION=${PROXY_VERSION} --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) --build-arg OLLAMA_VERSION=$(OLLAMA_VERSION) -t $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG) .
 run-ollama:
+	docker run --gpus all -it --rm --network=host $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG)
+run-ollama-nogpu:
 	docker run -it --rm --network=host $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG)
 push-ollama:
 	docker push $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG)
@@ -230,21 +232,22 @@ push-gpu:
 
 ## See https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/supported-tags.md for the
 # available supported versions.
-CUDA_VERSION=12.3.0-devel-ubuntu22.04
-CUDA_TAG=12.3.0p1
+CUDA_VERSION=12.3.1-devel-ubuntu22.04
+CUDA_TAG=12.3.1
 cuda:
 	cd src && docker build --build-arg CUDA_VERSION=$(CUDA_VERSION) -t $(DOCKER_USER)/cuda:$(CUDA_TAG) . -f cuda/Dockerfile
 push-cuda:
 	docker push $(DOCKER_USER)/cuda:$(CUDA_TAG)
 run-cuda:
 	docker run --gpus all -it --rm $(DOCKER_USER)/cuda:$(CUDA_TAG) bash
-run-coda-nogpu:
+run-cuda-nogpu:
 	docker run -it --rm $(DOCKER_USER)/cuda:$(CUDA_TAG) bash
 
 # See https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch/tags
-PYTORCH_TAG=23.10-py3
+PYTORCH_VERSION=23.11-py3
+PYTORCH_TAG=23.11-py3
 pytorch:
-	cd src && docker build --build-arg PYTORCH_TAG=$(PYTORCH_TAG) -t $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) . -f pytorch/Dockerfile
+	cd src && docker build --build-arg PYTORCH_VERSION=$(PYTORCH_VERSION) -t $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) . -f pytorch/Dockerfile
 push-pytorch:
 	docker push $(DOCKER_USER)/pytorch:$(PYTORCH_TAG)
 run-pytorch:
@@ -252,13 +255,14 @@ run-pytorch:
 run-pytorch-nogpu:
 	docker run -it --rm $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) bash
 
-# See https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tensorflow for the tag.
+# See https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tensorflow/tags for the tag.
 # fortunately nvcr.io/nvidia/tensorflow uses Ubuntu 22.04LTS too.
-TENSORFLOW_TAG=23.10-tf2-py3
+TENSORFLOW_VERSION=23.11-tf2-py3
+TENSORFLOW_TAG=23.11-tf2-py3
 tensorflow:
 	# do not cd to tensorflow directory, because we need to access start.js which is here.
 	# We want the build context to be bigger.
-	cd src && docker build  --build-arg TENSORFLOW_TAG=$(TENSORFLOW_TAG) -t $(DOCKER_USER)/tensorflow:$(TENSORFLOW_TAG) . -f tensorflow/Dockerfile
+	cd src && docker build  --build-arg TENSORFLOW_VERSION=$(TENSORFLOW_VERSION) -t $(DOCKER_USER)/tensorflow:$(TENSORFLOW_TAG) . -f tensorflow/Dockerfile
 push-tensorflow:
 	docker push $(DOCKER_USER)/tensorflow:$(TENSORFLOW_TAG)
 run-tensorflow:

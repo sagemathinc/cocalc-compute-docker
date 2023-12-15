@@ -19,6 +19,7 @@ RUN curl -fSL -o /usr/local/bin/ollama https://github.com/jmorganca/ollama/relea
 
 # Install ollama-webui
 # See https://github.com/ollama-webui/ollama-webui/pkgs/container/ollama-webui
+# We always install the latest dockerized version for now.
 
 ENV ENV=prod
 ARG OLLAMA_API_BASE_URL='http://localhost:11434/api'
