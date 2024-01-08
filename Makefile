@@ -125,8 +125,8 @@ assemble-python:
 
 ## IMAGE: ollama
 # See https://github.com/jmorganca/ollama/releases for versions
-OLLAMA_VERSION=0.1.15
-OLLAMA_TAG=0.1.15
+OLLAMA_VERSION=0.1.18
+OLLAMA_TAG=0.1.18
 PROXY_VERSION=0.9.0
 ollama:
 	cd src/ollama && docker build --build-arg PROXY_VERSION=${PROXY_VERSION} --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) --build-arg OLLAMA_VERSION=$(OLLAMA_VERSION) -t $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG) .
@@ -182,7 +182,7 @@ assemble-sagemath:
 ## IMAGE: julia
 
 # See https://julialang.org/downloads/ for current version
-JULIA_VERSION=1.9.4
+JULIA_VERSION=1.10.0
 julia:
 	cd src/julia && docker build  --build-arg ARCH=${ARCH} --build-arg JULIA_VERSION=$(JULIA_VERSION) -t $(DOCKER_USER)/julia$(ARCH):$(JULIA_VERSION) .
 run-julia:
@@ -230,8 +230,9 @@ push-gpu:
 	make push-cuda && make push-pytorch && make push-tensorflow && make push-colab
 
 
-## See https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/supported-tags.md for the
-# available supported versions.
+# See
+#   https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/supported-tags.md
+# for the available supported versions.
 CUDA_VERSION=12.3.1-devel-ubuntu22.04
 CUDA_TAG=12.3.1
 cuda:
@@ -244,8 +245,8 @@ run-cuda-nogpu:
 	docker run -it --rm $(DOCKER_USER)/cuda:$(CUDA_TAG) bash
 
 # See https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch/tags
-PYTORCH_VERSION=23.11-py3
-PYTORCH_TAG=23.11-py3
+PYTORCH_VERSION=23.12-py3
+PYTORCH_TAG=23.12-py3
 pytorch:
 	cd src && docker build --build-arg PYTORCH_VERSION=$(PYTORCH_VERSION) -t $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) . -f pytorch/Dockerfile
 push-pytorch:
@@ -255,10 +256,11 @@ run-pytorch:
 run-pytorch-nogpu:
 	docker run -it --rm $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) bash
 
-# See https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tensorflow/tags for the tag.
-# fortunately nvcr.io/nvidia/tensorflow uses Ubuntu 22.04LTS too.
-TENSORFLOW_VERSION=23.11-tf2-py3
-TENSORFLOW_TAG=23.11-tf2-py3
+# See
+#  https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tensorflow/tags
+# for the tag.  Fortunately nvcr.io/nvidia/tensorflow uses Ubuntu 22.04LTS too.
+TENSORFLOW_VERSION=23.12-tf2-py3
+TENSORFLOW_TAG=23.12-tf2-py3
 tensorflow:
 	# do not cd to tensorflow directory, because we need to access start.js which is here.
 	# We want the build context to be bigger.
@@ -273,7 +275,7 @@ run-tensorflow-nogpu:
 # For tags see
 #    https://console.cloud.google.com/artifacts/docker/colab-images/us/public/runtime
 # They seem to do releases about once per month.
-COLAB_TAG=release-colab_20230921-060057_RC00
+COLAB_TAG=release-colab_20231214-060137_RC00
 colab:
 	cd src && docker build --build-arg COLAB_TAG=$(COLAB_TAG) -t $(DOCKER_USER)/colab:$(COLAB_TAG) . -f colab/Dockerfile
 push-colab:
@@ -283,7 +285,9 @@ run-colab:
 run-colab-nogpu:
 	docker run -it --rm $(DOCKER_USER)/colab:$(COLAB_TAG) bash
 
-# See https://catalog.ngc.nvidia.com/orgs/nvidia/containers/jax for the tag.
+# See
+#   https://catalog.ngc.nvidia.com/orgs/nvidia/containers/jax/tags
+# for the tag.
 JAX_VERSION=23.10-paxml-py3
 JAX_TAG=23.10-paxml-py3
 jax:
