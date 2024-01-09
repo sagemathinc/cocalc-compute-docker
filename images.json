@@ -1,32 +1,41 @@
 {
+  "cocalc": {
+    "system": true,
+    "label": "CoCalc",
+    "package": "@cocalc/compute-server",
+    "package_arm64": "@cocalc/compute-server-arm64",
+    "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cocalc",
+    "versions": [
+      { "label": "test", "tag": "test", "role": "test" },
+      { "label": "latest", "tag": "latest", "role": "prod" }
+    ],
+    "description": "The lightweight subset of the CoCalc Javascript code needed to run cocalc directly on the compute server for supporting websocketfs mounting, terminals, and jupyter notebooks."
+  },
   "filesystem": {
     "system": true,
     "label": "Filesystem",
-    "docker": "sagemathinc/filesystem",
-    "minDiskSizeGb": 10,
-    "dockerSizeGb": 1,
-    "gpu": false,
+    "package": "sagemathinc/filesystem",
     "icon": "files",
     "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/filesystem",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/filesystem",
-    "versions": [{ "label": "1.0", "tag": "1.0", "status": "prod" }],
+    "versions": [{ "label": "1.0", "tag": "1.0", "role": "prod" }],
     "description": "Filesystem container."
   },
   "python": {
     "label": "Python",
-    "docker": "sagemathinc/python",
+    "package": "sagemathinc/python",
     "minDiskSizeGb": 10,
     "dockerSizeGb": 2,
     "gpu": false,
     "icon": "python",
     "url": "https://www.python.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/python",
-    "versions": [{ "label": "3.10.12", "tag": "3.10.12", "status": "prod" }],
+    "versions": [{ "label": "3.10.12", "tag": "3.10.12", "role": "prod" }],
     "description": "[Python](https://python.org) is a versatile and user-friendly programming language, known for its clear syntax and readability. It is widely used for web development, data analysis, artificial intelligence, and scientific computing."
   },
   "sagemath": {
     "label": "SageMath",
-    "docker": "sagemathinc/sagemath",
+    "package": "sagemathinc/sagemath",
     "minDiskSizeGb": 20,
     "dockerSizeGb": 9,
     "gpu": false,
@@ -34,26 +43,26 @@
     "url": "https://www.sagemath.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/sagemath",
     "versions": [
-      { "label": "10.1", "tag": "10.1", "status": "prod" },
-      { "label": "10.2", "tag": "10.2", "status": "prod" }
+      { "label": "10.1", "tag": "10.1", "role": "prod" },
+      { "label": "10.2", "tag": "10.2", "role": "prod" }
     ],
     "description": "[SageMath](https://sagemath.org) is an open-source mathematics software system, integrating numerous software packages and providing a unified interface. It is designed for advanced algebra, geometry, number theory, cryptography, and various other fields of mathematics, accessible through a Python-based language."
   },
   "rstats": {
     "label": "R",
-    "docker": "sagemathinc/rstats",
+    "package": "sagemathinc/rstats",
     "minDiskSizeGb": 10,
     "dockerSizeGb": 3,
     "gpu": false,
     "icon": "r",
     "url": "https://www.r-project.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/rstats",
-    "versions": [{ "label": "4.3.2", "tag": "4.3.2", "status": "prod" }],
+    "versions": [{ "label": "4.3.2", "tag": "4.3.2", "role": "prod" }],
     "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization. Its extensive package ecosystem and flexible scripting capabilities make it ideal for both simple and complex data exploration tasks."
   },
   "julia": {
     "label": "Julia",
-    "docker": "sagemathinc/julia",
+    "package": "sagemathinc/julia",
     "minDiskSizeGb": 10,
     "dockerSizeGb": 3,
     "gpu": false,
@@ -61,15 +70,15 @@
     "url": "https://julialang.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/julia",
     "versions": [
-      { "label": "1.9.4", "tag": "1.9.4", "status": "prod" },
-      { "label": "1.10.0", "tag": "1.10.0", "status": "prod" }
+      { "label": "1.9.4", "tag": "1.9.4", "role": "prod" },
+      { "label": "1.10.0", "tag": "1.10.0", "role": "prod" }
     ],
     "description": "[Julia](https://julialang.org/) is a high-performance programming language designed for technical computing, combining the speed of C with the ease of use of Python. It excels in numerical analysis, computational science, and data processing with its efficient syntax and ability to handle high-level mathematical operations."
   },
   "anaconda": {
     "disabled": true,
     "label": "Anaconda",
-    "docker": "sagemathinc/anaconda",
+    "package": "sagemathinc/anaconda",
     "minDiskSizeGb": 10,
     "dockerSizeGb": 2,
     "gpu": false,
@@ -77,13 +86,11 @@
     "url": "https://www.sagemath.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/anaconda",
     "description": "Minimal Anaconda environment nicely setup and ready for you to install packages into.",
-    "versions": [
-      { "label": "2023-11-26", "tag": "2023-11-26", "status": "prod" }
-    ]
+    "versions": [{ "label": "2023-11-26", "tag": "2023-11-26", "role": "prod" }]
   },
   "pytorch": {
     "label": "PyTorch",
-    "docker": "sagemathinc/pytorch",
+    "package": "sagemathinc/pytorch",
     "gpu": true,
     "minDiskSizeGb": 49,
     "dockerSizeGb": 24,
@@ -91,14 +98,14 @@
     "icon": "pytorch",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/pytorch",
     "versions": [
-      { "label": "2.2.0 (2023-11)", "tag": "23.11-py3", "status": "prod" },
-      { "label": "2.2.0 (2023-12)", "tag": "23.12-py3", "status": "prod" }
+      { "label": "2.2.0 (2023-11)", "tag": "23.11-py3", "role": "prod" },
+      { "label": "2.2.0 (2023-12)", "tag": "23.12-py3", "role": "prod" }
     ],
     "description": "[PyTorch](https://pytorch.org/) is an open-source machine learning library, known for its flexibility and ease of use, particularly in deep learning applications. It provides a dynamic computation graph and a rich ecosystem of tools and libraries, making it a preferred choice for researchers and developers in AI."
   },
   "tensorflow": {
     "label": "Tensorflow",
-    "docker": "sagemathinc/tensorflow",
+    "package": "sagemathinc/tensorflow",
     "gpu": true,
     "minDiskSizeGb": 49,
     "dockerSizeGb": 23,
@@ -106,14 +113,14 @@
     "icon": "tensorflow",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/tensorflow",
     "versions": [
-      { "label": "2.14.0 (2023-11)", "tag": "23.11-tf2-py3", "status": "prod" },
-      { "label": "2.14.0 (2023-12)", "tag": "23.12-tf2-py3", "status": "prod" }
+      { "label": "2.14.0 (2023-11)", "tag": "23.11-tf2-py3", "role": "prod" },
+      { "label": "2.14.0 (2023-12)", "tag": "23.12-tf2-py3", "role": "prod" }
     ],
     "description": "[TensorFlow](https://www.tensorflow.org/) is an open-source machine learning framework developed by Google, widely used for building and training neural networks. Its flexible architecture allows for easy deployment of computation across various platforms, from servers to edge devices, making it suitable for a broad range of AI applications."
   },
   "colab": {
     "label": "Google Colab",
-    "docker": "sagemathinc/colab",
+    "package": "sagemathinc/colab",
     "minDiskSizeGb": 53,
     "dockerSizeGb": 28,
     "gpu": true,
@@ -124,19 +131,19 @@
       {
         "label": "2023-09-21",
         "tag": "release-colab_20230921-060057_RC00",
-        "status": "prod"
+        "role": "prod"
       },
       {
         "label": "2023-12-14",
         "tag": "release-colab_20231214-060137_RC00",
-        "status": "prod"
+        "role": "prod"
       }
     ],
     "description": "[Google Colab](https://colab.google/) comes preinstalled with a wide range of popular data science and machine learning libraries, such as TensorFlow, PyTorch, Matplotlib, and Pandas. It also includes support for Python and its various packages, enabling users to jump straight into coding without worrying about setup and installation."
   },
   "ollama": {
     "label": "Ollama with WebUI",
-    "docker": "sagemathinc/ollama",
+    "package": "sagemathinc/ollama",
     "dockerSizeGb": 2,
     "minDiskSizeGb": 30,
     "gpu": true,
@@ -146,14 +153,14 @@
     "description": "[Ollama](https://ollama.ai/) makes it very easy to run Llama 2, code Llama, and [hundreds of other models](https://ollama.ai/library).  Use the [web interface](https://github.com/ollama-webui/ollama-webui#readme) or call ollama from the Python API.",
     "authToken": true,
     "versions": [
-      { "label": "0.1.15", "tag": "0.1.15", "status": "prod" },
-      { "label": "0.1.18", "tag": "0.1.18b", "status": "prod" }
+      { "label": "0.1.15", "tag": "0.1.15", "role": "prod" },
+      { "label": "0.1.18", "tag": "0.1.18b", "role": "prod" }
     ],
     "jupyterKernels": false
   },
   "cuda": {
     "label": "CUDA Development Toolkit",
-    "docker": "sagemathinc/cuda",
+    "package": "sagemathinc/cuda",
     "gpu": true,
     "minDiskSizeGb": 33,
     "dockerSizeGb": 8,
@@ -161,12 +168,13 @@
     "url": "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/cuda",
     "description": "The CUDA Toolkit from NVIDIA provides everything you need to develop GPU-accelerated applications.  The CUDA Toolkit includes GPU-accelerated libraries, a compiler, development tools and the CUDA runtime.   It enables dramatic increases in computing performance by harnessing the power of NVIDIA graphics processing units (GPUs) for a wide range of computing tasks.",
-    "versions": [{ "label": "12.3.1", "tag": "12.3.1", "status": "prod" }],
+    "versions": [{ "label": "12.3.1", "tag": "12.3.1", "role": "prod" }],
     "jupyterKernels": false
   },
   "jax": {
+    "disabled": true,
     "label": "JAX",
-    "docker": "sagemathinc/jax",
+    "package": "sagemathinc/jax",
     "gpu": true,
     "minDiskSizeGb": 48,
     "dockerSizeGb": 24,
@@ -177,7 +185,7 @@
       {
         "label": "0.4.17 (2023-10)",
         "tag": "23.10-paxml-py3",
-        "status": "prod"
+        "role": "prod"
       }
     ],
     "description": "[JAX](https://jax.readthedocs.io/en/latest/) is a framework for high-performance numerical computing and machine learning research. It includes Numpy-like APIs, automatic differentiation, [XLA](https://github.com/openxla/openxla-nvgpu) acceleration and simple primitives for scaling across GPUs.   [The JAX NGC Container](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/jax) comes with all dependencies included, providing an easy place to start developing applications in areas such as NLP, Computer Vision, Multimodality, physics-based simulations, reinforcement learning, drug discovery, and neural rendering."
@@ -185,7 +193,7 @@
   "cocalc-docker": {
     "disabled": true,
     "label": "CoCalc - Personal Server",
-    "docker": "sagemathinc/cocalc-docker",
+    "package": "sagemathinc/cocalc-docker",
     "minDiskSizeGb": 50
   }
 }

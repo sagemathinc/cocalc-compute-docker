@@ -40,7 +40,7 @@ push-core:
 # there, compress them, and push them to npmjs.com!  This is never pushed
 # to dockerhub, and docker is just used for convenience to make the build
 # easier.  We push two packages to npm, one for each arch.
-COCALC_TAG=latest
+COCALC_TAG=devel
 cocalc:
 	cd src/cocalc && docker build --build-arg COMMIT=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(COCALC_TAG) .
 
@@ -68,8 +68,8 @@ push-cocalc:
 	cd /tmp/cocalc-npm$(ARCH0) \
 		&& npm version `npm view @cocalc/compute-server$(ARCH0) version` || true \
 		&& npm version minor \
-		&& npm publish --access=public --no-git-checks
-	# Comment this line out if you want to do something brutal, like explicitly set the version number on npmjs.
+		&& npm publish --access=public --no-git-checks --tag=$(COCALC_TAG)
+	# Comment this line out if you want to do something by hand, like explicitly set the version number on npmjs.
 	rm -rf /tmp/cocalc-npm$(ARCH0)
 
 ## IMAGE: base
