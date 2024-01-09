@@ -1,3 +1,7 @@
+# Script for extracting tag from images.json file.
+GET_TAG=./src/scripts/get-tag.js images.json
+GET_VERSION=./src/scripts/get-version.js images.json
+
 # Docker image parameters
 DOCKER_USER=sagemathinc
 TAG=
@@ -91,7 +95,7 @@ assemble-base:
 	./src/scripts/assemble.sh $(DOCKER_USER)/base $(BASE_TAG)
 
 ## IMAGE: filesystem
-FILESYSTEM_TAG=1.0
+FILESYSTEM_TAG = $(shell $(GET_TAG) filesystem)
 filesystem:
 	cd src && docker build  --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG) . -f filesystem/Dockerfile
 run-filesystem:
@@ -102,7 +106,7 @@ assemble-filesystem:
 	./src/scripts/assemble.sh $(DOCKER_USER)/filesystem $(FILESYSTEM_TAG)
 
 ## IMAGE: compute
-COMPUTE_TAG=1.0
+COMPUTE_TAG = $(shell $(GET_TAG) compute)
 compute:
 	cd src && docker build --build-arg ARCH=${ARCH} --build-arg BASE_TAG=$(BASE_TAG)  -t $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG) . -f compute/Dockerfile
 run-compute:
@@ -113,7 +117,7 @@ assemble-compute:
 	./src/scripts/assemble.sh $(DOCKER_USER)/compute $(COMPUTE_TAG)
 
 ## IMAGE: python
-PYTHON_TAG=3.10.12
+PYTHON_TAG = $(shell $(GET_TAG) python)
 python:
 	cd src/python && docker build --build-arg COMPUTE_TAG=$(COMPUTE_TAG)  -t $(DOCKER_USER)/python$(ARCH):$(PYTHON_TAG) .
 run-python:
@@ -126,8 +130,8 @@ assemble-python:
 
 ## IMAGE: ollama
 # See https://github.com/jmorganca/ollama/releases for versions
-OLLAMA_VERSION=0.1.18
-OLLAMA_TAG=0.1.18b
+OLLAMA_VERSION=$(shell $(GET_VERSION) ollama)
+OLLAMA_TAG=$(shell $(GET_TAG) ollama)
 PROXY_VERSION=0.9.0
 ollama:
 	cd src/ollama && docker build --build-arg PROXY_VERSION=${PROXY_VERSION} --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) --build-arg OLLAMA_VERSION=$(OLLAMA_VERSION) -t $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG) .
@@ -153,8 +157,8 @@ push-math:
 # in a directory /usr/local/sage, which gets copied into
 # the sagemath image below.  Run this on both an x86 and arm64 machine, then run
 # sagemath-core to combine the two docker images together.
-SAGEMATH_VERSION=10.2
-SAGEMATH_TAG=10.2
+SAGEMATH_VERSION=$(shell $(GET_VERSION) sagemath)
+SAGEMATH_TAG=$(shell $(GET_TAG) sagemath)
 sagemath-core:
 	# TODO: this currently just builds the latest released version of sage -- need to change it to build
 	# the version specified by SAGEMATH_VERSION!
@@ -183,15 +187,16 @@ assemble-sagemath:
 ## IMAGE: julia
 
 # See https://julialang.org/downloads/ for current version
-JULIA_VERSION=1.10.0
+JULIA_VERSION=$(shell $(GET_VERSION) julia)
+JULIA_TAG=$(shell $(GET_TAG) julia)
 julia:
-	cd src/julia && docker build  --build-arg ARCH=${ARCH} --build-arg JULIA_VERSION=$(JULIA_VERSION) -t $(DOCKER_USER)/julia$(ARCH):$(JULIA_VERSION) .
+	cd src/julia && docker build  --build-arg ARCH=${ARCH} --build-arg JULIA_VERSION=$(JULIA_VERSION) -t $(DOCKER_USER)/julia$(ARCH):$(JULIA_TAG) .
 run-julia:
-	docker run -it --rm $(DOCKER_USER)/julia$(ARCH):$(JULIA_VERSION) bash
+	docker run -it --rm $(DOCKER_USER)/julia$(ARCH):$(JULIA_TAG) bash
 push-julia:
-	docker push $(DOCKER_USER)/julia$(ARCH):$(JULIA_VERSION)
+	docker push $(DOCKER_USER)/julia$(ARCH):$(JULIA_TAG)
 assemble-julia:
-	./src/scripts/assemble.sh $(DOCKER_USER)/julia $(JULIA_VERSION)
+	./src/scripts/assemble.sh $(DOCKER_USER)/julia $(JULIA_TAG)
 
 ## IMAGE: rstats
 
@@ -199,26 +204,28 @@ assemble-julia:
 # NOTE: I tried using just "r" for this docker image and everything works until trying
 # to make thee assembled multiplatform package sagemathinc/r, where we just get a
 # weird permission denied error.  I guess 1-letter docker images have issues.
-R_VERSION=4.3.2
+R_VERSION=$(shell $(GET_VERSION) rstats)
+R_TAG=$(shell $(GET_TAG) rstats)
 rstats:
-	cd src/rstats && docker build  --build-arg ARCH=${ARCH} --build-arg R_VERSION=$(R_VERSION) -t $(DOCKER_USER)/rstats$(ARCH):$(R_VERSION) .
+	cd src/rstats && docker build  --build-arg ARCH=${ARCH} --build-arg R_VERSION=$(R_VERSION) -t $(DOCKER_USER)/rstats$(ARCH):$(R_TAG) .
 push-rstats:
-	docker push $(DOCKER_USER)/rstats$(ARCH):$(R_VERSION)
+	docker push $(DOCKER_USER)/rstats$(ARCH):$(R_TAG)
 run-rstats:
-	docker run -it --rm $(DOCKER_USER)/rstats$(ARCH):$(R_VERSION) bash
+	docker run -it --rm $(DOCKER_USER)/rstats$(ARCH):$(R_TAG) bash
 assemble-rstats:
-	./src/scripts/assemble.sh $(DOCKER_USER)/rstats $(R_VERSION)
+	./src/scripts/assemble.sh $(DOCKER_USER)/rstats $(R_TAG)
 
 
 ## IMAGE: anaconda
+ANACONDA_TAG=$(shell $(GET_TAG) anaconda)
 anaconda:
-	cd src/anaconda && docker build  --build-arg ARCH=${ARCH} -t $(DOCKER_USER)/anaconda$(ARCH):$(TAG) .
+	cd src/anaconda && docker build  --build-arg ARCH=${ARCH} -t $(DOCKER_USER)/anaconda$(ARCH):$(ANACONDA_TAG) .
 push-anaconda:
-	docker push $(DOCKER_USER)/anaconda$(ARCH):$(TAG)
+	docker push $(DOCKER_USER)/anaconda$(ARCH):$(ANACONDA_TAG)
 run-anaconda:
-	docker run -it --rm $(DOCKER_USER)/anaconda$(ARCH):$(TAG) bash
+	docker run -it --rm $(DOCKER_USER)/anaconda$(ARCH):$(ANACONDA_TAG) bash
 assemble-anaconda:
-	./src/scripts/assemble.sh $(DOCKER_USER)/anaconda $(TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/anaconda $(ANACONDA_TAG)
 
 
 #####
@@ -234,8 +241,8 @@ push-gpu:
 # See
 #   https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/supported-tags.md
 # for the available supported versions.
-CUDA_VERSION=12.3.1-devel-ubuntu22.04
-CUDA_TAG=12.3.1
+CUDA_VERSION=$(shell $(GET_VERSION) cuda)
+CUDA_TAG=$(shell $(GET_TAG) cuda)
 cuda:
 	cd src && docker build --build-arg CUDA_VERSION=$(CUDA_VERSION) -t $(DOCKER_USER)/cuda:$(CUDA_TAG) . -f cuda/Dockerfile
 push-cuda:
@@ -245,9 +252,8 @@ run-cuda:
 run-cuda-nogpu:
 	docker run -it --rm $(DOCKER_USER)/cuda:$(CUDA_TAG) bash
 
-# See https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch/tags
-PYTORCH_VERSION=23.12-py3
-PYTORCH_TAG=23.12-py3
+PYTORCH_VERSION=$(shell $(GET_VERSION) pytorch)
+PYTORCH_TAG=$(shell $(GET_TAG) pytorch)
 pytorch:
 	cd src && docker build --build-arg PYTORCH_VERSION=$(PYTORCH_VERSION) -t $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) . -f pytorch/Dockerfile
 push-pytorch:
@@ -257,11 +263,9 @@ run-pytorch:
 run-pytorch-nogpu:
 	docker run -it --rm $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) bash
 
-# See
-#  https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tensorflow/tags
-# for the tag.  Fortunately nvcr.io/nvidia/tensorflow uses Ubuntu 22.04LTS too.
-TENSORFLOW_VERSION=23.12-tf2-py3
-TENSORFLOW_TAG=23.12-tf2-py3
+# Fortunately nvcr.io/nvidia/tensorflow uses Ubuntu 22.04LTS too.
+TENSORFLOW_VERSION=$(shell $(GET_VERSION) tensorflow)
+TENSORFLOW_TAG=$(shell $(GET_TAG) tensorflow)
 tensorflow:
 	# do not cd to tensorflow directory, because we need to access start.js which is here.
 	# We want the build context to be bigger.
@@ -273,12 +277,11 @@ run-tensorflow:
 run-tensorflow-nogpu:
 	docker run -it --rm $(DOCKER_USER)/tensorflow:$(TENSORFLOW_TAG) bash
 
-# For tags see
-#    https://console.cloud.google.com/artifacts/docker/colab-images/us/public/runtime
 # They seem to do releases about once per month.
-COLAB_TAG=release-colab_20231214-060137_RC00
+COLAB_VERSION=$(shell $(GET_VERSION) colab)
+COLAB_TAG=$(shell $(GET_TAG) colab)
 colab:
-	cd src && docker build --build-arg COLAB_TAG=$(COLAB_TAG) -t $(DOCKER_USER)/colab:$(COLAB_TAG) . -f colab/Dockerfile
+	cd src && docker build --build-arg COLAB_TAG=$(COLAB_VERSION) -t $(DOCKER_USER)/colab:$(COLAB_TAG) . -f colab/Dockerfile
 push-colab:
 	docker push $(DOCKER_USER)/colab:$(COLAB_TAG)
 run-colab:
@@ -289,8 +292,8 @@ run-colab-nogpu:
 # See
 #   https://catalog.ngc.nvidia.com/orgs/nvidia/containers/jax/tags
 # for the tag.
-JAX_VERSION=23.10-paxml-py3
-JAX_TAG=23.10-paxml-py3
+JAX_VERSION=$(shell $(GET_VERSION) jax)
+JAX_TAG=$(shell $(GET_TAG) jax)
 jax:
 	# do not cd to jax directory, because we need to access start.js which is here.
 	# We want the build context to be bigger.
