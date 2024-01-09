@@ -33,7 +33,8 @@ push-core:
 
 ## IMAGE: cocalc
 
-# This "cocalc" is the subset needed to run directly on the compute server
+# This "cocalc" is the subset of the cocalc nodejs code
+# needed to run cocalc directly on the compute server
 # for supporting websocketfs mounting, terminals, and jupyter notebooks.
 # We build a docker image on the build host, but then copy the files out
 # there, compress them, and push them to npmjs.com!  This is never pushed
@@ -79,7 +80,7 @@ push-cocalc:
 # which is what gets used everywhere else.
 # TODO: most other code doesn't use this base tag, but needs to. We're
 # using latest until all the other containers use it properly.
-BASE_TAG=latest
+BASE_TAG=1.0
 base:
 	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH):$(BASE_TAG) .
 run-base:
@@ -90,18 +91,18 @@ assemble-base:
 	./src/scripts/assemble.sh $(DOCKER_USER)/base $(BASE_TAG)
 
 ## IMAGE: filesystem
-FILESYSTEM_TAG=latest
+FILESYSTEM_TAG=1.0
 filesystem:
 	cd src && docker build  --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG) . -f filesystem/Dockerfile
 run-filesystem:
-	docker run -it --rm $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG)
+	rm -rf /tmp/filesystem && mkdir /tmp/filesystem && chmod a+rwx /tmp/filesystem && docker run -it --rm -v /tmp/filesystem:/data -v /cocalc:/cocalc $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG)
 push-filesystem:
 	docker push $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG)
 assemble-filesystem:
 	./src/scripts/assemble.sh $(DOCKER_USER)/filesystem $(FILESYSTEM_TAG)
 
 ## IMAGE: compute
-COMPUTE_TAG=latest
+COMPUTE_TAG=1.0
 compute:
 	cd src && docker build --build-arg ARCH=${ARCH} --build-arg BASE_TAG=$(BASE_TAG)  -t $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG) . -f compute/Dockerfile
 run-compute:
@@ -112,7 +113,7 @@ assemble-compute:
 	./src/scripts/assemble.sh $(DOCKER_USER)/compute $(COMPUTE_TAG)
 
 ## IMAGE: python
-PYTHON_TAG=latest
+PYTHON_TAG=3.10.12
 python:
 	cd src/python && docker build --build-arg COMPUTE_TAG=$(COMPUTE_TAG)  -t $(DOCKER_USER)/python$(ARCH):$(PYTHON_TAG) .
 run-python:
@@ -126,7 +127,7 @@ assemble-python:
 ## IMAGE: ollama
 # See https://github.com/jmorganca/ollama/releases for versions
 OLLAMA_VERSION=0.1.18
-OLLAMA_TAG=0.1.18
+OLLAMA_TAG=0.1.18b
 PROXY_VERSION=0.9.0
 ollama:
 	cd src/ollama && docker build --build-arg PROXY_VERSION=${PROXY_VERSION} --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) --build-arg OLLAMA_VERSION=$(OLLAMA_VERSION) -t $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG) .

@@ -19,7 +19,6 @@ RUN curl -fSL -o /usr/local/bin/ollama https://github.com/jmorganca/ollama/relea
 
 # Install ollama-webui
 # See https://github.com/ollama-webui/ollama-webui/pkgs/container/ollama-webui
-# We always install the latest dockerized version for now.
 
 ENV ENV=prod
 ARG OLLAMA_API_BASE_URL='http://localhost:11434/api'
@@ -28,7 +27,7 @@ ENV WEBUI_AUTH ""
 ENV WEBUI_DB_URL ""
 ENV WEBUI_JWT_SECRET_KEY "SECRET_KEY"
 
-COPY --from=ghcr.io/ollama-webui/ollama-webui:main /app /app
+COPY --from=ghcr.io/ollama-webui/ollama-webui@sha256:b81ec9f68cceffba97158e77e266b3f278f96105687aad4d6731554c6a3444d6 /app /app
 
 RUN apt-get update && apt-get install -y python3-pip
 
