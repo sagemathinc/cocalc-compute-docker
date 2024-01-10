@@ -22,6 +22,7 @@
     "description": "Filesystem container."
   },
   "python": {
+    "priority": 10,
     "label": "Python",
     "package": "sagemathinc/python",
     "minDiskSizeGb": 10,
@@ -39,6 +40,7 @@
     "description": "[Python](https://python.org) is a versatile and user-friendly programming language, known for its clear syntax and readability. It is widely used for web development, data analysis, artificial intelligence, and scientific computing."
   },
   "sagemath": {
+    "priority": 8,
     "label": "SageMath",
     "package": "sagemathinc/sagemath",
     "minDiskSizeGb": 20,
@@ -92,6 +94,7 @@
     "versions": [{ "tag": "2024-01", "tested": true }]
   },
   "pytorch": {
+    "priority": 10,
     "label": "PyTorch",
     "package": "sagemathinc/pytorch",
     "gpu": true,
@@ -122,6 +125,7 @@
     "description": "[TensorFlow](https://www.tensorflow.org/) is an open-source machine learning framework developed by Google, widely used for building and training neural networks. Its flexible architecture allows for easy deployment of computation across various platforms, from servers to edge devices, making it suitable for a broad range of AI applications."
   },
   "colab": {
+    "priority": 7,
     "label": "Google Colab",
     "package": "sagemathinc/colab",
     "minDiskSizeGb": 53,
