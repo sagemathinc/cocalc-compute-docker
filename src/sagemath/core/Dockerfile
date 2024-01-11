@@ -1,37 +1,27 @@
-# Version of sage to build
 FROM ubuntu:22.04 AS base
 
 USER root
 
-COPY install-packages.sh /root
+COPY scripts/install-packages.sh /root
 RUN chmod +x  /root/install-packages.sh && ./root/install-packages.sh && rm /root/install-packages.sh
 
-# Grab source code
+# Version of sage to build
 ARG SAGEMATH_VERSION=
 
 RUN  cd /usr/local \
   && git clone --depth 1 --branch ${SAGEMATH_VERSION} https://github.com/sagemath/sage.git
 
-# Configure
-RUN  export SAGE_FAT_BINARY="yes" \
-  && export SAGE_INSTALL_GCC="no" \
-  && cd /usr/local/sage \
-  && make configure \
-  && ./configure --enable-build-as-root
+# Configure Sage
+COPY scripts/configure-sage.sh /root
+RUN chmod +x  /root/configure-sage.sh && ./root/configure-sage.sh && rm /root/configure-sage.sh
 
-# Build
-RUN  export SAGE_FAT_BINARY="yes" \
-  && export SAGE_INSTALL_GCC="no" \
-  && export MAKE="make -j`grep processor /proc/cpuinfo | wc -l`" \
-  && cd /usr/local/sage/ \
-  && make
+# Build Sage
+COPY scripts/build-sage.sh /root
+RUN chmod +x  /root/build-sage.sh && ./root/build-sage.sh && rm /root/build-sage.sh
 
-# Optional packages: just sagetex for now
-RUN  export SAGE_FAT_BINARY="yes" \
-  && export SAGE_INSTALL_GCC="no" \
-  && export MAKE="make -j`grep processor /proc/cpuinfo | wc -l`" \
-  && cd /usr/local/sage/ \
-  && ./sage -p sagetex
+# Some optional packages
+COPY scripts/install-optional.sh /root
+RUN chmod +x  /root/install-optional.sh && ./root/install-optional.sh && rm /root/install-optional.sh
 
 # Clean up artifacts from the sage build that we don't need for runtime
 RUN cd /usr/local/sage \
@@ -58,14 +48,11 @@ COPY --from=base /usr/local/sage /usr/local/sage
 
 # Install packages again, so users can build cython code, etc.
 # Sage assumed these exist when it was built so they better be here.
-COPY install-packages.sh /root
+COPY scripts/install-packages.sh /root
 RUN chmod +x  /root/install-packages.sh && ./root/install-packages.sh && rm /root/install-packages.sh
 
-# Add links for sage and sagemath
-RUN  ln -sf "/usr/local/sage/sage" /usr/bin/sage \
-  && ln -sf "/usr/local/sage/sage" /usr/bin/sagemath
-
-# Put scripts to start gap, gp, maxima, ... in /usr/local/bin
-RUN /usr/local/sage/sage --nodotsage -c "install_scripts('/usr/local/bin')"
+# Add links
+COPY scripts/links-to-sage.sh /root
+RUN chmod +x  /root/links-to-sage.sh && ./root/links-to-sage.sh && rm /root/links-to-sage.sh
 
 

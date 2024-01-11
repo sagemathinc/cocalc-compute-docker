@@ -4,6 +4,7 @@
     "label": "CoCalc",
     "package": "@cocalc/compute-server",
     "package_arm64": "@cocalc/compute-server-arm64",
+    "url": "https://www.npmjs.com/package/@cocalc/compute-server",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cocalc",
     "versions": [
       { "label": "test", "tag": "test", "tested": false },

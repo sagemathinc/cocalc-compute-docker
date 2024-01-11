@@ -160,9 +160,7 @@ push-math:
 SAGEMATH_VERSION=$(shell $(GET_VERSION) sagemath)
 SAGEMATH_TAG=$(shell $(GET_TAG) sagemath)
 sagemath-core:
-	# TODO: this currently just builds the latest released version of sage -- need to change it to build
-	# the version specified by SAGEMATH_VERSION!
-	cd src/sagemath/core && docker build --build-arg SAGEMATH_VERSION=${SAGEMATH_VERSION} -t $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG) .
+	cd src/sagemath && docker build --build-arg SAGEMATH_VERSION=${SAGEMATH_VERSION} -t $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG) -f core/Dockerfile .
 run-sagemath-core:
 	docker run -it --rm $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG) bash
 push-sagemath-core:
@@ -183,6 +181,25 @@ push-sagemath:
 	docker push $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION)
 assemble-sagemath:
 	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath $(SAGEMATH_VERSION)
+
+
+# This is very similar to sagemath-core, but much bigger, since it doesn't delete
+# any build artifacts or strip anything. The result is meant to be suitable for
+# immediately doing sage development and installing optional packages, etc.
+SAGEMATHDEV_VERSION=$(shell $(GET_VERSION) sagemath)
+SAGEMATHDEV_TAG=$(shell $(GET_TAG) sagemath)
+sagemath-dev:
+	cd src/sagemath && docker build --build-arg SAGEMATH_VERSION=${SAGEMATHDEV_VERSION} -t $(DOCKER_USER)/sagemath-dev$(ARCH):$(SAGEMATHDEV_TAG) -f dev/Dockerfile .
+run-sagemath-dev:
+	docker run -it --rm $(DOCKER_USER)/sagemath-dev$(ARCH):$(SAGEMATHDEV_TAG) bash
+push-sagemath-dev:
+	docker push $(DOCKER_USER)/sagemath-dev$(ARCH):$(SAGEMATHDEV_TAG)
+assemble-sagemath-dev:
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-dev $(SAGEMATHDEV_TAG) $(SAGEMATHDEV_TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-dev $(SAGEMATHDEV_TAG) latest
+
+
+
 
 ## IMAGE: julia
 
