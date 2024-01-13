@@ -13,7 +13,8 @@ RUN /tmp/install.sh benzene
 RUN /tmp/install.sh biopython
 RUN /tmp/install.sh bliss
 RUN /tmp/install.sh buckygen
-RUN /tmp/install.sh cbc
+# cbc fails only on ARM64
+#RUN /tmp/install.sh cbc
 RUN /tmp/install.sh coxeter3
 RUN /tmp/install.sh cryptominisat
 RUN /tmp/install.sh csdp

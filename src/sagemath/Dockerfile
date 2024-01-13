@@ -1,6 +1,7 @@
-ARG SAGEMATH_VERSION
+ARG SAGEMATH_VERSION=
 ARG ARCH=
-FROM sagemathinc/sagemath-core${ARCH}:${SAGEMATH_VERSION} as sagemath
+ARG SAGEMATH_VARIANT=
+FROM sagemathinc/sagemath-${SAGEMATH_VARIANT}${ARCH}:${SAGEMATH_VERSION} as sagemath
 
 FROM sagemathinc/python
 

@@ -186,13 +186,25 @@ assemble-sagemath-optional:
 # this depends on sagemath-core existing
 sagemath:
 	cd src/sagemath && \
-	docker build  --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
+	docker build  --build-arg SAGEMATH_VARIANT="core" --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
 run-sagemath:
 	docker run -it --rm $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) bash
 push-sagemath:
 	docker push $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION)
 assemble-sagemath:
 	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath $(SAGEMATH_VERSION)
+
+## IMAGE: sagemathopt
+# this depends on sagemath-optional existing
+sagemathopt:
+	cd src/sagemath && \
+	docker build  --build-arg SAGEMATH_VARIANT="optional" --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
+run-sagemathopt:
+	docker run -it --rm $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATH_VERSION) bash
+push-sagemathopt:
+	docker push $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATH_VERSION)
+assemble-sagemathopt:
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemathopt $(SAGEMATH_VERSION)
 
 
 ## NOTE USED YET -- not clear it is useful
