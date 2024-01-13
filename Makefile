@@ -183,6 +183,7 @@ assemble-sagemath:
 	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath $(SAGEMATH_VERSION)
 
 
+## NOTE USED YET -- not clear it is useful
 # This is very similar to sagemath-core, but much bigger, since it doesn't delete
 # any build artifacts or strip anything. The result is meant to be suitable for
 # immediately doing sage development and installing optional packages, etc.

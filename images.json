@@ -194,7 +194,6 @@
     "jupyterKernels": false
   },
   "jax": {
-    "disabled": true,
     "label": "JAX",
     "package": "sagemathinc/jax",
     "gpu": true,
@@ -205,7 +204,8 @@
     "versions": [
       {
         "label": "0.4.17 (2023-10)",
-        "tag": "23.10-paxml-py3",
+        "tag": "23.10-py3",
+        "version": "23.10-py3",
         "tested": true
       }
     ],
