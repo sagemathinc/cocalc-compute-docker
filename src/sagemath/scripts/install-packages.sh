@@ -21,4 +21,5 @@ apt-get install -y \
        graphviz \
        tachyon \
        python3-pip \
-       git
+       git \
+       automake
