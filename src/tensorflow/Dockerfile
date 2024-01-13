@@ -1,9 +1,6 @@
 ARG TENSORFLOW_VERSION
 FROM nvcr.io/nvidia/tensorflow:${TENSORFLOW_VERSION}
 
-COPY pytorch/install-python-support.sh /tmp
-RUN /tmp/install-python-support.sh && rm /tmp/install-python-support.sh
-
 # Standard CoCalc compute setup:
 ENV LC_ALL=C.UTF-8
 ENV LANG=en_US.UTF-8
@@ -20,6 +17,10 @@ RUN /tmp/install-docker.sh
 COPY base/setup-user.sh /tmp/setup-user.sh
 RUN /tmp/setup-user.sh
 COPY base/scripts/* /usr/local/bin/
+
+# Standard python packages with jupyter kernel.
+COPY python/install-core-python.sh /tmp
+RUN chmod a+x /tmp/install-core-python.sh&& /tmp/install-core-python.sh && rm /tmp/install-core-python.sh
 
 USER user
 CMD /cocalc/start-compute.sh

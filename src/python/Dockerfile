@@ -4,12 +4,7 @@ FROM sagemathinc/compute${ARCH}:${COMPUTE_TAG}
 
 USER root
 
-RUN apt-get update \
-    && apt-get install -y python3-pip \
-    && pip install jupyter \
-    && python3 -m ipykernel install
-
-# Popular python libraries
-RUN pip install matplotlib pandas numpy scipy scikit-learn requests beautifulsoup4 sympy mpmath pyyaml networkx
+COPY install-core-python.sh /tmp
+RUN chmod a+x /tmp/install-core-python.sh && /tmp/install-core-python.sh && rm /tmp/install-core-python.sh
 
 USER user
