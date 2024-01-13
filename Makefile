@@ -172,7 +172,7 @@ assemble-sagemath-core:
 SAGEMATH_VERSION=$(shell $(GET_VERSION) sagemath)
 SAGEMATH_TAG=$(shell $(GET_TAG) sagemath)
 sagemath-optional:
-	cd src/sagemath && docker build --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=${SAGEMATH_VERSION} -t $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATH_TAG) -f optional/Dockerfile .
+	cd src/sagemath && docker build --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=${SAGEMATH_VERSION} -t $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATH_TAG) -f optional/Dockerfile${ARCH0} .
 run-sagemath-optional:
 	docker run -it --rm $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATH_TAG) bash
 push-sagemath-optional:

@@ -13,7 +13,8 @@ RUN /tmp/install.sh benzene
 RUN /tmp/install.sh biopython
 RUN /tmp/install.sh bliss
 RUN /tmp/install.sh buckygen
-RUN /tmp/install.sh cbc
+# cbc fails only on arm64
+#RUN /tmp/install.sh cbc
 RUN /tmp/install.sh coxeter3
 RUN /tmp/install.sh cryptominisat
 RUN /tmp/install.sh csdp
@@ -40,7 +41,8 @@ RUN /tmp/install.sh frobby
 RUN /tmp/install.sh gap_jupyter
 RUN /tmp/install.sh gap_packages
 RUN /tmp/install.sh gitpython
-RUN /tmp/install.sh glucose
+# glucose fails on arm64
+#RUN /tmp/install.sh glucose
 #RUN /tmp/install.sh gp2c
 #RUN /tmp/install.sh graphviz
 RUN /tmp/install.sh igraph
@@ -51,7 +53,8 @@ RUN /tmp/install.sh ipympl
 RUN /tmp/install.sh jupyterlab
 RUN /tmp/install.sh kenzo
 RUN /tmp/install.sh kissat
-RUN /tmp/install.sh latte_int
+# latte fails on arm64
+#RUN /tmp/install.sh latte_int
 #RUN /tmp/install.sh libgraphviz
 #RUN /tmp/install.sh libjpeg
 RUN /tmp/install.sh libnauty
