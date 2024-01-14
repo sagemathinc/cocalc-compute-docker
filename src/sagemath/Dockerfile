@@ -7,7 +7,7 @@ FROM sagemathinc/python
 
 # Install packages that Sage assumes are there
 USER root
-COPY core/install-packages.sh /tmp/install-packages.sh
+COPY scripts/install-packages.sh /tmp/install-packages.sh
 RUN chmod +x /tmp/install-packages.sh && /tmp/install-packages.sh
 
 USER user

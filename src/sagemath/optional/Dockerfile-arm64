@@ -61,7 +61,8 @@ RUN /tmp/install.sh libnauty
 RUN /tmp/install.sh libogg
 RUN /tmp/install.sh libsemigroups
 #RUN /tmp/install.sh libxml2
-RUN /tmp/install.sh lidia
+# lidia fails on arm64
+#RUN /tmp/install.sh lidia
 RUN /tmp/install.sh lrslib
 RUN /tmp/install.sh mathics
 RUN /tmp/install.sh mathics_scanner
@@ -127,7 +128,8 @@ RUN /tmp/install.sh scs
 RUN /tmp/install.sh singular_jupyter
 RUN /tmp/install.sh sirocco
 RUN /tmp/install.sh slabbe
-RUN /tmp/install.sh snappy
+# snappy fails on arm64 with " ERROR: Could not build wheels for cypari, FXrays"
+#RUN /tmp/install.sh snappy
 RUN /tmp/install.sh soplex
 RUN /tmp/install.sh sqlalchemy
 #RUN /tmp/install.sh surface_dynamics
@@ -135,7 +137,8 @@ RUN /tmp/install.sh symengine
 RUN /tmp/install.sh tdlib
 RUN /tmp/install.sh texlive
 RUN /tmp/install.sh texttable
-RUN /tmp/install.sh tides
+# tides doesn't work on arm64
+#RUN /tmp/install.sh tides
 RUN /tmp/install.sh topcom
 
 # Clean up artifacts that we don't need for runtime
