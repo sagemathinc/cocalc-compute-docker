@@ -62,7 +62,6 @@
     "description": "[SageMath](https://sagemath.org) is an open-source mathematics software system, integrating numerous software packages and providing a unified interface. It is designed for advanced algebra, geometry, number theory, cryptography, and various other fields of mathematics, accessible through a Python-based language. This image does not include optional packages, so it is smaller."
   },
   "sagemathopt": {
-    "disabled": true,
     "priority": 7,
     "label": "SageMath + Optional Packages",
     "package": "sagemathinc/sagemathopt",
