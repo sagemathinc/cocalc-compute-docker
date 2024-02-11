@@ -7,13 +7,13 @@
     "url": "https://www.npmjs.com/package/@cocalc/compute-server",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cocalc",
     "versions": [
+      { "label": "test", "version": "1.8.1", "tag": "test", "tested": false },
       {
         "label": "latest",
-        "version": "1.7.0",
+        "version": "1.8.2",
         "tag": "latest",
         "tested": true
-      },
-      { "label": "test", "version": "1.7.1", "tag": "test", "tested": false }
+      }
     ],
     "description": "The lightweight subset of the CoCalc Javascript code needed to run cocalc directly on the compute server for supporting websocketfs mounting, terminals, and jupyter notebooks."
   },
@@ -24,7 +24,10 @@
     "icon": "files",
     "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/filesystem",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/filesystem",
-    "versions": [{ "tag": "1.0", "tested": true }],
+    "versions": [
+      { "tag": "1.0", "tested": true },
+      { "tag": "1.1", "tested": true }
+    ],
     "description": "Filesystem container."
   },
   "python": {

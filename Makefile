@@ -54,8 +54,6 @@ run-cocalc:
 # Copy from docker image and publish @cocalc/compute-cocalc$(ARCH)
 # to the npm registry.  This only works, of course, if you are signed
 # into npm as a user that can publish to @cocalc.
-# This automatically publishes as the next available minor version of
-# the package (but doesn't modify local git at all).
 COCALC_NPM=src/cocalc-npm
 COCALC_VERSION=$(shell $(GET_VERSION) cocalc)
 push-cocalc:
@@ -166,7 +164,7 @@ run-sagemath-core:
 push-sagemath-core:
 	docker push $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG)
 assemble-sagemath-core:
-	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_TAG) $(SAGEMATH_TAG)
+	./src/scripts/\ $(DOCKER_USER)/sagemath-core $(SAGEMATH_TAG) $(SAGEMATH_TAG)
 	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_TAG) latest
 
 SAGEMATH_VERSION=$(shell $(GET_VERSION) sagemath)
