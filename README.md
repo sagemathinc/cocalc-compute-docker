@@ -1,9 +1,12 @@
-# CoCalc: Compute Server Image Management Repo
+# CoCalc Compute Server Image Management Repo
 
 URL: https://github.com/sagemathinc/cocalc-compute-docker
 
-Ultimately there will be sections below with step-by-step instructions
-about how to update, build and test the compute server Docker images and npm pacckages we manage.
+[Compute Server Documentation](https://doc.cocalc.com/compute_server.html)
+
+There will be sections below with step-by-step instructions
+about how to update, build and test the compute server Docker images and npm pacckages we manage. For things that aren't documented yet, you have to
+just read the source code, Makefiles and Dockerfiles. The Makefile is useful as a makefile, but it's not at all a traditional "bullet proof" makefile that ensure any relevant dependency is automatically built. It's a useful way to run scripts, as documented here, and that is all.
 
 ## Architectures: `x86_64` and `arm64`
 
