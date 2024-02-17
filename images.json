@@ -7,10 +7,10 @@
     "url": "https://www.npmjs.com/package/@cocalc/compute-server",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cocalc",
     "versions": [
-      { "label": "test", "version": "1.8.1", "tag": "test", "tested": false },
+      { "label": "test", "version": "1.8.3", "tag": "test", "tested": false },
       {
         "label": "latest",
-        "version": "1.8.2",
+        "version": "1.8.4",
         "tag": "latest",
         "tested": true
       }

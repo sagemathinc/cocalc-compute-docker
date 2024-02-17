@@ -1,115 +1,35 @@
-# CoCalc: Compute Docker Image
-
-Docker image for adding remote compute capabilities to a CoCalc project.
+# CoCalc: Compute Server Image Management Repo
 
 URL: https://github.com/sagemathinc/cocalc-compute-docker
 
-Run this image as follows to ensure that it has sufficient permissions to use FUSE to mount a filesystem. This won't work without these permissions.  Also, fill in the API\_KEY, PROJECT\_ID, and IPYNB\_PATH below.
+Ultimately there will be sections below with step-by-step instructions
+about how to update, build and test the compute server Docker images and npm pacckages we manage.
 
-```sh
-docker run  \
-   -e API_KEY=sk-4xxxxxxxxxxxx000Q \
-   -e PROJECT_ID=ab3c2e56-32c4-4fa5-a3ee-6fd980d10fbf \
-   -e IPYNB_PATH=myfile.ipynb  \
-   -e TERM_PATH=term.term \
-   --cap-add=SYS_ADMIN --device /dev/fuse --security-opt apparmor:unconfined \
-   sagemathinc/compute-python3
-```
+## Architectures: `x86_64` and `arm64`
 
-- Get the API_KEY in project settings.
-- Open the Ipython notebook in your browser.  The path is relative to your home directory.
+I've taken great pains to ensure we fully support both architectures. This adds complexity and extra work at every step, unfortunately.
 
-If you want to see a lot of logging involving Jupyter, add
+## How to update the cocalc npm package
 
-```sh
--e DEBUG=cocalc:*
-```
+To build the cocalc npm package and push it to npmjs with the label "test":
 
-or for logging as much as possible: `-e DEBUG=*` . 
+1. Update version of cocalc in this line in images.json: `{ "label": "test", "version": "1.8.1", "tag": "test", "tested": false }`
+   e.g., from 1.8.1 to something newer than any tag, e.g., 1.8.3
+2. `make cocalc && make push-cocalc`
+3. Create a compute sever on cocalc.com and for the images check "Advanced" and then select the "test" version of cocalc. That compute server will then use this testing npm package.
 
-### Mounting the project home directory
+When ready to release in prod, i.e., to push a package to npmjs with the label "latest":
 
-Mount the project's HOME directory at /tmp/project by
-running this code in nodejs after setting all of the above environment variables.
+1. Update this line in images.json `{ "label": "latest", "version": "1.8.2", "tag": "latest", "tested": true }`,
+   e.g., from 1.8.2 to 1.8.4, which is newer than the one you just tested
+2. `make COCALC_TAG=latest cocalc && make COCALC_TAG=latest push-cocalc`
 
-```js
-await require("@cocalc/compute").mountProject({
-  project_id: process.env.PROJECT_ID,
-  path: "/tmp/project",
-});
-0;
-```
+NOTE: You should do the above on both `x86_64` and `arm64` architectures, as they are separate. There is code in the cocalc package that is platform specific.
 
-### Jupyter
+Double check versions at
 
-You should open the notebook Untitled.ipynb on [cocalc.com](http://cocalc.com).
-Then set all the above env variables in another terminal and run the following code in node.js. **Running of that Jupyter notebook will then switch to your local machine.**
+- https://www.npmjs.com/package/@cocalc/compute-server?activeTab=versions
 
-```js
-await require("@cocalc/compute").jupyter({
-  project_id: process.env.PROJECT_ID,
-  path: "Untitled.ipynb",
-  cwd: "/tmp/project",
-});
-0;
-```
+and at
 
-### Docker
-
-Support you want to be able to run docker inside the container. Include the option 
-
-```sh
--v /var/run/docker.sock:/var/run/docker.sock
-```
-
-when you run docker \(as above\). Once you get a terminal in the container, install Docker:
-
-```sh
- apt-get update && apt-get install -y docker.io
-```
-
-Then you can immediately fully use Docker.   
-
-**Security Note:** that this is using the Docker daemon running on the host machine.  Thus only do this when you trust running anything via docker on the host machine, e.g., when the host machine is a dedicated VM specifically for this purpose.
-
-### NVidia GPUs
-
-If your host computer has a GPU \(so `nvidia-smi` should be there and show a GPU\), you can make it available by including this option on the command line when running Docker:
-
-```sh
---gpus all 
-```
-
-When the container starts, type `nvidia-smi` to confirm the GPU is available.  You could see it in action by doing `pip install torch` then run this code in Python:
-
-```py
-import torch
-import time
-
-# define a tensor
-a = torch.randn([10000, 10000])
-
-# case for CUDA available (Assuming the previous cell returned 'True')
-if torch.cuda.is_available():
-    # move the tensor to GPU
-    a = a.cuda()
-
-    start = time.time()
-    
-    # perform an operation on the tensor
-    a.sin_()
-    
-    print("Time taken when CUDA is available : ", time.time()-start)
-
-# case for only CPU
-else:
-    start = time.time()
-    
-    # perform operation on the tensor
-    a.sin_()
-    
-    print("Time taken when only CPU is available : ", time.time()-start)
-
-
-```
-
+- https://www.npmjs.com/package/@cocalc/compute-server-arm64?activeTab=versions

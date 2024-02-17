@@ -44,6 +44,7 @@ push-core:
 # there, compress them, and push them to npmjs.com!  This is never pushed
 # to dockerhub, and docker is just used for convenience to make the build
 # easier.  We push two packages to npm, one for each arch.
+
 COCALC_TAG=test
 cocalc:
 	cd src/cocalc && docker build --build-arg COMMIT=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(COCALC_TAG) .
@@ -55,7 +56,7 @@ run-cocalc:
 # to the npm registry.  This only works, of course, if you are signed
 # into npm as a user that can publish to @cocalc.
 COCALC_NPM=src/cocalc-npm
-COCALC_VERSION=$(shell $(GET_VERSION) cocalc)
+COCALC_VERSION=$(shell $(GET_VERSION) cocalc $(COCALC_TAG))
 push-cocalc:
 	rm -rf /tmp/cocalc-npm$(ARCH0)
 	mkdir -p /tmp/cocalc-npm$(ARCH0)/dist
