@@ -27,6 +27,8 @@ When ready to release in prod, i.e., to push a package to npmjs with the label "
    e.g., from 1.8.2 to 1.8.4, which is newer than the one you just tested
 2. `make COCALC_TAG=latest cocalc && make COCALC_TAG=latest push-cocalc`
 
+You should also commit and push to github.
+
 NOTE: You should do the above on both `x86_64` and `arm64` architectures, as they are separate. There is code in the cocalc package that is platform specific.
 
 Double check versions at
@@ -36,3 +38,90 @@ Double check versions at
 and at
 
 - https://www.npmjs.com/package/@cocalc/compute-server-arm64?activeTab=versions
+
+## How to update Julia
+
+Add a new entry to the versions section of images.json for julia, e.g.,
+I just added the 1.10.1 tag below, since as I write this Julia 1.10.1 was just released:
+
+```json
+  "julia": {
+    ...
+    "versions": [
+      { "tag": "1.9.4", "tested": true },
+      { "tag": "1.10.0", "tested": true },
+      { "tag": "1.10.1", "tested": false },
+    ],
+```
+
+Build the Julia Docker image, which should take 10-15 minutes.
+
+```sh
+make julia
+```
+
+Run it and test whatever you want in the shell:
+
+```sh
+make run-julia
+```
+
+E.g., you can confirm installed packages:
+```sh
+julia> using Pkg; Pkg.status()
+Status `/opt/julia/local/share/julia/environments/v1.10/Project.toml`
+  [587475ba] Flux v0.14.11
+  [7073ff75] IJulia v1.24.2
+  [ee78f7c6] Makie v0.20.7
+  [91a5bcdd] Plots v1.40.1
+  [c3e4b0f8] Pluto v0.19.38
+```
+Or run the Jupyter kernel
+```sh
+user@1e38d84d26cb:~$ jupyter kernelspec list
+Available kernels:
+  julia-1.10    /usr/local/share/jupyter/kernels/julia-1.10
+  python3       /usr/local/share/jupyter/kernels/python3
+user@1e38d84d26cb:~$ jupyter console --kernel=julia-1.10
+```
+
+Push it to DockerHub. This is not "dangerous", since no cocalc install
+will use it until the images.json is pushed and explicitly lists this
+version as existing and being tested:
+
+```sh
+make push-julia
+```
+
+Once you also do all this with ARM64 version, you can then assemble the x86_64 and arm64 Julia images into a single multiplatform Docker image:
+
+```
+make assemble-julia
+```
+
+In images.json, set this version as tested:
+
+```json
+  "julia": {
+    ...
+    "versions": [
+      { "tag": "1.9.4", "tested": true },
+      { "tag": "1.10.0", "tested": true },
+      { "tag": "1.10.1", "tested": true },
+    ],
+```
+
+You can now commit and push images.json.  
+What this does is make it so on-prem compute server users get
+this new version of the Julia image. Google cloud users still get
+the latest version that was built and tested as a premade image there.
+
+### Building a new Google Cloud Julia image
+
+After updating `image.json` and pushing it so it is public, to build a
+Google cloud image you have to explicitly get a shell on say hub-mentions.
+From there you can run code to build a new Google cloud image as explained in the comment at the top of [create-image.ts](https://github.com/sagemathinc/cocalc/blob/master/src/packages/server/compute/cloud/google-cloud/create-image.ts).
+
+Once you build the new image, it should be an option when you click "Advanced" when creating a compute server. You can try it out, and if it works well, as an admin click the button "Mark Google Cloud Image as Tested" at the bottom of the compute server configuration modal. This causes the google cloud image to get labeled `tested : true`, and then all users will see this image by default (without having to click "Advanced"). NOTE: any user can click "Advanced" and use images before they are marked as tested.
+
+Another note: If the size of the docker image gets a lot bigger, you need to adjust the `"minDiskSizeGb": xx` in images.json.
