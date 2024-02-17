@@ -98,9 +98,9 @@
     "url": "https://julialang.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/julia",
     "versions": [
-      { "tag": "1.9.4", "tested": true },
-      { "tag": "1.10.0", "tested": true },
-      { "tag": "1.10.1", "tested": true }
+      { "label": "1.9.4", "tag": "1.9.4", "tested": true },
+      { "label": "1.10.0", "tag": "1.10.0", "tested": true },
+      { "label": "1.10.1", "tag": "1.10.1", "tested": true }
     ],
     "description": "[Julia](https://julialang.org/) is a high-performance programming language designed for technical computing, combining the speed of C with the ease of use of Python. It excels in numerical analysis, computational science, and data processing with its efficient syntax and ability to handle high-level mathematical operations."
   },
