@@ -53,6 +53,7 @@ I just added the 1.10.1 tag below, since as I write this Julia 1.10.1 was just r
       { "label": "1.10.1", "tag": "1.10.1", "tested": false },
     ],
 ```
+
 Here the label is what the user sees in the dropdown list, and the tag is what we use internally everywhere. Typically they are the same, but they don't have to be.  You can also specify `"version":"1.10.1", "tag":"1.10.1.p1"` if you want to build Julia version 1.10.1, but use the tag `1.10.1.p1`.
 
 Build the Julia Docker image, which should take 10-15 minutes.
@@ -131,8 +132,7 @@ For example, the following will create the x86_64 and arm64 Julia images with ta
 
 ```sh
 [prod3.test] kucalc-prod3-ctl-ws-3:~/kucalc/cluster2> c ssh hub-mentions
-$ cd /cocalc/src/packages/server/
-$ node
+$ cd /cocalc/src/packages/server/ && node
 > a = require('./dist/compute/cloud/google-cloud/create-image')
 > await a.createImages({image:"julia", tag:'1.10.1'})
 ...
@@ -151,3 +151,4 @@ Also, to make the public cocalc.com server recognize the new image.json file, be
 Once you successfully create the new images, they should be an option when you click "Advanced" when creating a compute server (make sure to click the above link and refresh your browser). You can try the image out, and if it works well, as an admin click the button "Mark Google Cloud Image as Tested" at the bottom of a specific compute server's configuration modal. This causes the google cloud image to get labeled `tested : true`, at which point all users will see this image by default (without having to click "Advanced"). NOTE: any user can click "Advanced" and use images before they are marked as tested.
 
 If building the image fails, the VM is left running for a while, and you can debug the problem. The problem is almost always "out of disk space", and the fix is to adjust the field `"minDiskSizeGb": xx` in images.json. In particular, if the size of the docker image gets a lot bigger, you need to adjust the field `"minDiskSizeGb": xx`. This is the smallest allowed disk for that image when creating a new VM. We want it to be small to save users money. On the other hand, things will break if it is too small. I don't know a good way to just compute its size as a function of the Docker image size, since the Docker image is compressed. Also, GPU/Nvidia drivers and the Ubuntu OS can complicate things.
+

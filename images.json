@@ -168,7 +168,7 @@
     "priority": 7,
     "label": "Google Colab",
     "package": "sagemathinc/colab",
-    "minDiskSizeGb": 53,
+    "minDiskSizeGb": 60,
     "gpu": true,
     "icon": "google",
     "url": "https://github.com/googlecolab",
