@@ -22,5 +22,8 @@ COPY base/scripts/* /usr/local/bin/
 COPY python/install-core-python.sh /tmp
 RUN chmod a+x /tmp/install-core-python.sh&& /tmp/install-core-python.sh && rm /tmp/install-core-python.sh
 
+# So user can do "pip install" easily:
+RUN chown -R user:user /usr/local
+
 USER user
 CMD /cocalc/start-compute.sh

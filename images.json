@@ -30,6 +30,16 @@
     ],
     "description": "Filesystem container."
   },
+  "compute": {
+    "system": true,
+    "label": "Compute",
+    "package": "sagemathinc/compute",
+    "icon": "files",
+    "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/compute",
+    "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/compute",
+    "versions": [{ "tag": "1.0", "tested": true }],
+    "description": "Compute base container."
+  },
   "python": {
     "priority": 10,
     "label": "Python",
@@ -43,6 +53,11 @@
     "versions": [
       {
         "tag": "3.10.12",
+        "tested": true
+      },
+      {
+        "label": "3.10.12",
+        "tag": "2024-02",
         "tested": true
       }
     ],
@@ -128,7 +143,8 @@
     "upstreamVersions": "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch/tags",
     "versions": [
       { "label": "2.2.0 (2023-11)", "tag": "23.11-py3", "tested": true },
-      { "label": "2.2.0 (2023-12)", "tag": "23.12-py3", "tested": true }
+      { "label": "2.2.0 (2023-12)", "tag": "23.12-py3", "tested": true },
+      { "label": "2.2.0 (2024-01)", "tag": "24.01-py3", "tested": true }
     ],
     "description": "[PyTorch](https://pytorch.org/) is an open-source machine learning library, known for its flexibility and ease of use, particularly in deep learning applications. It provides a dynamic computation graph and a rich ecosystem of tools and libraries, making it a preferred choice for researchers and developers in AI."
   },
@@ -143,7 +159,8 @@
     "upstreamVersions": "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tensorflow/tags",
     "versions": [
       { "label": "2.14.0 (2023-11)", "tag": "23.11-tf2-py3", "tested": true },
-      { "label": "2.14.0 (2023-12)", "tag": "23.12-tf2-py3", "tested": true }
+      { "label": "2.14.0 (2023-12)", "tag": "23.12-tf2-py3", "tested": true },
+      { "label": "2.14.0 (2024-01)", "tag": "24.01-tf2-py3", "tested": true }
     ],
     "description": "[TensorFlow](https://www.tensorflow.org/) is an open-source machine learning framework developed by Google, widely used for building and training neural networks. Its flexible architecture allows for easy deployment of computation across various platforms, from servers to edge devices, making it suitable for a broad range of AI applications."
   },
@@ -166,6 +183,11 @@
       {
         "label": "2023-12-14",
         "tag": "release-colab_20231214-060137_RC00",
+        "tested": true
+      },
+      {
+        "label": "2024-02-06",
+        "tag": "release-colab_20240205-060127_RC00",
         "tested": true
       }
     ],
@@ -218,6 +240,7 @@
     "url": "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/jax",
     "icon": "times",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/jax",
+    "upstreamVersions": "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/jax/tags",
     "versions": [
       {
         "label": "0.4.17 (2023-10)",

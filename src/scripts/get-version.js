@@ -22,6 +22,10 @@ const imageName = process.argv[3];
 const imageTag = process.argv[4];
 
 const IMAGES = JSON.parse(readFileSync(imagesJson).toString());
+if (IMAGES[imageName] == null) {
+  throw Error("there is no version info about '" + imageName + "'");
+}
+
 const { versions } = IMAGES[imageName];
 if (!imageTag) {
   const data = versions[versions.length - 1];

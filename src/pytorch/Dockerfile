@@ -26,5 +26,8 @@ COPY base/setup-user.sh /tmp/setup-user.sh
 RUN /tmp/setup-user.sh
 COPY base/scripts/* /usr/local/bin/
 
+# So user can do "pip install" easily:
+RUN chown -R user:user /usr/local
+
 USER user
 CMD /cocalc/start-compute.sh
