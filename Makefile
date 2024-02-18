@@ -127,21 +127,19 @@ assemble-python:
 	./src/scripts/assemble.sh $(DOCKER_USER)/python $(PYTHON_TAG)
 
 
-## IMAGE: ollama
-# See https://github.com/jmorganca/ollama/releases for versions
-OLLAMA_VERSION=$(shell $(GET_VERSION) ollama)
-OLLAMA_TAG=$(shell $(GET_TAG) ollama)
+## IMAGE: openwebui
+OPENWEBUI_TAG=$(shell $(GET_TAG) openwebui)
 PROXY_VERSION=0.9.0
-ollama:
-	cd src/ollama && docker build --build-arg PROXY_VERSION=${PROXY_VERSION} --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) --build-arg OLLAMA_VERSION=$(OLLAMA_VERSION) -t $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG) .
-run-ollama:
-	docker run --gpus all -it --rm --network=host $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG)
-run-ollama-nogpu:
-	docker run -it --rm --network=host $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG)
-push-ollama:
-	docker push $(DOCKER_USER)/ollama$(ARCH):$(OLLAMA_TAG)
-assemble-ollama:
-	./src/scripts/assemble.sh $(DOCKER_USER)/ollama $(OLLAMA_TAG)
+openwebui:
+	cd src/openwebui && docker build --build-arg PROXY_VERSION=${PROXY_VERSION} --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) -t $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG) .
+run-openwebui:
+	docker run --gpus all -it --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock --network=host $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
+run-openwebui-nogpu:
+	docker run -it --rm --network=host --privileged -v /var/run/docker.sock:/var/run/docker.sock  $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
+push-openwebui:
+	docker push $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
+assemble-openwebui:
+	./src/scripts/assemble.sh $(DOCKER_USER)/openwebui $(OPENWEBUI_TAG)
 
 
 math:

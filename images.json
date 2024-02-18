@@ -193,26 +193,20 @@
     ],
     "description": "[Google Colab](https://colab.google/) comes preinstalled with a wide range of popular data science and machine learning libraries, such as TensorFlow, PyTorch, Matplotlib, and Pandas. It also includes support for Python and its various packages, enabling users to jump straight into coding without worrying about setup and installation."
   },
-  "ollama": {
-    "label": "Ollama with WebUI",
-    "package": "sagemathinc/ollama",
+  "openwebui": {
+    "label": "OpenWebUI (Ollama)",
+    "package": "sagemathinc/open-webui",
     "minDiskSizeGb": 30,
     "gpu": true,
     "icon": "robot",
-    "url": "https://ollama.ai/",
-    "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/ollama",
-    "description": "[Ollama](https://ollama.ai/) makes it very easy to run Llama 2, code Llama, and [hundreds of other models](https://ollama.ai/library).  Use the [web interface](https://github.com/ollama-webui/ollama-webui#readme) or call ollama from the Python API.",
+    "url": "https://openwebui.com/",
+    "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/openwebui",
+    "description": "[OpenWebUI](https://github.com/open-webui/open-webui?tab=readme-ov-file#open-webui-formerly-ollama-webui-) provides a ChatGPT style UI for a vast collection of free open models, with a huge feature set.  CoCalc adds cloud hosting, one-click setup, a layer of authentication, and an optional domain name.  When you start the container the latest version of OpenWebUI is installed using Docker compose, **which can take around 1 minute during which the site is not accessible**.   Only users that know the random token can create an account on your server.  After your server starts, visit the https URL of your server, and create a new admin account.  Your chats, models and documents are stored only in Docker volumes on the compute server, which are not backed up in any way or sent anywhere except to you; in particular, when you delete the compute server, all chats are completely erased.  Use a terminal on the compute server and the [docker command line](https://docs.docker.com/storage/volumes/) if you need to extract data from these volumes.",
     "authToken": true,
     "versions": [
       {
-        "tag": "0.1.15",
-        "tested": true
-      },
-      {
-        "label": "0.1.18",
-        "version": "0.1.18",
-        "tag": "0.1.18b",
-        "tested": true
+        "tag": "2024-02-18",
+        "tested": false
       }
     ],
     "jupyterKernels": false
