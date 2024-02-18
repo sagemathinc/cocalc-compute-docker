@@ -152,7 +152,7 @@
     "label": "Tensorflow",
     "package": "sagemathinc/tensorflow",
     "gpu": true,
-    "minDiskSizeGb": 55,
+    "minDiskSizeGb": 50,
     "url": "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tensorflow",
     "icon": "tensorflow",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/tensorflow",
