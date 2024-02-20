@@ -93,7 +93,7 @@
     "versions": [{ "tag": "10.2", "tested": true }]
   },
   "rstats": {
-    "label": "R",
+    "label": "R with RStudio Server and Jupyter",
     "package": "sagemathinc/rstats",
     "minDiskSizeGb": 10,
     "dockerSizeGb": 3,
@@ -101,8 +101,17 @@
     "icon": "r",
     "url": "https://www.r-project.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/rstats",
-    "versions": [{ "label": "4.3.2", "tag": "4.3.2", "tested": true }],
-    "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization. Its extensive package ecosystem and flexible scripting capabilities make it ideal for both simple and complex data exploration tasks."
+    "authToken": true,
+    "versions": [
+      { "label": "4.3.2", "tag": "4.3.2", "tested": true },
+      {
+        "version": "4.3.2",
+        "label": "2024-02 (R version 4.3.2)",
+        "tag": "2024-02",
+        "tested": true
+      }
+    ],
+    "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization. Its extensive package ecosystem and flexible scripting capabilities make it ideal for both simple and complex data exploration tasks.  This image includes includes the R Server with SSL configured, and the R Jupyter kernel so you can use R in a Jupyter notebook. Select the 'Custom Domain Name with SSL' option below to select a custom domain name avoid a security certificate warning.   **RSTUDIO/POSIT PBC IS IN NO WAY ASSOCIATED WITH COCALC.**."
   },
   "julia": {
     "label": "Julia",
