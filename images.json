@@ -111,7 +111,7 @@
         "tested": true
       }
     ],
-    "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization. Its extensive package ecosystem and flexible scripting capabilities make it ideal for both simple and complex data exploration tasks.  This image includes includes the R Server with SSL configured, and the R Jupyter kernel so you can use R in a Jupyter notebook. Select the 'Custom Domain Name with SSL' option below to select a custom domain name avoid a security certificate warning.   **RSTUDIO/POSIT PBC IS IN NO WAY ASSOCIATED WITH COCALC.**."
+    "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization.   The CoCalc R compute server image includes includes (1) **Rstudio** Server and (2) the **R Jupyter kernel.**  To use RStudio, click on the displayed https link after the server starts running (Select the 'Custom Domain Name with SSL' option below to select a custom domain name avoid a security certificate warning). To use a Jupyter notebook, open a notebook in CoCalc on the compute server and select the R kernel.  _**DISCLAIMER: RSTUDIO/POSIT PBC IS IN NO WAY ASSOCIATED WITH COCALC.**"
   },
   "julia": {
     "label": "Julia",
