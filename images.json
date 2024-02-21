@@ -93,7 +93,7 @@
     "versions": [{ "tag": "10.2", "tested": true }]
   },
   "rstats": {
-    "label": "R with RStudio Server and Jupyter",
+    "label": "R - Studio and Jupyter",
     "package": "sagemathinc/rstats",
     "minDiskSizeGb": 10,
     "dockerSizeGb": 3,
