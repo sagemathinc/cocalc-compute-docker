@@ -7,10 +7,10 @@
     "url": "https://www.npmjs.com/package/@cocalc/compute-server",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cocalc",
     "versions": [
-      { "label": "test", "version": "1.8.3", "tag": "test", "tested": false },
+      { "label": "test", "version": "1.9.0", "tag": "test", "tested": false },
       {
         "label": "latest",
-        "version": "1.8.4",
+        "version": "1.9.1",
         "tag": "latest",
         "tested": true
       }
@@ -210,7 +210,7 @@
     "icon": "robot",
     "url": "https://openwebui.com/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/openwebui",
-    "description": "[OpenWebUI](https://github.com/open-webui/open-webui?tab=readme-ov-file#open-webui-formerly-ollama-webui-) provides a ChatGPT style UI for a vast collection of free open models, with a huge feature set.  CoCalc adds cloud hosting, one-click setup, a layer of authentication, and an optional domain name.  When you start the container the latest version of OpenWebUI is installed using Docker compose, **which can take around 1 minute during which the site is not accessible**.   Only users that know the random token can create an account on your server.  After your server starts, visit the https URL of your server, and create a new admin account.  Your chats, models and documents are stored only in Docker volumes on the compute server, which are not backed up in any way or sent anywhere except to you; in particular, when you delete the compute server, all chats are completely erased.  Use a terminal on the compute server and the [docker command line](https://docs.docker.com/storage/volumes/) if you need to extract data from these volumes.",
+    "description": "[Open WebUI](https://github.com/open-webui/open-webui?tab=readme-ov-file#open-webui-formerly-ollama-webui-) provides a ChatGPT style UI for a vast collection of free open models, with a huge feature set.  CoCalc adds cloud hosting, one-click setup, a layer of authentication, and an optional domain name.  When you start the container the latest version of Open WebUI is installed using Docker compose, **which can take around 1 minute during which the site is not accessible**.   Only users that know the random token can create an account on your server.  After your server starts, visit the https URL of your server, and create a new admin account.  Your chats, models and documents are stored only in Docker volumes on the compute server, which are not backed up in any way or sent anywhere except to you; in particular, when you delete the compute server, all chats are completely erased.  Use a terminal on the compute server and the [docker command line](https://docs.docker.com/storage/volumes/) if you need to extract data from these volumes.",
     "authToken": true,
     "versions": [
       {

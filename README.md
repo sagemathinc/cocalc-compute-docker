@@ -27,7 +27,7 @@ When ready to release in prod, i.e., to push a package to npmjs with the label "
    e.g., from 1.8.2 to 1.8.4, which is newer than the one you just tested
 2. `make COCALC_TAG=latest cocalc && make COCALC_TAG=latest push-cocalc`
 
-You should also commit and push to github.
+You should also commit and push to github the new images.json file, though that isn't strictly necessary \(since the compute server uses the latest and test tags, not the npm package version\).
 
 NOTE: You should do the above on both `x86_64` and `arm64` architectures, as they are separate. There is code in the cocalc package that is platform specific.
 
