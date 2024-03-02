@@ -63,6 +63,44 @@
     ],
     "description": "[Python](https://python.org) is a versatile and user-friendly programming language, known for its clear syntax and readability. It is widely used for web development, data analysis, artificial intelligence, and scientific computing."
   },
+  "k8s": {
+    "label": "Kubernetes (via MicroK8s)",
+    "package": "sagemathinc/k8s",
+    "minDiskSizeGb": 10,
+    "dockerSizeGb": 2,
+    "gpu": false,
+    "k8s": true,
+    "icon": "jupyter",
+    "url": "https://jupyter.org/hub",
+    "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/jupyterhub",
+    "versions": [
+      {
+        "tag": "2024-03",
+        "tested": false
+      }
+    ],
+    "description": "A single node [MicroK8s](https://microk8s.io/) Kubernetes cluster with the kubectl and helm commands configured and available from the terminal on the compute server.",
+    "description-todo": "Create single node k8s compute servers and join them into a single Kubernetes cluster later.  Ingress, reg token https, etc."
+  },
+  "jupyterhub": {
+    "disabled": true,
+    "label": "JupyterHub",
+    "package": "sagemathinc/jupyterhub",
+    "minDiskSizeGb": 10,
+    "dockerSizeGb": 2,
+    "gpu": false,
+    "microk8s": true,
+    "icon": "jupyter",
+    "url": "https://jupyter.org/hub",
+    "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/jupyterhub",
+    "versions": [
+      {
+        "tag": "2024-03",
+        "tested": false
+      }
+    ],
+    "description": "Run your own [JupyterHub](https://jupyter.org/hub) server hosted by CoCalc. It is based on [The Littlest JupyterHub](https://tljh.jupyter.org/en/latest/), which is a simple distribution of JupyterHub that supports up to 100 users on a single compute server."
+  },
   "sagemath": {
     "priority": 8,
     "label": "SageMath",
