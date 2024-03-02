@@ -64,7 +64,7 @@
     "description": "[Python](https://python.org) is a versatile and user-friendly programming language, known for its clear syntax and readability. It is widely used for web development, data analysis, artificial intelligence, and scientific computing."
   },
   "microk8s": {
-    "label": "Kubernetes (via MicroK8s)",
+    "label": "Kubernetes",
     "package": "sagemathinc/microk8s",
     "minDiskSizeGb": 10,
     "dockerSizeGb": 2,
@@ -79,7 +79,7 @@
         "tested": false
       }
     ],
-    "description": "A single node [MicroK8s](https://microk8s.io/) Kubernetes cluster with the kubectl and helm commands configured and available from the terminal on the compute server.",
+    "description": "Single node of a [MicroK8s](https://microk8s.io/) Kubernetes cluster. The kubectl and helm commands are configured and available from a terminal on the compute server.",
     "description-todo": "Create single node k8s compute servers and join them into a single Kubernetes cluster later.  Ingress, reg token https, etc."
   },
   "jupyterhub": {
