@@ -63,15 +63,15 @@
     ],
     "description": "[Python](https://python.org) is a versatile and user-friendly programming language, known for its clear syntax and readability. It is widely used for web development, data analysis, artificial intelligence, and scientific computing."
   },
-  "k8s": {
+  "microk8s": {
     "label": "Kubernetes (via MicroK8s)",
-    "package": "sagemathinc/k8s",
+    "package": "sagemathinc/microk8s",
     "minDiskSizeGb": 10,
     "dockerSizeGb": 2,
     "gpu": false,
-    "k8s": true,
-    "icon": "jupyter",
-    "url": "https://jupyter.org/hub",
+    "microk8s": true,
+    "icon": "servers",
+    "url": "https://microk8s.io/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/jupyterhub",
     "versions": [
       {

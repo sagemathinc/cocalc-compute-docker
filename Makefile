@@ -126,18 +126,18 @@ push-python:
 assemble-python:
 	./src/scripts/assemble.sh $(DOCKER_USER)/python $(PYTHON_TAG)
 
-## IMAGE: k8s -- kubernetes via microk8s
+## IMAGE: microk8s -- kubernetes via microk8s
 ## This is the non-gpu version, which supports x86 and arm
 ## We should also have a GPU version with more packages that supports only x86.
-K8S_TAG = $(shell $(GET_TAG) k8s)
-k8s:
-	cd src/k8s && docker build --build-arg COMPUTE_TAG=$(COMPUTE_TAG)  -t $(DOCKER_USER)/k8s$(ARCH):$(K8S_TAG) .
-run-k8s:
-	docker run -it --rm $(DOCKER_USER)/k8s$(ARCH):$(K8S_TAG) bash
-push-k8s:
-	docker push $(DOCKER_USER)/k8s$(ARCH):$(K8S_TAG)
-assemble-k8s:
-	./src/scripts/assemble.sh $(DOCKER_USER)/k8s $(K8S_TAG)
+KUBERNETES_TAG = $(shell $(GET_TAG) microk8s)
+microk8s:
+	cd src/microk8s && docker build --build-arg COMPUTE_TAG=$(COMPUTE_TAG)  -t $(DOCKER_USER)/microk8s$(ARCH):$(KUBERNETES_TAG) .
+run-microk8s:
+	docker run -it --rm $(DOCKER_USER)/microk8s$(ARCH):$(KUBERNETES_TAG) bash
+push-microk8s:
+	docker push $(DOCKER_USER)/microk8s$(ARCH):$(KUBERNETES_TAG)
+assemble-microk8s:
+	./src/scripts/assemble.sh $(DOCKER_USER)/microk8s $(KUBERNETES_TAG)
 
 ## IMAGE: jupyterhub
 # JUPYTERHUB_TAG = $(shell $(GET_TAG) jupyterhub)
