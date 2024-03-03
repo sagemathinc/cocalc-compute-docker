@@ -5,11 +5,17 @@ FROM sagemathinc/compute${ARCH}:${COMPUTE_TAG}
 USER root
 
 # Install Kubernetes client binaries
-COPY install-kubectl.sh /tmp
+COPY microk8s/install-kubectl.sh /tmp
 RUN chmod a+x /tmp/install-kubectl.sh && /tmp/install-kubectl.sh && rm /tmp/install-kubectl.sh
 
 # Install Helm client binary
-COPY install-helm.sh /tmp
+COPY microk8s/install-helm.sh /tmp
 RUN chmod a+x /tmp/install-helm.sh && /tmp/install-helm.sh && rm /tmp/install-helm.sh
 
+# Install ssl reg token proxy server
+COPY proxy/install-proxy.sh /tmp
+RUN chmod a+x /tmp/install-proxy.sh && /tmp/install-proxy.sh && rm /tmp/install-proxy.sh
+
+WORKDIR /home/user
 USER user
+

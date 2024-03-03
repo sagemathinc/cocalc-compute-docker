@@ -22,6 +22,6 @@ if [ -f /cocalc/src/compute/compute/start-compute.js ]; then
     cd /cocalc/src/compute/compute/
     node ./start-compute.js
 else
-    echo "start-compute does not exist. Starting bash."
+    echo "Starting dev bash shell because /cocalc/src/compute/compute/start-compute.js does not exist."
     bash
 fi
