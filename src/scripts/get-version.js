@@ -32,10 +32,16 @@ if (!imageTag) {
   console.log(data.version ?? data.tag);
 } else {
   // version for last matching tag
-  for (const data of versions.reverse()) {
+  let found = false;
+  for (const data of versions) {
     if (data.tag == imageTag) {
+      if (found) {
+        throw Error(
+          "tags must be unique -- do NOT list the same tag more than once",
+        );
+      }
       console.log(data.version);
-      break;
+      found = true;
     }
   }
 }
