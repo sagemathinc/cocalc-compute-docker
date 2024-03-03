@@ -27,10 +27,7 @@
     "icon": "files",
     "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/filesystem",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/filesystem",
-    "versions": [
-      { "tag": "1.0", "tested": true },
-      { "tag": "1.1", "tested": true }
-    ],
+    "versions": [{ "tag": "1.1", "tested": true }],
     "description": "Filesystem container."
   },
   "compute": {
@@ -78,7 +75,7 @@
     "microk8s": true,
     "icon": "servers",
     "url": "https://microk8s.io/",
-    "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/jupyterhub",
+    "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/microk8s",
     "versions": [
       {
         "label": "2024-03.p2",
@@ -102,11 +99,12 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/jupyterhub",
     "versions": [
       {
-        "tag": "2024-03",
+        "label": "2024-03.p0",
+        "tag": "2024-03.p0",
         "tested": false
       }
     ],
-    "description": "Run your own [JupyterHub](https://jupyter.org/hub) server hosted by CoCalc. It is based on [The Littlest JupyterHub](https://tljh.jupyter.org/en/latest/), which is a simple distribution of JupyterHub that supports up to 100 users on a single compute server."
+    "description": "Run your own [JupyterHub](https://jupyter.org/hub) server hosted by CoCalc.  This is [the official Kubernetes install](https://z2jh.jupyter.org/en/stable/jupyterhub/installation.html) of JupyterHub, and can be [fully customized](https://z2jh.jupyter.org/en/stable/jupyterhub/customization.html), and you can expand later from a single node Kubernetes cluster to multiple nodes."
   },
   "sagemath": {
     "priority": 8,

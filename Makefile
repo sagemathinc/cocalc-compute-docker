@@ -31,9 +31,9 @@ push-all-arm64:
 	make push-core && make push-math
 
 core:
-	make cocalc && make base && make filesystem  & make python
+	make cocalc && make base && make filesystem && make compute && make python
 push-core:
-	make push-cocalc && make push-filesystem && make push-python
+	make push-cocalc && make push-filesystem && make push-compute && make push-python
 
 ## IMAGE: cocalc
 
