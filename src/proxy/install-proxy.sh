@@ -17,7 +17,7 @@ apt install -y supervisor
 source /opt/proxy/nvm/nvm.sh
 npm install -g @cocalc/compute-server-proxy
 
-mkdir -p /var/log/supervisor && chown -R user:user /var/log/supervisor
+mkdir -p /var/log/supervisor
 
 # Create a token for testing that is in the Docker container image.
 # When used on a compute server, this /cocalc directory will get
@@ -28,10 +28,10 @@ chmod og-rwx /cocalc/conf/auth_token
 
 # Script to configure what gets run by supervisord.  In addition,
 # add your own configuration scripts as
-#   /etc/supervisor/conf.d/*.ini
+#   /etc/supervisor/conf.d/*
 # to start your own processes!
 
-cat <<EOF > /etc/supervisor/conf.d/supervisord.conf
+cat <<EOF > /etc/supervisor/supervisord.conf
 [supervisord]
 nodaemon=false
 logfile=/var/log/supervisor/supervisord.log
@@ -43,13 +43,14 @@ redirect_stderr=true
 command=sudo -E /opt/proxy/start-proxy.sh
 
 [include]
-files = /etc/supervisor/conf.d/*.ini
+files = /etc/supervisor/conf.d/*
 EOF
 
 
 # The script mentioned above to start the proxy
 # server nodejs process running:
 
+mkdir -p /opt/proxy/
 cat <<EOF > /opt/proxy/start-proxy.sh
 #!/usr/bin/env bash
 
@@ -67,3 +68,5 @@ chmod a+x /opt/proxy/start-proxy.sh
 cat <<EOF > /opt/proxy/proxy.json
 [{ "path": "/", "target": "http://localhost:80", "ws": true }]
 EOF
+
+chown -R user:user /var/log/supervisor /etc/supervisor/

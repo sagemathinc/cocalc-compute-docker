@@ -131,7 +131,7 @@ assemble-python:
 ## We should also have a GPU version with more packages that supports only x86.
 MICROK8S_TAG = $(shell $(GET_TAG) microk8s)
 microk8s:
-	cd src && docker build --build-arg COMPUTE_TAG=$(COMPUTE_TAG)  -t $(DOCKER_USER)/microk8s$(ARCH):$(MICROK8S_TAG) . -f microk8s/Dockerfile
+	cd src && docker build  --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG)  -t $(DOCKER_USER)/microk8s$(ARCH):$(MICROK8S_TAG) . -f microk8s/Dockerfile
 run-microk8s:
 	docker run -it --rm $(DOCKER_USER)/microk8s$(ARCH):$(MICROK8S_TAG)
 push-microk8s:
@@ -142,7 +142,7 @@ assemble-microk8s:
 ## IMAGE: jupyterhub
 JUPYTERHUB_TAG = $(shell $(GET_TAG) jupyterhub)
 jupyterhub:
-	cd src/jupyterhub && docker build --build-arg MICROK8S_TAG=$(MICROK8S_TAG)  -t $(DOCKER_USER)/jupyterhub$(ARCH):$(JUPYTERHUB_TAG) .
+	cd src/jupyterhub && docker build  --build-arg ARCH=${ARCH} --build-arg MICROK8S_TAG=$(MICROK8S_TAG)  -t $(DOCKER_USER)/jupyterhub$(ARCH):$(JUPYTERHUB_TAG) .
 run-jupyterhub:
 	docker run -it --rm $(DOCKER_USER)/jupyterhub$(ARCH):$(JUPYTERHUB_TAG)
 push-jupyterhub:

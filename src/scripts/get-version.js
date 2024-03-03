@@ -31,9 +31,11 @@ if (!imageTag) {
   const data = versions[versions.length - 1];
   console.log(data.version ?? data.tag);
 } else {
-  for (const data of versions) {
+  // version for last matching tag
+  for (const data of versions.reverse()) {
     if (data.tag == imageTag) {
       console.log(data.version);
+      break;
     }
   }
 }

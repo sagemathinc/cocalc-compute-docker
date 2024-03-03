@@ -13,6 +13,12 @@
         "version": "1.9.1",
         "tag": "latest",
         "tested": true
+      },
+      {
+        "label": "latest",
+        "version": "1.10.0",
+        "tag": "test",
+        "tested": false
       }
     ],
     "description": "The lightweight subset of the CoCalc Javascript code needed to run cocalc directly on the compute server for supporting websocketfs mounting, terminals, and jupyter notebooks."
@@ -37,7 +43,10 @@
     "icon": "files",
     "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/compute",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/compute",
-    "versions": [{ "tag": "1.0", "tested": true }],
+    "versions": [
+      { "tag": "1.0", "tested": true },
+      { "tag": "1.1", "tested": false }
+    ],
     "description": "Compute base container."
   },
   "python": {
@@ -64,7 +73,7 @@
     "description": "[Python](https://python.org) is a versatile and user-friendly programming language, known for its clear syntax and readability. It is widely used for web development, data analysis, artificial intelligence, and scientific computing."
   },
   "microk8s": {
-    "label": "Kubernetes",
+    "label": "MicroK8s Kubernetes",
     "package": "sagemathinc/microk8s",
     "minDiskSizeGb": 10,
     "dockerSizeGb": 2,
@@ -75,8 +84,8 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/jupyterhub",
     "versions": [
       {
-        "label": "2024-03",
-        "tag": "2024-03.p1",
+        "label": "2024-03.p2",
+        "tag": "2024-03.p2",
         "tested": false
       }
     ],
