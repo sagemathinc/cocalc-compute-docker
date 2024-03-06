@@ -150,6 +150,23 @@ push-jupyterhub:
 assemble-jupyterhub:
 	./src/scripts/assemble.sh $(DOCKER_USER)/jupyterhub $(JUPYTERHUB_TAG)
 
+
+# The http proxy Docker image.  We build this and use it in Kubernetes
+# to expose one or more services, while providing a registration token
+# and ssl.  It isn't an image directly, but something that is used
+# in Kubernetes (or maybe docker-compose?).
+PROXY_TAG = $(shell $(GET_TAG) proxy)
+proxy:
+	cd src/proxy && docker build --build-arg PROXY_TAG=$(PROXY_TAG) -t $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG) .
+run-proxy:
+	docker run -it --rm $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG)
+push-proxy:
+	docker push $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG)
+assemble-proxy:
+	./src/scripts/assemble.sh $(DOCKER_USER)/proxy $(PROXY_TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/proxy $(PROXY_TAG) latest
+
+
 ## IMAGE: openwebui
 OPENWEBUI_TAG=$(shell $(GET_TAG) openwebui)
 PROXY_VERSION=0.9.0

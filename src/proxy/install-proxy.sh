@@ -8,11 +8,11 @@ set -ev
 # This gets run in various Dockerfiles.
 
 mkdir -p /opt/proxy/nvm
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | NVM_DIR=/opt/proxy/nvm bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | NVM_DIR=/opt/proxy/nvm bash
 source /opt/proxy/nvm/nvm.sh
 nvm install --no-progress 20
 
-apt install -y supervisor
+apt-get install -y supervisor
 
 source /opt/proxy/nvm/nvm.sh
 npm install -g @cocalc/compute-server-proxy

@@ -20,6 +20,16 @@
     ],
     "description": "The lightweight subset of the CoCalc Javascript code needed to run cocalc directly on the compute server for supporting websocketfs mounting, terminals, and jupyter notebooks."
   },
+  "proxy": {
+    "system": true,
+    "label": "Proxy",
+    "package": "sagemathinc/proxy",
+    "icon": "network-server",
+    "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/proxy",
+    "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/proxy",
+    "versions": [{ "tag": "1.0", "tested": false }],
+    "description": "Proxy container, which is used in Kubernetes."
+  },
   "filesystem": {
     "system": true,
     "label": "Filesystem",
