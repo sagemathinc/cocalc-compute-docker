@@ -16,7 +16,7 @@ spec:
   dnsPolicy: ClusterFirstWithHostNet
   containers:
     - name: http-proxy
-      image: sagemathinc/proxy:1.0
+      image: sagemathinc/proxy:1.1
       ports:
         - containerPort: 443
         - containerPort: 80
