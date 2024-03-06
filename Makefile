@@ -157,7 +157,7 @@ assemble-jupyterhub:
 # in Kubernetes (or maybe docker-compose?).
 PROXY_TAG = $(shell $(GET_TAG) proxy)
 proxy:
-	cd src/proxy && docker build --build-arg PROXY_TAG=$(PROXY_TAG) -t $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG) .
+	cd src/proxy && docker build --build-arg -t $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG) .
 run-proxy:
 	docker run -it --rm $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG)
 push-proxy:

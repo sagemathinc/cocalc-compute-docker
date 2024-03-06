@@ -13,8 +13,8 @@ import { readFile } from "fs/promises";
 const log = debug("http-server");
 
 export default async function httpsServer({
-  port = process.env.PORT ? parseInt(process.env.PORT) : 443,
-  host = process.env.HOST ?? "0.0.0.0",
+  port = process.env.PROXY_PORT ? parseInt(process.env.PROXY_PORT) : 443,
+  host = process.env.PROXY_HOST ?? "0.0.0.0",
   authToken,
   config,
 }: {
@@ -33,6 +33,7 @@ export default async function httpsServer({
   if (authToken == null) {
     authToken = await loadFromFile("PROXY_AUTH_TOKEN_FILE");
   }
+
   const app = express();
   const cert = await genCert();
   const server = createServer(cert, app);
@@ -40,9 +41,9 @@ export default async function httpsServer({
   if (authToken) {
     enableAuth(app, authToken);
   }
-  enableProxy(app, config);
+  enableProxy({ app, server, config });
 
-  log(`starting proxy server listening on ${host}:${port}`);
+  log(`starting CoCalc proxy server listening on ${host}:${port}`);
   await callback(server.listen.bind(server), port, host);
 
   return server;

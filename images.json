@@ -27,7 +27,7 @@
     "icon": "network-server",
     "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/proxy",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/proxy",
-    "versions": [{ "tag": "1.0", "tested": false }],
+    "versions": [{ "tag": "1.1", "tested": false }],
     "description": "Proxy container, which is used in Kubernetes."
   },
   "filesystem": {

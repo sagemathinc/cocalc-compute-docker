@@ -25,4 +25,4 @@ ENV PROXY_HOSTNAME=0.0.0.0
 ENV PROXY_AUTH_TOKEN_FILE=/token
 ENV DEBUG=*
 
-CMD . /nvm/nvm.sh && npx @cocalc/compute-server-proxy
+CMD . /nvm/nvm.sh && npx @cocalc/compute-server-proxy@${PROXY_VERSION}
