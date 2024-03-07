@@ -1,45 +1,55 @@
-# Configuration of our proxy pod.  This plays the role of a CoCalc-specific
-# ingress controller, though it doesn't at all act as an actual controller.
-# It just does would could be done by ingress.  You can't have ingress at the same
+# Configuration of our proxy daemon set.  This plays the role of a CoCalc-specific
+# ingress controller and load balancer, though it doesn't at all act as an actual
+# controller.
+# It just does what would be done by ingress.  You can't have ingress at the same
 # time, since the ingress controller would also try to take over port 443, etc.
 
-apiVersion: v1
-kind: Pod
+# - hostNetwork so that we can listen on port 443, 80 of the HOST VM
+# - dnsPolicy so that proxy.json can refer to internal DNS inside the cluster
+
+apiVersion: apps/v1
+kind: DaemonSet
 metadata:
   name: cocalc-proxy
   labels:
     app: cocalc-proxy
 spec:
-  # hostNetwork so that we can listen on port 443, 80 of the HOST VM
-  hostNetwork: true
-  # dnsPolicy so that proxy.json can refer to internal DNS inside the cluster
-  dnsPolicy: ClusterFirstWithHostNet
-  containers:
-    - name: http-proxy
-      image: sagemathinc/proxy:1.2
-      ports:
-        - containerPort: 443
-        - containerPort: 80
-      volumeMounts:
+  selector:
+    matchLabels:
+      name: cocalc-proxy
+  template:
+    metadata:
+      labels:
+        name: cocalc-proxy
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: http-proxy
+          image: sagemathinc/proxy:1.3
+          ports:
+            - containerPort: 443
+            - containerPort: 80
+          volumeMounts:
+            - name: secret-token-volume
+              mountPath: /etc/secret
+            - name: proxy-config-volume
+              mountPath: /jupyterhub
+          env:
+            - name: PROXY_CONFIG
+              value: "/jupyterhub/proxy.json"
+            - name: PROXY_PORT
+              value: "443"
+            - name: PROXY_HOSTNAME
+              value: "0.0.0.0"
+            - name: DEBUG
+              value: "*"
+            - name: PROXY_AUTH_TOKEN_FILE
+              value: "/etc/secret/auth_token"
+      volumes:
         - name: secret-token-volume
-          mountPath: /etc/secret
+          secret:
+            secretName: secret-token
         - name: proxy-config-volume
-          mountPath: /jupyterhub
-      env:
-        - name: PROXY_CONFIG
-          value: "/jupyterhub/proxy.json"
-        - name: PROXY_PORT
-          value: "443"
-        - name: PROXY_HOSTNAME
-          value: "0.0.0.0"
-        - name: DEBUG
-          value: "*"
-        - name: PROXY_AUTH_TOKEN_FILE
-          value: "/etc/secret/auth_token"
-  volumes:
-    - name: secret-token-volume
-      secret:
-        secretName: secret-token
-    - name: proxy-config-volume
-      configMap:
-        name: proxy-config
+          configMap:
+            name: proxy-config

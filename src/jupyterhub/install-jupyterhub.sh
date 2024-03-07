@@ -26,5 +26,4 @@ kubectl create configmap proxy-config  --from-literal='proxy.json=[{ "path": "/"
 
 kubectl create secret generic secret-token --from-file=/cocalc/conf/auth_token
 
-
 kubectl apply -f /jupyterhub/proxy.yaml
