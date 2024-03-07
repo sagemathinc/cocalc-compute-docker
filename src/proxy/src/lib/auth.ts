@@ -45,11 +45,7 @@ export default function enableAuth({
 }) {
   const handle = (req, res, next) => {
     const reqAuthToken =
-      req.body?.authToken ||
-      req.query.auth_token ||
-      req.cookies[COOKIE_NAME];
-    const postSubmissionWithIncorrectToken =
-      req.method === "POST" && reqAuthToken !== authToken;
+      req.body?.[POST_NAME] || req.query.auth_token || req.cookies[COOKIE_NAME];
 
     if (reqAuthToken === authToken) {
       // the token is correct
@@ -71,9 +67,9 @@ export default function enableAuth({
       // token is NOT correct -- they messed up or need to be sent to the sign in page.
       if (req.method === "POST") {
         // they just attempted to sign in
-        if (postSubmissionWithIncorrectToken) {
+        if (reqAuthToken !== authToken) {
           // wrong token -- try again
-          res.send(signInPage(req, postSubmissionWithIncorrectToken));
+          res.send(signInPage(req, true, req.body?.returnTo));
         } else {
           // correct -- redirect them to the page they wanted to go to.
           res.redirect(req.body.returnTo || "/");
@@ -92,6 +88,7 @@ export default function enableAuth({
 const signInPage = (
   req,
   postSubmissionWithIncorrectToken: boolean = false,
+  returnTo: string | undefined = undefined,
 ): string => `
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -101,12 +98,14 @@ const signInPage = (
       <h1 style="color: #444;">Authentication Required</h1>
       ${
         postSubmissionWithIncorrectToken
-          ? `<p style="color: red;">Incorrect Authentication Token. Please try again.</p>`
+          ? `<p style="color: red">Incorrect Authentication Token. Please try again.</p>`
           : `<p>Please enter the authentication token to proceed:</p>`
       }
       <form action="${AUTH_PATH}" method="POST" style="margin: 20px auto; display: inline-block;">
         <input name="${POST_NAME}" type="password" placeholder="Paste authentication token here..." style="padding: 6.5px 10px; width: 300px; margin-right: 10px; border-radius: 5px; border: 1px solid #ccc; font-size:12pt; margin-bottom:15px"/>
-        <input type="hidden" name="returnTo" value="${req.originalUrl}" />
+        <input type="hidden" name="returnTo" value="${
+          returnTo ?? req.originalUrl
+        }" />
         <button type="submit" style="padding: 6.5px 15px; border-radius:5px; background-color: #007bff; color: white; border: none; cursor: pointer;font-size:12pt">Authenticate</button>
       </form>
     </div>

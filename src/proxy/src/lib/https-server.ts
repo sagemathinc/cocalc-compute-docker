@@ -48,7 +48,7 @@ export default async function httpsServer({
     // since otherwise this mangles the proxying of the target
     // sites, which is very, very bad in some cass, e.g.,
     // JupyterHub sign in is broken.
-    app.use(
+    router.use(
       AUTH_PATH,
       // type argument is just to minimize the impact
       urlencoded({ extended: true, type: "application/x-www-form-urlencoded" }),
@@ -65,6 +65,10 @@ export default async function httpsServer({
 
   log(`starting CoCalc proxy server listening on ${host}:${port}`);
   await callback(server.listen.bind(server), port, host);
+
+  app.on("error", (err) => {
+    log("app ERROR", err);
+  });
 
   return server;
 }
