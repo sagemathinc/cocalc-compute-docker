@@ -8,14 +8,14 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cocalc",
     "versions": [
       {
-        "version": "1.9.1",
+        "version": "1.10.1",
         "tag": "latest",
         "tested": true
       },
       {
-        "version": "1.10.0",
+        "version": "1.10.2",
         "tag": "test",
-        "tested": false
+        "tested": true
       }
     ],
     "description": "The lightweight subset of the CoCalc Javascript code needed to run cocalc directly on the compute server for supporting websocketfs mounting, terminals, and jupyter notebooks."
@@ -49,7 +49,7 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/base",
     "versions": [
       { "tag": "1.0", "tested": true },
-      { "tag": "1.1", "tested": false }
+      { "tag": "1.1", "tested": true }
     ],
     "description": "Base container that many others derive from."
   },
@@ -62,8 +62,8 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/compute",
     "versions": [
       { "tag": "1.0", "tested": true },
-      { "tag": "1.1", "tested": false },
-      { "tag": "1.2", "tested": false }
+      { "tag": "1.1", "tested": true },
+      { "tag": "1.2", "tested": true }
     ],
     "description": "Compute container that runs the lightweight nodejs cocalc code for serving files, terminals and jupyter."
   },
@@ -91,7 +91,7 @@
     "description": "[Python](https://python.org) is a versatile and user-friendly programming language, known for its clear syntax and readability. It is widely used for web development, data analysis, artificial intelligence, and scientific computing."
   },
   "microk8s": {
-    "label": "Kubernetes",
+    "label": "Kubernetes Node",
     "package": "sagemathinc/microk8s",
     "minDiskSizeGb": 10,
     "dockerSizeGb": 2,
@@ -104,14 +104,13 @@
       {
         "label": "2024-03.p2",
         "tag": "2024-03.p2",
-        "tested": false
+        "tested": true
       }
     ],
-    "description": "Run a node of a [MicroK8s](https://microk8s.io/) Kubernetes cluster. The kubectl and helm commands are configured and available to use from a terminal on the compute server.",
-    "description-todo": "Create single node k8s compute servers and join them into a single Kubernetes cluster later.  Ingress, reg token https, etc."
+    "description": "Run a node of a [MicroK8s](https://microk8s.io/) Kubernetes cluster. The kubectl and helm commands are configured and available to use from a terminal on the compute server.  If you [setup ssh keys](https://doc.cocalc.com/account/ssh.html) and directly ssh as root into the the compute server, you can also [create a multinode cluster](https://microk8s.io/docs/clustering)."
   },
   "jupyterhub": {
-    "disabled": true,
+    "disabled": false,
     "label": "JupyterHub",
     "package": "sagemathinc/jupyterhub",
     "minDiskSizeGb": 10,
@@ -124,10 +123,11 @@
     "versions": [
       {
         "tag": "2024-03.p3",
-        "tested": false
+        "tested": true
       }
     ],
-    "description": "Run a [JupyterHub](https://jupyter.org/hub) server hosted by CoCalc for your research group, class, or personal work.  This is [the official Kubernetes install](https://z2jh.jupyter.org/en/stable/jupyterhub/installation.html) of JupyterHub, and can be [fully customized](https://z2jh.jupyter.org/en/stable/jupyterhub/customization.html).  You can expand later from a single node Kubernetes cluster to multiple nodes for high availability and horizontal scalability."
+    "description": "Run a [JupyterHub](https://jupyter.org/hub) server hosted by CoCalc for your research group, class, or personal work.  This is [the official Kubernetes install](https://z2jh.jupyter.org/en/stable/jupyterhub/installation.html) of JupyterHub, and can be [fully customized](https://z2jh.jupyter.org/en/stable/jupyterhub/customization.html).",
+    "description-todo": "NOTE YET, due to storage class!  You can expand later from a single node Kubernetes cluster to multiple nodes for high availability and horizontal scalability."
   },
   "sagemath": {
     "priority": 8,
