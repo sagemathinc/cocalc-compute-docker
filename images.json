@@ -123,7 +123,7 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/jupyterhub",
     "versions": [
       {
-        "tag": "2024-03.p2",
+        "tag": "2024-03.p3",
         "tested": false
       }
     ],
