@@ -18,8 +18,13 @@ if [ -f /etc/supervisor/conf.d/supervisord.conf ]; then
     /usr/bin/supervisord --configuration /etc/supervisor/conf.d/supervisord.conf || true
 else
     # If supervisord is installed, try to start it, if possible.
+    # NOTE: supervisord *is* installed in basically all of our containers, and it's
+    # now configured by default to include everything in /etc/supervisor/conf.d/,
+    # so if you want to run any custom daemons, this is the way to do it.
     if [ -f /usr/bin/supervisord ]; then
         echo "starting supervisord"
+        sudo mkdir -p /var/log/supervisor
+        sudo chown user:user -R /var/log/supervisor
         /usr/bin/supervisord || true
     fi
 fi

@@ -40,18 +40,32 @@
     "versions": [{ "tag": "1.1", "tested": true }],
     "description": "Filesystem container."
   },
-  "compute": {
+  "base": {
     "system": true,
-    "label": "Compute",
-    "package": "sagemathinc/compute",
-    "icon": "files",
-    "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/compute",
-    "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/compute",
+    "label": "Base",
+    "package": "sagemathinc/base",
+    "icon": "plus-square",
+    "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/base",
+    "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/base",
     "versions": [
       { "tag": "1.0", "tested": true },
       { "tag": "1.1", "tested": false }
     ],
-    "description": "Compute base container."
+    "description": "Base container that many others derive from."
+  },
+  "compute": {
+    "system": true,
+    "label": "Compute",
+    "package": "sagemathinc/compute",
+    "icon": "desktop",
+    "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/compute",
+    "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/compute",
+    "versions": [
+      { "tag": "1.0", "tested": true },
+      { "tag": "1.1", "tested": false },
+      { "tag": "1.2", "tested": false }
+    ],
+    "description": "Compute container that runs the lightweight nodejs cocalc code for serving files, terminals and jupyter."
   },
   "python": {
     "priority": 10,
@@ -109,7 +123,7 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/jupyterhub",
     "versions": [
       {
-        "tag": "2024-03.p1",
+        "tag": "2024-03.p2",
         "tested": false
       }
     ],

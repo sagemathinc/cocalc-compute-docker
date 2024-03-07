@@ -12,10 +12,6 @@ RUN chmod a+x /tmp/install-kubectl.sh && /tmp/install-kubectl.sh && rm /tmp/inst
 COPY microk8s/install-helm.sh /tmp
 RUN chmod a+x /tmp/install-helm.sh && /tmp/install-helm.sh && rm /tmp/install-helm.sh
 
-# Install ssl reg token proxy server and supervisord
-COPY proxy/install-proxy.sh /tmp
-RUN chmod a+x /tmp/install-proxy.sh && /tmp/install-proxy.sh && rm /tmp/install-proxy.sh
-
 WORKDIR /home/user
 USER user
 

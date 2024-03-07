@@ -83,7 +83,7 @@ push-cocalc:
 # which is what gets used everywhere else.
 # TODO: most other code doesn't use this base tag, but needs to. We're
 # using latest until all the other containers use it properly.
-BASE_TAG=1.0
+BASE_TAG = $(shell $(GET_TAG) base)
 base:
 	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH):$(BASE_TAG) .
 run-base:
