@@ -1,6 +1,7 @@
 /* Simple authenticated https server */
 
-import express from "express";
+import express, { Router, urlencoded } from "express";
+import cookieParser from "cookie-parser";
 import { createServer } from "https";
 import genCert from "./gen-cert";
 import debug from "debug";
@@ -35,13 +36,21 @@ export default async function httpsServer({
   }
 
   const app = express();
+  const router = Router();
   const cert = await genCert();
   const server = createServer(cert, app);
+  //const server = require('http').createServer(app);
 
   if (authToken) {
-    enableAuth(app, authToken);
+    // Enable URL-encoded bodies
+    app.use(urlencoded({ extended: true }));
+    // Use the cookie-parser middleware so req.cookies is defined.
+    app.use(cookieParser());
+    enableAuth({ router, authToken });
   }
-  enableProxy({ app, server, config });
+  enableProxy({ router, server, config });
+
+  app.use(router);
 
   log(`starting CoCalc proxy server listening on ${host}:${port}`);
   await callback(server.listen.bind(server), port, host);

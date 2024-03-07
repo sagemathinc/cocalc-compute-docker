@@ -1,6 +1,4 @@
 import debug from "debug";
-import type { Application } from "express";
-import { Router } from "express";
 import { createProxyServer } from "http-proxy";
 
 const log = debug("proxy");
@@ -8,16 +6,15 @@ const log = debug("proxy");
 export type Configuration = { path: string; target: string; ws?: boolean }[];
 
 export default function createProxy({
-  app,
   server,
+  router,
   config,
 }: {
-  app: Application;
-  config: Configuration;
+  router,
   server;
+  config: Configuration;
 }) {
   log("creating proxy server");
-  const router = Router();
 
   for (const { path, target, ws } of config) {
     const proxy = createProxyServer({ ws, target });
@@ -36,7 +33,7 @@ export default function createProxy({
       });
     }
   }
-  app.use(router);
+  return router;
 }
 
 export function proxy2(config: Configuration) {

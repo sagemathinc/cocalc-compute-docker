@@ -14,10 +14,10 @@ helm install jupyterhub jupyterhub/jupyterhub
 # This one is dangerous:
 kubectl delete service proxy-public
 # This is internal to Kubernetes ONLY:
-kubectl expose deployment proxy --name=proxy-public --port=80 --target-port=8000
+kubectl expose deployment proxy --name=jupyterhub --port=80 --target-port=8000
 
 # Use configmap to load our custom proxy.json configuration into the cluster:
-kubectl create configmap proxy-config  --from-literal='proxy.json=[{ "path": "/", "target": "http://proxy-public", "ws": true }]'
+kubectl create configmap proxy-config  --from-literal='proxy.json=[{ "path": "/", "target": "http://jupyterhub", "ws": true }]'
 
 # Load the registration token into a Kubernetes config map.  When CoCalc
 # gets setup it puts the token on the filesystem at

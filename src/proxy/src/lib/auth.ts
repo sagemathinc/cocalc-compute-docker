@@ -28,50 +28,31 @@ TODO: rate limiting, to slightly mittigate DOS attacks and/or brute force attack
 
 */
 
-import { Application, Request, Response, urlencoded } from "express";
 import cookies from "cookies";
-import cookieParser from "cookie-parser";
-
-// HTML page that asks the user to paste the auth token
-const signInPage = (req: Request, postSubmissionWithIncorrectToken: boolean = false): string => `
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-  </head>
-  <body>
-    <div style="text-align: center; font-family: Arial, sans-serif; display: flex; justify-content: center; flex-direction: column; height: 100%;">
-      <h1 style="color: #444;">Authentication Required</h1>
-      ${
-        postSubmissionWithIncorrectToken
-          ? `<p style="color: red;">Incorrect Authentication Token. Please try again.</p>`
-          : `<p>Please enter the authentication token to proceed:</p>`
-      }
-      <form method="POST" style="margin: 20px auto; display: inline-block;">
-        <input name="authToken" type="password" placeholder="Paste authentication token here..." style="padding: 6.5px 10px; width: 300px; margin-right: 10px; border-radius: 5px; border: 1px solid #ccc; font-size:12pt; margin-bottom:15px"/>
-        <input type="hidden" name="returnTo" value="${req.originalUrl}" />
-        <button type="submit" style="padding: 6.5px 15px; border-radius:5px; background-color: #007bff; color: white; border: none; cursor: pointer;font-size:12pt">Authenticate</button>
-      </form>
-    </div>
-  </body>
-`;
 
 // Main function
-export default function createAuth(app: Application, authToken: string) {
-  // Enable URL-encoded bodies
-  app.use(urlencoded({ extended: true }));
-  // Use the cookie-parser middleware so req.cookies is defined.
-  app.use(cookieParser());
+export default function enableAuth({
+  router,
+  authToken,
+}: {
+  router;
+  authToken: string;
+}) {
 
-  const handle = (req: Request, res: Response, next) => {
+  const handle = (req, res, next) => {
     const reqAuthToken =
-      req.body.authToken || req.query.auth_token || req.cookies.AUTH_TOKEN;
-    const postSubmissionWithIncorrectToken = req.method === "POST" && reqAuthToken !== authToken;
+      req.body.authToken ||
+      req.query.auth_token ||
+      req.cookies.COCALC_PROXY_AUTH_TOKEN;
+    const postSubmissionWithIncorrectToken =
+      req.method === "POST" && reqAuthToken !== authToken;
 
     if (reqAuthToken === authToken) {
       // the token is correct
-      if (req.cookies.AUTH_TOKEN != authToken) {
+      if (req.cookies.COCALC_PROXY_AUTH_TOKEN != authToken) {
         // but the cookie isn't, then they just authenticated, so we store
         // the correct cookie
-        new cookies(req, res).set("AUTH_TOKEN", authToken, {
+        new cookies(req, res).set("COCALC_PROXY_AUTH_TOKEN", authToken, {
           secure: true,
           httpOnly: true,
         });
@@ -100,5 +81,30 @@ export default function createAuth(app: Application, authToken: string) {
     }
   };
 
-  app.all("*", handle);
+  router.use("*", handle);
 }
+
+// HTML page that asks the user to paste the auth token
+const signInPage = (
+  req,
+  postSubmissionWithIncorrectToken: boolean = false,
+): string => `
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <div style="text-align: center; font-family: Arial, sans-serif; display: flex; justify-content: center; flex-direction: column; height: 100%;">
+      <h1 style="color: #444;">Authentication Required</h1>
+      ${
+        postSubmissionWithIncorrectToken
+          ? `<p style="color: red;">Incorrect Authentication Token. Please try again.</p>`
+          : `<p>Please enter the authentication token to proceed:</p>`
+      }
+      <form method="POST" style="margin: 20px auto; display: inline-block;">
+        <input name="authToken" type="password" placeholder="Paste authentication token here..." style="padding: 6.5px 10px; width: 300px; margin-right: 10px; border-radius: 5px; border: 1px solid #ccc; font-size:12pt; margin-bottom:15px"/>
+        <input type="hidden" name="returnTo" value="${req.originalUrl}" />
+        <button type="submit" style="padding: 6.5px 15px; border-radius:5px; background-color: #007bff; color: white; border: none; cursor: pointer;font-size:12pt">Authenticate</button>
+      </form>
+    </div>
+  </body>
+`;
