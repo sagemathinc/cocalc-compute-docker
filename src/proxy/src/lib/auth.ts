@@ -30,6 +30,11 @@ TODO: rate limiting, to slightly mittigate DOS attacks and/or brute force attack
 
 import cookies from "cookies";
 
+// it's important this isn't being used by any target of our proxy, or things could break.
+export const AUTH_PATH = `/__cocalc_proxy_${Math.random()}`;
+const POST_NAME = "cocalcProxyAuthToken";
+const COOKIE_NAME = "COCALC_PROXY_AUTH_TOKEN";
+
 // Main function
 export default function enableAuth({
   router,
@@ -38,21 +43,20 @@ export default function enableAuth({
   router;
   authToken: string;
 }) {
-
   const handle = (req, res, next) => {
     const reqAuthToken =
-      req.body.authToken ||
+      req.body?.authToken ||
       req.query.auth_token ||
-      req.cookies.COCALC_PROXY_AUTH_TOKEN;
+      req.cookies[COOKIE_NAME];
     const postSubmissionWithIncorrectToken =
       req.method === "POST" && reqAuthToken !== authToken;
 
     if (reqAuthToken === authToken) {
       // the token is correct
-      if (req.cookies.COCALC_PROXY_AUTH_TOKEN != authToken) {
+      if (req.cookies[COOKIE_NAME] != authToken) {
         // but the cookie isn't, then they just authenticated, so we store
         // the correct cookie
-        new cookies(req, res).set("COCALC_PROXY_AUTH_TOKEN", authToken, {
+        new cookies(req, res).set(COOKIE_NAME, authToken, {
           secure: true,
           httpOnly: true,
         });
@@ -100,8 +104,8 @@ const signInPage = (
           ? `<p style="color: red;">Incorrect Authentication Token. Please try again.</p>`
           : `<p>Please enter the authentication token to proceed:</p>`
       }
-      <form method="POST" style="margin: 20px auto; display: inline-block;">
-        <input name="authToken" type="password" placeholder="Paste authentication token here..." style="padding: 6.5px 10px; width: 300px; margin-right: 10px; border-radius: 5px; border: 1px solid #ccc; font-size:12pt; margin-bottom:15px"/>
+      <form action="${AUTH_PATH}" method="POST" style="margin: 20px auto; display: inline-block;">
+        <input name="${POST_NAME}" type="password" placeholder="Paste authentication token here..." style="padding: 6.5px 10px; width: 300px; margin-right: 10px; border-radius: 5px; border: 1px solid #ccc; font-size:12pt; margin-bottom:15px"/>
         <input type="hidden" name="returnTo" value="${req.originalUrl}" />
         <button type="submit" style="padding: 6.5px 15px; border-radius:5px; background-color: #007bff; color: white; border: none; cursor: pointer;font-size:12pt">Authenticate</button>
       </form>

@@ -7,7 +7,7 @@ import genCert from "./gen-cert";
 import debug from "debug";
 import { callback } from "awaiting";
 import enableProxy from "./proxy";
-import enableAuth from "./auth";
+import enableAuth, { AUTH_PATH } from "./auth";
 import type { Configuration } from "./proxy";
 import { readFile } from "fs/promises";
 
@@ -42,11 +42,22 @@ export default async function httpsServer({
   //const server = require('http').createServer(app);
 
   if (authToken) {
-    // Enable URL-encoded bodies
-    app.use(urlencoded({ extended: true }));
+    log("enable auth token for CoCalc proxy server");
+
+    // Enable URL-encoded bodies, but ONLY for AUTH_PATH (!),
+    // since otherwise this mangles the proxying of the target
+    // sites, which is very, very bad in some cass, e.g.,
+    // JupyterHub sign in is broken.
+    app.use(
+      AUTH_PATH,
+      // type argument is just to minimize the impact
+      urlencoded({ extended: true, type: "application/x-www-form-urlencoded" }),
+    );
     // Use the cookie-parser middleware so req.cookies is defined.
     app.use(cookieParser());
     enableAuth({ router, authToken });
+  } else {
+    log("auth token not enabled -- any client can connect to the proxied site");
   }
   enableProxy({ router, server, config });
 
