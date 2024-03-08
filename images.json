@@ -110,6 +110,7 @@
     "description": "Run a node of a [MicroK8s](https://microk8s.io/) Kubernetes cluster. The kubectl and helm commands are configured and available to use from a terminal on the compute server.  If you [setup ssh keys](https://doc.cocalc.com/account/ssh.html) and directly ssh as root into the the compute server, you can also [create a multinode cluster](https://microk8s.io/docs/clustering)."
   },
   "jupyterhub": {
+    "authToken": true,
     "disabled": false,
     "label": "JupyterHub",
     "package": "sagemathinc/jupyterhub",
