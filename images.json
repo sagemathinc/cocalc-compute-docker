@@ -93,7 +93,7 @@
   "microk8s": {
     "label": "Kubernetes Node",
     "package": "sagemathinc/microk8s",
-    "minDiskSizeGb": 10,
+    "minDiskSizeGb": 30,
     "dockerSizeGb": 2,
     "gpu": false,
     "microk8s": true,
@@ -114,7 +114,7 @@
     "disabled": false,
     "label": "JupyterHub",
     "package": "sagemathinc/jupyterhub",
-    "minDiskSizeGb": 10,
+    "minDiskSizeGb": 30,
     "dockerSizeGb": 2,
     "gpu": false,
     "microk8s": true,
