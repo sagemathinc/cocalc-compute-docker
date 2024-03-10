@@ -205,7 +205,7 @@
     "url": "https://www.sagemath.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/anaconda",
     "description": "Minimal Anaconda environment nicely setup and ready for you to install packages into.",
-    "versions": [{ "tag": "2024-01", "tested": true }]
+    "versions": [{ "tag": "2024-03", "tested": false }]
   },
   "pytorch": {
     "priority": 10,
