@@ -302,7 +302,7 @@ anaconda:
 push-anaconda:
 	docker push $(DOCKER_USER)/anaconda$(ARCH):$(ANACONDA_TAG)
 run-anaconda:
-	docker run -it --rm $(DOCKER_USER)/anaconda$(ARCH):$(ANACONDA_TAG) bash
+	docker run -it --rm $(DOCKER_USER)/anaconda$(ARCH):$(ANACONDA_TAG)
 assemble-anaconda:
 	./src/scripts/assemble.sh $(DOCKER_USER)/anaconda $(ANACONDA_TAG)
 
