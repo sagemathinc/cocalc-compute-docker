@@ -35,10 +35,8 @@ USER user
 
 # Add some common channels and setup the default environment
 RUN \
-     micromamba config append channels conda-forge \
-  && micromamba config append channels anaconda \
-  && micromamba config append channels huggingface \
-  && micromamba config append channels pytorch \
+     micromamba config append channels anaconda \
+  && micromamba config append channels conda-forge \
   && micromamba create --name default  python=3.11
 
 # Install enough to run a Jupyter notebook, since
