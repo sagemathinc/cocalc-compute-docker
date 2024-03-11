@@ -204,7 +204,7 @@
     "icon": "python",
     "url": "https://www.sagemath.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/anaconda",
-    "description": "[Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with a Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using the `conda` or `mamba` command in a terminal or `!mamba` or `!conda` in a Jupyter notebook.",
+    "description": "[Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with a Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using `conda install package` command in a terminal or `!conda install -y package` in a Jupyter notebook.",
     "versions": [
       { "tag": "2024-03.p3", "tested": true },
       { "tag": "2024-03-10", "tested": true }
@@ -219,7 +219,7 @@
     "icon": "python",
     "url": "https://www.sagemath.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/anaconda",
-    "description": "[Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with GPU support and a pre-installed Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using the `conda` or `mamba` command in a terminal or `!mamba` or `!conda` in a Jupyter notebook.",
+    "description": "[Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with GPU support and a pre-installed Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using `conda install package` command in a terminal or `!conda install -y package` in a Jupyter notebook.",
     "versions": [{ "tag": "2024-03-10", "tested": true }]
   },
   "pytorch": {
