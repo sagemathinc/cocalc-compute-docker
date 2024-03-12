@@ -105,6 +105,12 @@
         "label": "2024-03.p2",
         "tag": "2024-03.p2",
         "tested": true
+      },
+      {
+        "comment": "attempt to speed up by pre-installing mk8s into the google cloud image (no change to Docker image yet).",
+        "label": "2024-03.p3",
+        "tag": "2024-03.p3",
+        "tested": false
       }
     ],
     "description": "Run a node of a [MicroK8s](https://microk8s.io/) Kubernetes cluster. The kubectl and helm commands are configured and available to use from a terminal on the compute server.  If you [setup ssh keys](https://doc.cocalc.com/account/ssh.html) and directly ssh as root into the the compute server, you can also [create a multinode cluster](https://microk8s.io/docs/clustering)."
