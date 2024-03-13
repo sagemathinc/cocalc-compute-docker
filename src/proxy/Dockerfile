@@ -12,8 +12,9 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | N
 RUN . /nvm/nvm.sh && nvm install --no-progress 20
 RUN . /nvm/nvm.sh && npm install -g pnpm
 
-# Copy over a simple default proxy that proxies port 80:
+# Copy source code for our proxy server over.
 COPY src /proxy
+# Copy over a simple default proxy configuration that proxies port 80:
 COPY proxy.json /proxy/proxy.json
 RUN cd /proxy && . /nvm/nvm.sh && pnpm install && pnpm build && pnpm audit
 

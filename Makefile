@@ -159,7 +159,7 @@ PROXY_TAG = $(shell $(GET_TAG) proxy)
 proxy:
 	cd src/proxy && docker build -t $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG) .
 run-proxy:
-	docker run -it --rm $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG)
+	docker run -it --network=host --rm $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG)
 push-proxy:
 	docker push $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG)
 assemble-proxy:
@@ -169,7 +169,7 @@ assemble-proxy:
 
 ## IMAGE: openwebui
 OPENWEBUI_TAG=$(shell $(GET_TAG) openwebui)
-PROXY_VERSION=0.9.0
+PROXY_VERSION=1.3.0
 openwebui:
 	cd src/openwebui && docker build --build-arg PROXY_VERSION=${PROXY_VERSION} --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) -t $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG) .
 run-openwebui:

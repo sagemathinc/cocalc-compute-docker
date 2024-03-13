@@ -34,6 +34,7 @@ import cookies from "cookies";
 export const AUTH_PATH = `/__cocalc_proxy_${Math.random()}`;
 const POST_NAME = "cocalcProxyAuthToken";
 const COOKIE_NAME = "COCALC_PROXY_AUTH_TOKEN";
+const COCALC_AUTH_RETURN_TO = `cocalcReturnTo_${Math.random()}`;
 
 // Main function
 export default function enableAuth({
@@ -56,9 +57,9 @@ export default function enableAuth({
           secure: true,
           httpOnly: true,
         });
-        if (req.method === "POST") {
+        if (req.method === "POST" && req.body[COCALC_AUTH_RETURN_TO] != null) {
           // and also redirect them if they really did just authenticate via the form
-          res.redirect(req.body.returnTo || "/");
+          res.redirect(req.body[COCALC_AUTH_RETURN_TO]);
           return;
         }
       }
@@ -69,10 +70,12 @@ export default function enableAuth({
         // they just attempted to sign in
         if (reqAuthToken !== authToken) {
           // wrong token -- try again
-          res.send(signInPage(req, true, req.body?.returnTo));
+          res.send(signInPage(req, true, req.body?.[COCALC_AUTH_RETURN_TO]));
         } else {
-          // correct -- redirect them to the page they wanted to go to.
-          res.redirect(req.body.returnTo || "/");
+          if (req.body[COCALC_AUTH_RETURN_TO] != null) {
+            // correct -- redirect them to the page they wanted to go to.
+            res.redirect(req.body[COCALC_AUTH_RETURN_TO]);
+          }
         }
       } else {
         // send them to sign in page
@@ -103,7 +106,7 @@ const signInPage = (
       }
       <form action="${AUTH_PATH}" method="POST" style="margin: 20px auto; display: inline-block;">
         <input name="${POST_NAME}" type="password" placeholder="Paste authentication token here..." style="padding: 6.5px 10px; width: 300px; margin-right: 10px; border-radius: 5px; border: 1px solid #ccc; font-size:12pt; margin-bottom:15px"/>
-        <input type="hidden" name="returnTo" value="${
+        <input type="hidden" name="${COCALC_AUTH_RETURN_TO}" value="${
           returnTo ?? req.originalUrl
         }" />
         <button type="submit" style="padding: 6.5px 15px; border-radius:5px; background-color: #007bff; color: white; border: none; cursor: pointer;font-size:12pt">Authenticate</button>
