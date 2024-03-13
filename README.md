@@ -142,7 +142,11 @@ DONE 5.081283333333333 minutes
 [ 'cocalc-julia-1-10-1-arm64', 'cocalc-julia-1-10-1' ]
 ```
 
-Also, to make the public cocalc.com server recognize the new image.json file, be sure to
+Also, to make the public [cocalc.com](http://cocalc.com) server recognize the new image.json file, be sure to click the "Reload Images" button in the advanced section when selecting a compute server:
+
+![](.README.md.upload/paste-0.8430924123432122)
+
+You can also visit the following URL's directly:
 
 - [visit this url while signed in as an admin](https://cocalc.com/api/v2/compute/get-images?ttl=0), which triggers a cache clear of images.json.
 - [and visit this url](https://cocalc.com/api/v2/compute/get-images-google?ttl=0), to clear the Google images cache.
