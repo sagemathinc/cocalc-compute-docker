@@ -4,18 +4,13 @@ This is an express handler that does the following:
 - It checks to see if the cookie called AUTH_TOKEN is set to authToken,
   and if so it does nothing at all, letting other handlers deal.
 
-
 - If AUTH_TOKEN is not set to authToken, it checks for a query parameter
   ?auth_token=..., and if it is set to authToken, it uses the "cookies"
   node module to set the cookie AU_TOKEN to authToken (with { secure: true }),,
   then returns letting other handlers further handle the route.
 
-  then returns letting other handlers further handle the route.
-
 - If AUTH_TOKEN is not set to app: Application, authToken and there is no query param handled above,
-  and there is no query param handled above,
   it returns a simple sign in HTML page, with a form that requests that
-
   the user paste in the authToken.  This page also has a query parameter
   in it that encodes the page the user was trying to visit.  That will
   be used in the next step below.
@@ -24,7 +19,7 @@ This is an express handler that does the following:
   receives the authToken, sets the cookie AUTH_TOKEN as above, and directs the
   user back to the page they were trying to open.
 
-TODO: rate limiting, to slightly mittigate DOS attacks and/or brute force attacks.
+TODO: rate limiting, to slightly mitigate DOS attacks and/or brute force attacks.
 
 */
 
