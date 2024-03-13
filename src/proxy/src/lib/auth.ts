@@ -4,12 +4,9 @@ This is an express handler that does the following:
 - It checks to see if the cookie called AUTH_TOKEN is set to authToken,
   and if so it does nothing at all, letting other handlers deal.
 
-
 - If AUTH_TOKEN is not set to authToken, it checks for a query parameter
   ?auth_token=..., and if it is set to authToken, it uses the "cookies"
   node module to set the cookie AU_TOKEN to authToken (with { secure: true }),,
-  then returns letting other handlers further handle the route.
-
   then returns letting other handlers further handle the route.
 
 - If AUTH_TOKEN is not set to app: Application, authToken and there is no query param handled above,
