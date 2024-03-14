@@ -52,7 +52,10 @@ export default function enableAuth({
           secure: true,
           httpOnly: true,
         });
-        if (req.method === "POST" && req.body[COCALC_AUTH_RETURN_TO] != null) {
+        if (
+          req.method === "POST" &&
+          req.body?.[COCALC_AUTH_RETURN_TO] != null
+        ) {
           // and also redirect them if they really did just authenticate via the form
           res.redirect(req.body[COCALC_AUTH_RETURN_TO]);
           return;
@@ -67,9 +70,9 @@ export default function enableAuth({
           // wrong token -- try again
           res.send(signInPage(req, true, req.body?.[COCALC_AUTH_RETURN_TO]));
         } else {
-          if (req.body[COCALC_AUTH_RETURN_TO] != null) {
+          if (req.body?.[COCALC_AUTH_RETURN_TO] != null) {
             // correct -- redirect them to the page they wanted to go to.
-            res.redirect(req.body[COCALC_AUTH_RETURN_TO]);
+            res.redirect(req.body?.[COCALC_AUTH_RETURN_TO]);
           }
         }
       } else {

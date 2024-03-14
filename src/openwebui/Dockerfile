@@ -22,8 +22,7 @@ RUN  mkdir -p /opt/proxy/nvm \
   && source /opt/proxy/nvm/nvm.sh \
   && nvm install --no-progress 20
 
-ARG PROXY_VERSION=
-RUN source /opt/proxy/nvm/nvm.sh && npm install -g @cocalc/compute-server-proxy@${PROXY_VERSION}
+RUN source /opt/proxy/nvm/nvm.sh && npm install -g @cocalc/compute-server-proxy@latest
 COPY start-proxy.sh /opt/proxy/start-proxy.sh
 
 COPY start-openwebui.sh /opt/start-openwebui.sh

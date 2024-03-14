@@ -29,7 +29,8 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/proxy",
     "versions": [
       { "tag": "1.3", "tested": true },
-      { "tag": "1.4", "tested": true }
+      { "tag": "1.4", "tested": true },
+      { "tag": "1.4.1", "tested": true }
     ],
     "description": "Proxy container, which is used in Kubernetes."
   },
@@ -127,6 +128,10 @@
     "versions": [
       {
         "tag": "2024-03.p3",
+        "tested": true
+      },
+      {
+        "tag": "2024-03.p4",
         "tested": true
       }
     ],
@@ -306,6 +311,10 @@
       },
       {
         "tag": "2024-03",
+        "tested": true
+      },
+      {
+        "tag": "2024-03.p1",
         "tested": true
       }
     ],
