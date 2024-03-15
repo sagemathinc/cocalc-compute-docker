@@ -16,7 +16,9 @@ RUN . /nvm/nvm.sh && npm install -g pnpm
 COPY src /proxy
 # Copy over a simple default proxy configuration that proxies port 80:
 COPY proxy.json /proxy/proxy.json
-RUN cd /proxy && . /nvm/nvm.sh && pnpm install && pnpm build && pnpm audit
+RUN cd /proxy && . /nvm/nvm.sh && pnpm install
+RUN cd /proxy && . /nvm/nvm.sh && pnpm build
+RUN cd /proxy && . /nvm/nvm.sh && pnpm audit
 
 # default token for testing:
 RUN echo "test" > /token

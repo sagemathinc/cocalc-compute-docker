@@ -24,6 +24,7 @@ TODO: rate limiting, to slightly mitigate DOS attacks and/or brute force attacks
 */
 
 import cookies from "cookies";
+import { readFile } from "fs/promises";
 
 // it's important this isn't being used by any target of our proxy, or things could break.
 export const AUTH_PATH = `/__cocalc_proxy_${Math.random()}`;
@@ -32,13 +33,14 @@ const COOKIE_NAME = "COCALC_PROXY_AUTH_TOKEN";
 const COCALC_AUTH_RETURN_TO = `cocalcReturnTo_${Math.random()}`;
 
 // Main function
-export default function enableAuth({
+export default async function enableAuth({
   router,
-  authToken,
+  authTokenPath,
 }: {
   router;
-  authToken: string;
+  authTokenPath: string;
 }) {
+  const authToken = (await readFile(authTokenPath)).toString().trim();
   const handle = (req, res, next) => {
     const reqAuthToken =
       req.body?.[POST_NAME] || req.query.auth_token || req.cookies[COOKIE_NAME];

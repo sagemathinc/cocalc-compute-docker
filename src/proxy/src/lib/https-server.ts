@@ -16,12 +16,12 @@ const log = debug("http-server");
 export default async function httpsServer({
   port = process.env.PROXY_PORT ? parseInt(process.env.PROXY_PORT) : 443,
   host = process.env.PROXY_HOST ?? "0.0.0.0",
-  authToken,
+  authTokenPath,
   config,
 }: {
   port?: number;
   host?: string;
-  authToken?: string;
+  authTokenPath?: string;
   config?: Configuration;
 } = {}) {
   log("creating https server", { port, host });
@@ -31,8 +31,8 @@ export default async function httpsServer({
   if (config == null) {
     throw Error("config must be defined");
   }
-  if (authToken == null) {
-    authToken = await loadFromFile("PROXY_AUTH_TOKEN_FILE");
+  if (authTokenPath == null) {
+    authTokenPath = process.env["PROXY_AUTH_TOKEN_FILE"];
   }
 
   const app = express();
@@ -41,8 +41,10 @@ export default async function httpsServer({
   const server = createServer(cert, app);
   //const server = require('http').createServer(app);
 
-  if (authToken) {
-    log("enable auth token for CoCalc proxy server");
+  if (authTokenPath) {
+    log(
+      `enabling auth token for CoCalc proxy server -- path = '${authTokenPath}'`,
+    );
 
     // Enable URL-encoded bodies, but ONLY for AUTH_PATH (!),
     // since otherwise this mangles the proxying of the target
@@ -55,7 +57,7 @@ export default async function httpsServer({
     );
     // Use the cookie-parser middleware so req.cookies is defined.
     app.use(cookieParser());
-    enableAuth({ router, authToken });
+    await enableAuth({ router, authTokenPath });
   } else {
     log("auth token not enabled -- any client can connect to the proxied site");
   }

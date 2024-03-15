@@ -30,7 +30,8 @@
     "versions": [
       { "tag": "1.3", "tested": true },
       { "tag": "1.4", "tested": true },
-      { "tag": "1.4.1", "tested": true }
+      { "tag": "1.4.1", "tested": true },
+      { "tag": "1.5", "tested": true }
     ],
     "description": "Proxy container, which is used in Kubernetes."
   },
@@ -216,7 +217,8 @@
     "description": "[Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with a Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using `conda install package` command in a terminal or `!conda install -y package` in a Jupyter notebook.",
     "versions": [
       { "tag": "2024-03.p3", "tested": true },
-      { "tag": "2024-03-10", "tested": true }
+      { "tag": "2024-03-10", "tested": true },
+      { "tag": "2024-03-14", "tested": true }
     ]
   },
   "anaconda-gpu": {
