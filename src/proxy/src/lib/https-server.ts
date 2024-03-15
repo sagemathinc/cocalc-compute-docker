@@ -8,8 +8,6 @@ import debug from "debug";
 import { callback } from "awaiting";
 import enableProxy from "./proxy";
 import enableAuth, { AUTH_PATH } from "./auth";
-import type { Configuration } from "./proxy";
-import { readFile } from "fs/promises";
 
 const log = debug("proxy:http-server");
 
@@ -17,19 +15,21 @@ export default async function httpsServer({
   port = process.env.PROXY_PORT ? parseInt(process.env.PROXY_PORT) : 443,
   host = process.env.PROXY_HOST ?? "0.0.0.0",
   authTokenPath,
-  config,
+  configPath,
 }: {
   port?: number;
   host?: string;
   authTokenPath?: string;
-  config?: Configuration;
+  configPath?: string;
 } = {}) {
   log("creating https server", { port, host });
-  if (config == null) {
-    config = JSON.parse(await loadFromFile("PROXY_CONFIG"));
+  if (configPath == null) {
+    configPath = process.env["PROXY_CONFIG"];
   }
-  if (config == null) {
-    throw Error("config must be defined");
+  if (configPath == null) {
+    throw Error(
+      "configPath must be defined or PROXY_CONFIG must be path to configuration json file",
+    );
   }
   if (authTokenPath == null) {
     authTokenPath = process.env["PROXY_AUTH_TOKEN_FILE"];
@@ -38,7 +38,7 @@ export default async function httpsServer({
   const app = express();
   const router = Router();
   const cert = await genCert();
-  const server = createServer(cert, app);
+  const server = await createServer(cert, app);
   //const server = require('http').createServer(app);
 
   if (authTokenPath) {
@@ -61,7 +61,7 @@ export default async function httpsServer({
   } else {
     log("auth token not enabled -- any client can connect to the proxied site");
   }
-  enableProxy({ router, server, config });
+  enableProxy({ router, server, configPath });
 
   app.use(router);
 
@@ -73,12 +73,4 @@ export default async function httpsServer({
   });
 
   return server;
-}
-
-async function loadFromFile(name) {
-  const path = process.env[name];
-  if (!path) {
-    throw Error(`the environment variable '${name}' must be set`);
-  }
-  return (await readFile(path)).toString().trim();
 }

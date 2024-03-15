@@ -1,20 +1,23 @@
 import debug from "debug";
 import { createProxyServer } from "http-proxy";
+import { readFile } from "fs/promises";
 
 const log = debug("proxy");
 
 export type Configuration = { path: string; target: string; ws?: boolean }[];
 
-export default function createProxy({
+export default async function createProxy({
   server,
   router,
-  config,
+  configPath,
 }: {
-  router,
+  router;
   server;
-  config: Configuration;
+  configPath: string;
 }) {
   log("creating proxy server");
+
+  const config = JSON.parse((await readFile(configPath)).toString().trim());
 
   for (const { path, target, ws } of config) {
     const proxy = createProxyServer({ ws, target });
