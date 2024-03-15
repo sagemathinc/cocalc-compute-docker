@@ -65,7 +65,7 @@ export default async function enableAuth({
     try {
       authToken.current = (await readFile(authTokenPath)).toString().trim();
     } catch (err) {
-      log.debug(
+      log(
         "WARNING -- unable to read auth token from ",
         authTokenPath,
         err,
@@ -78,7 +78,7 @@ export default async function enableAuth({
   const watcher = watch(authTokenPath, ChokidarOpts);
   watcher.on("all", updateAuthToken);
   watcher.on("error", (err) => {
-    log.debug(`error watching authTokenPath '${authTokenPath}' -- ${err}`);
+    log(`error watching authTokenPath '${authTokenPath}' -- ${err}`);
   });
 
   const handle = (req, res, next) => {
