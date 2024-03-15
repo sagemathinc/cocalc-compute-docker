@@ -50,7 +50,7 @@ cocalc:
 	cd src/cocalc && docker build --build-arg COMMIT=$(COMMIT) --build-arg BRANCH=$(BRANCH)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(COCALC_TAG) .
 
 run-cocalc:
-	docker run -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(COCALC_TAG) bash
+	docker run --name run-cocalc -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(COCALC_TAG) bash
 
 # Copy from docker image and publish @cocalc/compute-cocalc$(ARCH)
 # to the npm registry.  This only works, of course, if you are signed
@@ -87,7 +87,7 @@ BASE_TAG = $(shell $(GET_TAG) base)
 base:
 	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH):$(BASE_TAG) .
 run-base:
-	docker run -it --rm $(DOCKER_USER)/base$(ARCH):$(BASE_TAG) bash
+	docker run --name run-base -it --rm $(DOCKER_USER)/base$(ARCH):$(BASE_TAG) bash
 push-base:
 	docker push $(DOCKER_USER)/base$(ARCH):$(BASE_TAG)
 assemble-base:
@@ -98,7 +98,7 @@ FILESYSTEM_TAG = $(shell $(GET_TAG) filesystem)
 filesystem:
 	cd src && docker build  --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG) . -f filesystem/Dockerfile
 run-filesystem:
-	rm -rf /tmp/filesystem && mkdir /tmp/filesystem && chmod a+rwx /tmp/filesystem && docker run -it --rm -v /tmp/filesystem:/data -v /cocalc:/cocalc $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG)
+	rm -rf /tmp/filesystem && mkdir /tmp/filesystem && chmod a+rwx /tmp/filesystem && docker run --name run-filesystem -it --rm -v /tmp/filesystem:/data -v /cocalc:/cocalc $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG)
 push-filesystem:
 	docker push $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG)
 assemble-filesystem:
@@ -109,7 +109,7 @@ COMPUTE_TAG = $(shell $(GET_TAG) compute)
 compute:
 	cd src && docker build --build-arg ARCH=${ARCH} --build-arg BASE_TAG=$(BASE_TAG)  -t $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG) . -f compute/Dockerfile
 run-compute:
-	docker run -it --rm $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG)
+	docker run --name run-compute -it --rm $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG)
 push-compute:
 	docker push $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG)
 assemble-compute:
@@ -120,7 +120,7 @@ PYTHON_TAG = $(shell $(GET_TAG) python)
 python:
 	cd src/python && docker build --build-arg COMPUTE_TAG=$(COMPUTE_TAG)  -t $(DOCKER_USER)/python$(ARCH):$(PYTHON_TAG) .
 run-python:
-	docker run -it --rm $(DOCKER_USER)/python$(ARCH):$(PYTHON_TAG) bash
+	docker run --name run-python -it --rm $(DOCKER_USER)/python$(ARCH):$(PYTHON_TAG) bash
 push-python:
 	docker push $(DOCKER_USER)/python$(ARCH):$(PYTHON_TAG)
 assemble-python:
@@ -133,7 +133,7 @@ MICROK8S_TAG = $(shell $(GET_TAG) microk8s)
 microk8s:
 	cd src && docker build  --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG)  -t $(DOCKER_USER)/microk8s$(ARCH):$(MICROK8S_TAG) . -f microk8s/Dockerfile
 run-microk8s:
-	docker run -it --rm $(DOCKER_USER)/microk8s$(ARCH):$(MICROK8S_TAG)
+	docker run --name run-microk8s -it --rm $(DOCKER_USER)/microk8s$(ARCH):$(MICROK8S_TAG)
 push-microk8s:
 	docker push $(DOCKER_USER)/microk8s$(ARCH):$(MICROK8S_TAG)
 assemble-microk8s:
@@ -144,7 +144,7 @@ JUPYTERHUB_TAG = $(shell $(GET_TAG) jupyterhub)
 jupyterhub:
 	cd src/jupyterhub && docker build  --build-arg ARCH=${ARCH} --build-arg MICROK8S_TAG=$(MICROK8S_TAG)  -t $(DOCKER_USER)/jupyterhub$(ARCH):$(JUPYTERHUB_TAG) .
 run-jupyterhub:
-	docker run -it --rm $(DOCKER_USER)/jupyterhub$(ARCH):$(JUPYTERHUB_TAG)
+	docker run --name run-jupyterhub -it --rm $(DOCKER_USER)/jupyterhub$(ARCH):$(JUPYTERHUB_TAG)
 push-jupyterhub:
 	docker push $(DOCKER_USER)/jupyterhub$(ARCH):$(JUPYTERHUB_TAG)
 assemble-jupyterhub:
@@ -159,7 +159,7 @@ PROXY_TAG = $(shell $(GET_TAG) proxy)
 proxy:
 	cd src/proxy && docker build -t $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG) .
 run-proxy:
-	docker run -it --network=host --rm $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG)
+	docker run --name run-proxy -it --network=host --rm $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG)
 push-proxy:
 	docker push $(DOCKER_USER)/proxy$(ARCH):$(PROXY_TAG)
 assemble-proxy:
@@ -173,9 +173,9 @@ PROXY_VERSION=1.3.0
 openwebui:
 	cd src/openwebui && docker build --build-arg PROXY_VERSION=${PROXY_VERSION} --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) -t $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG) .
 run-openwebui:
-	docker run --gpus all -it --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock --network=host $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
+	docker run --name run-openwebui --gpus all -it --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock --network=host $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
 run-openwebui-nogpu:
-	docker run -it --rm --network=host --privileged -v /var/run/docker.sock:/var/run/docker.sock  $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
+	docker run --name run-openwebui-nogpu -it --rm --network=host --privileged -v /var/run/docker.sock:/var/run/docker.sock  $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
 push-openwebui:
 	docker push $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
 assemble-openwebui:
@@ -199,7 +199,7 @@ SAGEMATH_TAG=$(shell $(GET_TAG) sagemath)
 sagemath-core:
 	cd src/sagemath && docker build --build-arg SAGEMATH_VERSION=${SAGEMATH_VERSION} -t $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG) -f core/Dockerfile .
 run-sagemath-core:
-	docker run -it --rm $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG) bash
+	docker run --name run-sagemath-core -it --rm $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG) bash
 push-sagemath-core:
 	docker push $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG)
 assemble-sagemath-core:
@@ -211,7 +211,7 @@ SAGEMATH_TAG=$(shell $(GET_TAG) sagemath)
 sagemath-optional:
 	cd src/sagemath && docker build --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=${SAGEMATH_VERSION} -t $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATH_TAG) -f optional/Dockerfile${ARCH0} .
 run-sagemath-optional:
-	docker run -it --rm $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATH_TAG) bash
+	docker run --name run-sagemath-optional -it --rm $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATH_TAG) bash
 push-sagemath-optional:
 	docker push $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATH_TAG)
 assemble-sagemath-optional:
@@ -225,7 +225,7 @@ sagemath:
 	cd src/sagemath && \
 	docker build  --build-arg SAGEMATH_VARIANT="core" --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
 run-sagemath:
-	docker run -it --rm $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) bash
+	docker run --name run-sagemath -it --rm $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) bash
 push-sagemath:
 	docker push $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION)
 assemble-sagemath:
@@ -237,7 +237,7 @@ sagemathopt:
 	cd src/sagemath && \
 	docker build  --build-arg SAGEMATH_VARIANT="optional" --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
 run-sagemathopt:
-	docker run -it --rm $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATH_VERSION) bash
+	docker run --name run-sagemathopt -it --rm $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATH_VERSION) bash
 push-sagemathopt:
 	docker push $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATH_VERSION)
 assemble-sagemathopt:
@@ -253,7 +253,7 @@ SAGEMATHDEV_TAG=$(shell $(GET_TAG) sagemath)
 sagemath-dev:
 	cd src/sagemath && docker build --build-arg SAGEMATH_VERSION=${SAGEMATHDEV_VERSION} -t $(DOCKER_USER)/sagemath-dev$(ARCH):$(SAGEMATHDEV_TAG) -f dev/Dockerfile .
 run-sagemath-dev:
-	docker run -it --rm $(DOCKER_USER)/sagemath-dev$(ARCH):$(SAGEMATHDEV_TAG) bash
+	docker run  --name run-sagemath-dev -it --rm $(DOCKER_USER)/sagemath-dev$(ARCH):$(SAGEMATHDEV_TAG) bash
 push-sagemath-dev:
 	docker push $(DOCKER_USER)/sagemath-dev$(ARCH):$(SAGEMATHDEV_TAG)
 assemble-sagemath-dev:
@@ -271,7 +271,7 @@ JULIA_TAG=$(shell $(GET_TAG) julia)
 julia:
 	cd src/julia && docker build  --build-arg ARCH=${ARCH} --build-arg JULIA_VERSION=$(JULIA_VERSION) -t $(DOCKER_USER)/julia$(ARCH):$(JULIA_TAG) .
 run-julia:
-	docker run -it --rm $(DOCKER_USER)/julia$(ARCH):$(JULIA_TAG) bash
+	docker run  --name run-julia  -it --rm $(DOCKER_USER)/julia$(ARCH):$(JULIA_TAG) bash
 push-julia:
 	docker push $(DOCKER_USER)/julia$(ARCH):$(JULIA_TAG)
 assemble-julia:
@@ -290,7 +290,7 @@ rstats:
 push-rstats:
 	docker push $(DOCKER_USER)/rstats$(ARCH):$(R_TAG)
 run-rstats:
-	docker run -it --rm --network=host $(DOCKER_USER)/rstats$(ARCH):$(R_TAG) bash
+	docker run  --name run-rstats  -it --rm --network=host $(DOCKER_USER)/rstats$(ARCH):$(R_TAG) bash
 assemble-rstats:
 	./src/scripts/assemble.sh $(DOCKER_USER)/rstats $(R_TAG)
 
@@ -302,7 +302,7 @@ anaconda:
 push-anaconda:
 	docker push $(DOCKER_USER)/anaconda$(ARCH):$(ANACONDA_TAG)
 run-anaconda:
-	docker run -it --rm $(DOCKER_USER)/anaconda$(ARCH):$(ANACONDA_TAG)
+	docker run  --name run-anaconda  -it --rm $(DOCKER_USER)/anaconda$(ARCH):$(ANACONDA_TAG)
 assemble-anaconda:
 	./src/scripts/assemble.sh $(DOCKER_USER)/anaconda $(ANACONDA_TAG)
 
@@ -327,9 +327,9 @@ cuda:
 push-cuda:
 	docker push $(DOCKER_USER)/cuda:$(CUDA_TAG)
 run-cuda:
-	docker run --gpus all -it --rm $(DOCKER_USER)/cuda:$(CUDA_TAG) bash
+	docker run --name run-cuda --gpus all -it --rm $(DOCKER_USER)/cuda:$(CUDA_TAG) bash
 run-cuda-nogpu:
-	docker run -it --rm $(DOCKER_USER)/cuda:$(CUDA_TAG) bash
+	docker run  --name run-cuda-nogpu  -it --rm $(DOCKER_USER)/cuda:$(CUDA_TAG) bash
 
 PYTORCH_VERSION=$(shell $(GET_VERSION) pytorch)
 PYTORCH_TAG=$(shell $(GET_TAG) pytorch)
@@ -338,9 +338,9 @@ pytorch:
 push-pytorch:
 	docker push $(DOCKER_USER)/pytorch:$(PYTORCH_TAG)
 run-pytorch:
-	docker run --gpus all -it --rm $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) bash
+	docker run --name run-pytorch --gpus all -it --rm $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) bash
 run-pytorch-nogpu:
-	docker run -it --rm $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) bash
+	docker run --name run-pytorch-nogpu -it --rm $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) bash
 
 # Fortunately nvcr.io/nvidia/tensorflow uses Ubuntu 22.04LTS too.
 TENSORFLOW_VERSION=$(shell $(GET_VERSION) tensorflow)
@@ -352,9 +352,9 @@ tensorflow:
 push-tensorflow:
 	docker push $(DOCKER_USER)/tensorflow:$(TENSORFLOW_TAG)
 run-tensorflow:
-	docker run --gpus all -it --rm $(DOCKER_USER)/tensorflow:$(TENSORFLOW_TAG) bash
+	docker run --name run-tensorflow   --gpus all -it --rm $(DOCKER_USER)/tensorflow:$(TENSORFLOW_TAG) bash
 run-tensorflow-nogpu:
-	docker run -it --rm $(DOCKER_USER)/tensorflow:$(TENSORFLOW_TAG) bash
+	docker run --name run-tensorflow-nogpu -it --rm $(DOCKER_USER)/tensorflow:$(TENSORFLOW_TAG) bash
 
 # They seem to do releases about once per month.
 COLAB_VERSION=$(shell $(GET_VERSION) colab)
@@ -364,9 +364,9 @@ colab:
 push-colab:
 	docker push $(DOCKER_USER)/colab:$(COLAB_TAG)
 run-colab:
-	docker run --gpus all -it --rm $(DOCKER_USER)/colab:$(COLAB_TAG) bash
+	docker run --name run-colab --gpus all -it --rm $(DOCKER_USER)/colab:$(COLAB_TAG) bash
 run-colab-nogpu:
-	docker run -it --rm $(DOCKER_USER)/colab:$(COLAB_TAG) bash
+	docker run --name run-colab-nogpu -it --rm $(DOCKER_USER)/colab:$(COLAB_TAG) bash
 
 # See
 #   https://catalog.ngc.nvidia.com/orgs/nvidia/containers/jax/tags
@@ -380,7 +380,7 @@ jax:
 push-jax:
 	docker push $(DOCKER_USER)/jax:$(JAX_TAG)
 run-jax:
-	docker run --gpus all -it --rm $(DOCKER_USER)/jax:$(JAX_TAG) bash
+	docker run --name run-jax --gpus all -it --rm $(DOCKER_USER)/jax:$(JAX_TAG) bash
 run-jax-nogpu:
-	docker run -it --rm $(DOCKER_USER)/jax:$(JAX_TAG) bash
+	docker run  --name run-jax-nogpu -it --rm $(DOCKER_USER)/jax:$(JAX_TAG) bash
 
