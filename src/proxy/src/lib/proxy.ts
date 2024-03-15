@@ -8,6 +8,7 @@ import cookieParser from "cookie-parser";
 import express, { Router } from "express";
 import { createServer } from "https";
 import { callback } from "awaiting";
+import { pathToRegexp } from "path-to-regexp";
 
 const log = debug("proxy:create-proxy");
 
@@ -35,60 +36,87 @@ export default async function createProxy({
   host: string;
 }) {
   log("creating proxy server with config from ", configPath);
-  const app = express();
-  app.on("error", (err) => {
-    log("app ERROR", err);
-  });
-
-  const server = await createServer(cert, app);
-  const router = Router();
 
   let disable: null | Function = null;
   let config: null | Configuration = null;
+  let updating = false;
   const updateConfigPath = async () => {
     log("updating configuration from ", configPath);
-    if (disable != null) {
-      disable();
-    }
-    const newConfig: Configuration = JSON.parse(
-      (await readFile(configPath)).toString().trim(),
-    );
-    log("loaded config from ", configPath, " -- ", newConfig);
-    // weak equality check is fine for this
-    if (JSON.stringify(config) == JSON.stringify(newConfig)) {
-      log("no config change");
+    if (updating) {
+      log("already updating -- will try again in a second");
+      setTimeout(updateConfigPath, 1000);
       return;
     }
-    log("config changed");
-    config = newConfig;
+    try {
+      updating = true;
+      const app = express();
+      app.on("error", (err) => {
+        log("app ERROR", err);
+      });
 
-    if (authTokenPath) {
-      log(
-        `enabling auth token for CoCalc proxy server -- path = '${authTokenPath}'`,
-      );
+      const server = await createServer(cert, app);
+      const router = Router();
+      let newConfig: Configuration;
+      try {
+        newConfig = JSON.parse((await readFile(configPath)).toString().trim());
+      } catch (err) {
+        log("failed to load new config ", err);
+        return;
+      }
+      log("loaded config from ", configPath, " -- ", newConfig);
+      // weak equality check is fine for this
+      if (JSON.stringify(config) == JSON.stringify(newConfig)) {
+        log("no config change");
+        return;
+      }
+      log("config changed");
+      if (disable != null) {
+        log("disabling old config before enabling new one");
+        disable();
+        disable = null;
+      }
+      config = newConfig;
 
-      // Enable URL-encoded bodies, but ONLY for AUTH_PATH (!),
-      // since otherwise this mangles the proxying of the target
-      // sites, which is very, very bad in some cass, e.g.,
-      // JupyterHub sign in is broken.
-      router.use(
-        AUTH_PATH,
-        // type argument is just to minimize the impact
-        urlencoded({
-          extended: true,
-          type: "application/x-www-form-urlencoded",
-        }),
-      );
-      // Use the cookie-parser middleware so req.cookies is defined.
-      app.use(cookieParser());
-      await enableAuth({ router, authTokenPath });
-    } else {
-      log(
-        "auth token not enabled -- any client can connect to the proxied site",
-      );
+      if (authTokenPath) {
+        log(
+          `enabling auth token for CoCalc proxy server -- path = '${authTokenPath}'`,
+        );
+
+        // Enable URL-encoded bodies, but ONLY for AUTH_PATH (!),
+        // since otherwise this mangles the proxying of the target
+        // sites, which is very, very bad in some cass, e.g.,
+        // JupyterHub sign in is broken.
+        router.use(
+          AUTH_PATH,
+          // type argument is just to minimize the impact
+          urlencoded({
+            extended: true,
+            type: "application/x-www-form-urlencoded",
+          }),
+        );
+        // Use the cookie-parser middleware so req.cookies is defined.
+        app.use(cookieParser());
+        await enableAuth({ router, authTokenPath });
+      } else {
+        log(
+          "auth token not enabled -- any client can connect to the proxied site",
+        );
+      }
+
+      createRoutes(server, router, config);
+
+      app.use(router);
+
+      log(`starting proxy server listening on ${host}:${port}`);
+      await callback(server.listen.bind(server), port, host);
+      disable = async () => {
+        log("closing server...");
+        await server.close();
+        log("server closed");
+      };
+    } finally {
+      updating = false;
     }
-
-    disable = createRoutes(server, router, config);
   };
 
   const watcher = watch(configPath, ChokidarOpts);
@@ -97,55 +125,49 @@ export default async function createProxy({
     log.debug(`error watching configPath '${configPath}' -- ${err}`);
   });
   await updateConfigPath();
-
-  app.use(router);
-
-  log(`starting CoCalc proxy server listening on ${host}:${port}`);
-  await callback(server.listen.bind(server), port, host);
 }
 
 function createRoutes(server, router, config) {
-  const disabled = { current: false };
-  const wsHandlers: { [path: string]: any } = {};
+  const wsHandlers: { regexp; handler }[] = [];
   for (const { path, target, ws } of config) {
-    const proxy = createProxyServer({ ws, target });
+    const proxy = createProxyServer({ target });
     log(`proxy: ${path} --> ${target}  ${ws ? "(+ websockets enabled)" : ""}`);
     proxy.on("error", (err) => {
       log(`proxy ${path} error: `, err);
     });
-    router.use(path, (req, res, next) => {
-      if (disabled.current) {
-        next();
-      } else {
-        proxy.web(req, res);
-      }
+    router.use(path, (req, res) => {
+      proxy.web(req, res);
     });
-    if (ws != null) {
-      wsHandlers[path] = (req, res, done) => {
-        if (req.url.startsWith(path)) {
-          proxy.ws(req, res, done);
-        }
-      };
+    if (ws) {
+      const wsProxy = createProxyServer({
+        ws: true,
+        target,
+        prependPath: false,
+      });
+      wsHandlers.push({
+        regexp: pathToRegexp(path + "(.*)"),
+        handler: (req, socket, head) => {
+          wsProxy.ws(req, socket, head);
+        },
+      });
     }
   }
 
-  let handleUpgrade: null | Function = null;
   if (Object.keys(wsHandlers).length > 0) {
-    const handleUpgrade = (req, res, done) => {
-      for (const path in wsHandlers) {
-        if (req.url.startsWith(path)) {
-          wsHandlers[path].ws(req, res, done);
+    server.on("upgrade", (req, socket, head) => {
+      socket.on("error", (err) => {
+        log("websocket upgrade socket error", err);
+      });
+      for (const { regexp, handler } of wsHandlers) {
+        if (regexp.test(req.url)) {
+          log(`websocket upgrade: FOUND handler matching url='${req.url}'`);
+          handler(req, socket, head);
           return;
         }
       }
-    };
-    server.on("upgrade", handleUpgrade);
+      log(`websocket upgrade: NO handler matched url='${req.url}'`);
+      socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
+      socket.destroy();
+    });
   }
-
-  return () => {
-    disabled.current = true;
-    if (handleUpgrade != null) {
-      server.removeListener("upgrade", handleUpgrade);
-    }
-  };
 }

@@ -16,13 +16,10 @@ npx @cocalc/compute-server-proxy
 
 Here,
 
-- `PROXY_PORT` -- port to serve on; 443 is a good choice, because this servers over https using a self-signed cert
-
-- `PROXY_HOSTNAME` -- what the serve listens to. Use 0.0.0.0 to listen on all interfaces.
-
-- `PROXY_AUTH_TOKEN_FILE` -- path to a file that contains the secret token. Make this file empty to turn off authentication.
-
-- `PROXY_CONFIG` -- path to json file that contains the config. An example config is:
+- `PROXY_PORT` \-\- port to serve on; 443 is a good choice, because this servers over https using a self\-signed cert
+- `PROXY_HOSTNAME` \-\- what the serve listens to. Use 0.0.0.0 to listen on all interfaces.
+- `PROXY_AUTH_TOKEN_FILE` \-\- path to a file that contains the secret token. Make this file empty to turn off authentication.
+- `PROXY_CONFIG` \-\- path to json file that contains the config. An example config is:
 
 ```json
 [
@@ -33,8 +30,7 @@ Here,
 
 The above config sends any path under /api to `http://localhost:11434/api` and everything else
 to `http://localhost:8080`, and also proxies websockets
-to `http://localhost:8080`. The path is [the path input to app.use for express.js](https://expressjs.com/en/4x/api.html#app.use).
-The target is the URL of an http server.
+to `http://localhost:8080`. The path is [the path input to app.use for express.js](https://expressjs.com/en/4x/api.html#app.use) middleware, so regular expressions are allowed. The target is the URL of an http server.
 
 If `PROXY_AUTH_TOKEN_FILE` is an empty file, then this program just proxied traffice to the servers you configured.
 Otherwise, when a user first visits the site, they are
