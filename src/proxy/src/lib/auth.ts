@@ -1,6 +1,13 @@
 /*
 This is an express handler that does the following:
 
+- Takes as input authTokenPath, which is the path to a file that
+  contains an auth token.  If the file can't be read, then token is
+  set to a random 128 crypto secure value, locking all users out of the site.
+  If the file can be read, then that is the secret token (as utf8).
+  If the file *changes* then all currently authenticated users must
+  reauthenticate for their next http request, and the new token is used.
+
 - It checks to see if the cookie called AUTH_TOKEN is set to authToken,
   and if so it does nothing at all, letting other handlers deal.
 
@@ -25,12 +32,25 @@ TODO: rate limiting, to slightly mitigate DOS attacks and/or brute force attacks
 
 import cookies from "cookies";
 import { readFile } from "fs/promises";
+import debug from "debug";
+import { randomBytes } from "crypto";
+import { watch } from "chokidar";
 
 // it's important this isn't being used by any target of our proxy, or things could break.
 export const AUTH_PATH = `/__cocalc_proxy_${Math.random()}`;
 const POST_NAME = "cocalcProxyAuthToken";
 const COOKIE_NAME = "COCALC_PROXY_AUTH_TOKEN";
 const COCALC_AUTH_RETURN_TO = `cocalcReturnTo_${Math.random()}`;
+
+const ChokidarOpts = {
+  persistent: true,
+  followSymlinks: false,
+  disableGlobbing: true,
+  depth: 0,
+  ignorePermissionErrors: true,
+} as const;
+
+const log = debug("proxy:auth");
 
 // Main function
 export default async function enableAuth({
@@ -40,17 +60,37 @@ export default async function enableAuth({
   router;
   authTokenPath: string;
 }) {
-  const authToken = (await readFile(authTokenPath)).toString().trim();
+  const authToken = { current: randomBytes(128).toString("hex") };
+  const updateAuthToken = async () => {
+    try {
+      authToken.current = (await readFile(authTokenPath)).toString().trim();
+    } catch (err) {
+      log.debug(
+        "WARNING -- unable to read auth token from ",
+        authTokenPath,
+        err,
+        " so setting token to a long random string until path is available",
+      );
+      authToken.current = randomBytes(128).toString("hex");
+    }
+  };
+  await updateAuthToken();
+  const watcher = watch(authTokenPath, ChokidarOpts);
+  watcher.on("all", updateAuthToken);
+  watcher.on("error", (err) => {
+    log.debug(`error watching authTokenPath '${authTokenPath}' -- ${err}`);
+  });
+
   const handle = (req, res, next) => {
     const reqAuthToken =
       req.body?.[POST_NAME] || req.query.auth_token || req.cookies[COOKIE_NAME];
 
-    if (reqAuthToken === authToken) {
+    if (reqAuthToken === authToken.current) {
       // the token is correct
-      if (req.cookies[COOKIE_NAME] != authToken) {
+      if (req.cookies[COOKIE_NAME] != authToken.current) {
         // but the cookie isn't, then they just authenticated, so we store
         // the correct cookie
-        new cookies(req, res).set(COOKIE_NAME, authToken, {
+        new cookies(req, res).set(COOKIE_NAME, authToken.current, {
           secure: true,
           httpOnly: true,
         });
@@ -68,7 +108,7 @@ export default async function enableAuth({
       // token is NOT correct -- they messed up or need to be sent to the sign in page.
       if (req.method === "POST") {
         // they just attempted to sign in
-        if (reqAuthToken !== authToken) {
+        if (reqAuthToken !== authToken.current) {
           // wrong token -- try again
           res.send(signInPage(req, true, req.body?.[COCALC_AUTH_RETURN_TO]));
         } else {

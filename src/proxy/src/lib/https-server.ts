@@ -11,7 +11,7 @@ import enableAuth, { AUTH_PATH } from "./auth";
 import type { Configuration } from "./proxy";
 import { readFile } from "fs/promises";
 
-const log = debug("http-server");
+const log = debug("proxy:http-server");
 
 export default async function httpsServer({
   port = process.env.PROXY_PORT ? parseInt(process.env.PROXY_PORT) : 443,
