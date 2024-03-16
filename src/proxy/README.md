@@ -35,6 +35,7 @@ Each entry can also optionally pass in any of the
 [node-http-proxy options](https://github.com/http-party/node-http-proxy?tab=readme-ov-file#options) as `options` and for the websocket upgrade pass in `wsOptions`.
 
 Here's another one:
+
 ```json
 [
   { "path": "/code", "target": "http://localhost:8123", "ws": true },
@@ -42,19 +43,26 @@ Here's another one:
   { "path": "/xpra", "target": "http://localhost:10000", "ws": true }
 ]
 ```
+
 which will server VS Code on `https://example.com/code/`, and JupyterLab on `https://example.com/lab` and Xpra on `https://example.com/xpra/` if
 you run VSCode via:
+
 ```sh
 code-server --bind-addr=localhost:8123 --auth=none
 ```
+
 and JupyterLab via:
+
 ```sh
 jupyter lab --NotebookApp.token='' --NotebookApp.password='' --ServerApp.disable_check_xsrf=True --no-browser --NotebookApp.allow_remote_access=True --NotebookApp.base_url='/lab' --ip=localhost --port=8888
 ```
+
 and 
+
 ```sh
 xpra start --bind-tcp=localhost:10000 --start=xterm 
 ```
+
 NOTE: `https://example.com/code/` works but `https://example.com/code` does NOT,
 and similar for xpra, so be careful.
 
