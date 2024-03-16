@@ -39,7 +39,7 @@ import { watch } from "chokidar";
 // it's important this isn't being used by any target of our proxy, or things could break.
 export const AUTH_PATH = `/__cocalc_proxy_${Math.random()}`;
 const POST_NAME = "cocalcProxyAuthToken";
-const COOKIE_NAME = "COCALC_PROXY_AUTH_TOKEN";
+export const COOKIE_NAME = "COCALC_COMPUTE_SERVER_AUTH_TOKEN";
 const COCALC_AUTH_RETURN_TO = `cocalcReturnTo_${Math.random()}`;
 
 const ChokidarOpts = {
@@ -154,3 +154,21 @@ const signInPage = (
     </div>
   </body>
 `;
+
+export function stripAuthCookie(cookie: string): string {
+  if (cookie == null) {
+    return cookie;
+  }
+  const v: string[] = [];
+  for (const c of cookie.split(";")) {
+    const z = c.split("=");
+    if (z[0].trim() == COOKIE_NAME) {
+      // do not include it in v, which will
+      // be the new cookies values after going through
+      // the proxy.
+    } else {
+      v.push(c);
+    }
+  }
+  return v.join(";");
+}

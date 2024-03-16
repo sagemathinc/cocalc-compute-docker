@@ -9,6 +9,7 @@ import express, { Router } from "express";
 import { createServer } from "https";
 import { callback } from "awaiting";
 import { pathToRegexp } from "path-to-regexp";
+import { stripAuthCookie } from "./auth";
 
 const log = debug("proxy:create-proxy");
 
@@ -136,6 +137,7 @@ function createRoutes(server, router, config) {
       log(`proxy ${path} error: `, err);
     });
     router.use(path, (req, res) => {
+      stripCookie(req);
       proxy.web(req, res);
     });
     if (ws) {
@@ -161,6 +163,7 @@ function createRoutes(server, router, config) {
       for (const { regexp, handler } of wsHandlers) {
         if (regexp.test(req.url)) {
           log(`websocket upgrade: FOUND handler matching url='${req.url}'`);
+          stripCookie(req);
           handler(req, socket, head);
           return;
         }
@@ -169,5 +172,14 @@ function createRoutes(server, router, config) {
       socket.write("HTTP/1.1 400 Bad Request\r\n\r\n");
       socket.destroy();
     });
+  }
+}
+
+// SECURITY: We do NOT include the auth cookie in what we
+// send to the target, so one proxied service can't gain
+// access to another one.
+function stripCookie(req) {
+  if (req.headers["cookie"] != null) {
+    req.headers["cookie"] = stripAuthCookie(req.headers["cookie"]);
   }
 }
