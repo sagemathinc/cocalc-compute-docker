@@ -61,8 +61,8 @@ export default async function createProxy({
       try {
         newConfig = JSON.parse((await readFile(configPath)).toString().trim());
       } catch (err) {
-        log("failed to load new config ", err);
-        return;
+        log("failed to load new config (disabling server) ", err);
+        newConfig = [];
       }
       log("loaded config from ", configPath, " -- ", newConfig);
       // weak equality check is fine for this
@@ -77,6 +77,12 @@ export default async function createProxy({
         disable = null;
       }
       config = newConfig;
+
+      if (!config.length) {
+        // empty config, so do not bind to 443 and disable is empty.
+        disable = () => {};
+        return;
+      }
 
       if (authTokenPath) {
         log(
@@ -145,6 +151,9 @@ function createRoutes(server, router, config) {
         ws: true,
         target,
         prependPath: false,
+      });
+      wsProxy.on("error", (err) => {
+        log(`websocket proxy ${path} error: `, err);
       });
       wsHandlers.push({
         regexp: pathToRegexp(path + "(.*)"),
