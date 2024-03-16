@@ -24,13 +24,33 @@ Here,
 ```json
 [
   { "path": "/api", "target": "http://localhost:11434/api" },
-  { "path": "/", "target": "http://localhost:8080", "ws": true }
+  { "path": "/", "target": "http://localhost:8080", "ws": true, options:{}, wsOptions:{}}
 ]
 ```
 
 The above config sends any path under /api to `http://localhost:11434/api` and everything else
 to `http://localhost:8080`, and also proxies websockets
 to `http://localhost:8080`. The path is [the path input to app.use for express.js](https://expressjs.com/en/4x/api.html#app.use) middleware, so regular expressions are allowed. The target is the URL of an http server.
+Each entry can also optionally pass in any of the 
+[node-http-proxy options](https://github.com/http-party/node-http-proxy?tab=readme-ov-file#options) as `options` and for the websocket upgrade pass in `wsOptions`.
+
+Here's another one:
+```json
+[
+  { "path": "/code", "target": "http://localhost:8123", "ws": true },
+  { "path": "/lab", "target": "http://localhost:8888/lab", "ws": true },
+]
+```
+which will server VS Code on `https://example.com/code/` and JupyterLab on `https://example.com/lab` if
+you run VSCode via:
+```sh
+code-server --bind-addr=localhost:8123 --auth=none
+```
+and JupyterLab via:
+```sh
+jupyter lab --NotebookApp.token='' --NotebookApp.password='' --ServerApp.disable_check_xsrf=True --no-browser --NotebookApp.allow_remote_access=True --NotebookApp.base_url='/lab' --ip=localhost --port=8888
+```
+NOTE: `https://example.com/code/` works but `https://example.com/code` does NOT.
 
 If `PROXY_AUTH_TOKEN_FILE` is an empty file, then this program just proxied traffice to the servers you configured.
 Otherwise, when a user first visits the site, they are

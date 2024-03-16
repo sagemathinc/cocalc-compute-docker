@@ -136,8 +136,14 @@ export default async function createProxy({
 
 function createRoutes(server, router, config) {
   const wsHandlers: { regexp; handler }[] = [];
-  for (const { path, target, ws } of config) {
-    const proxy = createProxyServer({ target });
+  for (const {
+    path,
+    target,
+    ws,
+    options,
+    wsOptions,
+  } of config) {
+    const proxy = createProxyServer({ target, ...options });
     log(`proxy: ${path} --> ${target}  ${ws ? "(+ websockets enabled)" : ""}`);
     proxy.on("error", (err) => {
       log(`proxy ${path} error: `, err);
@@ -151,6 +157,7 @@ function createRoutes(server, router, config) {
         ws: true,
         target,
         prependPath: false,
+        ...wsOptions,
       });
       wsProxy.on("error", (err) => {
         log(`websocket proxy ${path} error: `, err);
