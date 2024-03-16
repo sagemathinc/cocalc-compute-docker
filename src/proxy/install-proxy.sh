@@ -59,7 +59,7 @@ export PROXY_CONFIG=/opt/proxy/proxy.json
 export PROXY_PORT=443
 export PROXY_HOSTNAME=0.0.0.0
 export PROXY_AUTH_TOKEN_FILE=/cocalc/conf/auth_token
-DEBUG=* npx @cocalc/compute-server-proxy
+DEBUG=* npx -y @cocalc/compute-server-proxy@latest
 EOF
 
 chmod a+x /opt/proxy/start-proxy.sh

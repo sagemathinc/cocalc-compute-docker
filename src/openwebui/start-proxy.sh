@@ -2,4 +2,5 @@
 
 source /opt/proxy/nvm/nvm.sh
 export PROXY_CONFIG=/app/proxy.json
-DEBUG=* npx @cocalc/compute-server-proxy@latest
+export PROXY_AUTH_TOKEN_FILE=/cocalc/conf/auth_token
+DEBUG=* npx -y @cocalc/compute-server-proxy@latest

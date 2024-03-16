@@ -166,6 +166,11 @@ assemble-proxy:
 	./src/scripts/assemble.sh $(DOCKER_USER)/proxy $(PROXY_TAG)
 	./src/scripts/assemble.sh $(DOCKER_USER)/proxy $(PROXY_TAG) latest
 
+# This is separate from the Docker image. You also must manually maintain
+# the version in package.json.
+publish-proxy-npm:
+	cd src/proxy/src && pnpm publish --no-git-checks
+
 
 ## IMAGE: openwebui
 OPENWEBUI_TAG=$(shell $(GET_TAG) openwebui)

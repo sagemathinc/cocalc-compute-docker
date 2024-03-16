@@ -39,9 +39,10 @@ Here's another one:
 [
   { "path": "/code", "target": "http://localhost:8123", "ws": true },
   { "path": "/lab", "target": "http://localhost:8888/lab", "ws": true },
+  { "path": "/xpra", "target": "http://localhost:10000", "ws": true }
 ]
 ```
-which will server VS Code on `https://example.com/code/` and JupyterLab on `https://example.com/lab` if
+which will server VS Code on `https://example.com/code/`, and JupyterLab on `https://example.com/lab` and Xpra on `https://example.com/xpra/` if
 you run VSCode via:
 ```sh
 code-server --bind-addr=localhost:8123 --auth=none
@@ -50,7 +51,12 @@ and JupyterLab via:
 ```sh
 jupyter lab --NotebookApp.token='' --NotebookApp.password='' --ServerApp.disable_check_xsrf=True --no-browser --NotebookApp.allow_remote_access=True --NotebookApp.base_url='/lab' --ip=localhost --port=8888
 ```
-NOTE: `https://example.com/code/` works but `https://example.com/code` does NOT.
+and 
+```sh
+xpra start --bind-tcp=localhost:10000 --start=xterm 
+```
+NOTE: `https://example.com/code/` works but `https://example.com/code` does NOT,
+and similar for xpra, so be careful.
 
 If `PROXY_AUTH_TOKEN_FILE` is an empty file, then this program just proxied traffice to the servers you configured.
 Otherwise, when a user first visits the site, they are
