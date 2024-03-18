@@ -204,7 +204,30 @@
       { "label": "1.10.0", "tag": "1.10.0", "tested": true },
       { "label": "1.10.1", "tag": "1.10.1", "tested": true }
     ],
-    "description": "[Julia](https://julialang.org/) is a high-performance programming language designed for technical computing, combining the speed of C with the ease of use of Python. It excels in numerical analysis, computational science, and data processing with its efficient syntax and ability to handle high-level mathematical operations."
+    "description": "[Julia](https://julialang.org/) is a high-performance programming language designed for technical computing, combining the speed of C with the ease of use of Python. It excels in numerical analysis, computational science, and data processing with its efficient syntax and ability to handle high-level mathematical operations.",
+    "apps": [
+      {
+        "tested": false,
+        "icon": "jupyter",
+        "name": "JupyterLab",
+        "url": "/lab",
+        "path": "/lab",
+        "test": "which jupyter",
+        "target": "http://localhost:8888/lab",
+        "ws": true,
+        "run": "jupyter lab --NotebookApp.token='' --NotebookApp.password='' --ServerApp.disable_check_xsrf=True --no-browser --NotebookApp.allow_remote_access=True --NotebookApp.base_url='/lab' --ip=localhost --port=8888"
+      },
+      {
+        "tested": false,
+        "icon": "desktop",
+        "name": "Pluto Julia Notebook",
+        "url": "/pluto/",
+        "path": "/pluto",
+        "target": "http://localhost:8889/pluto",
+        "ws": true,
+        "run": "echo 'import Pluto; Pluto.run(launch_browser=false, require_secret_for_access=false, host=\"localhost\", port=8889)' | julia"
+      }
+    ]
   },
   "anaconda": {
     "priority": 8,
@@ -216,12 +239,51 @@
     "icon": "python",
     "apps": [
       {
+        "icon": "jupyter",
         "name": "JupyterLab",
+        "url": "/lab",
         "path": "/lab",
+        "test": "which jupyter",
+        "install": "mamba install -y conda-forge::jupyter",
         "target": "http://localhost:8888/lab",
         "ws": true,
-        "install": "todo",
         "run": "jupyter lab --NotebookApp.token='' --NotebookApp.password='' --ServerApp.disable_check_xsrf=True --no-browser --NotebookApp.allow_remote_access=True --NotebookApp.base_url='/lab' --ip=localhost --port=8888"
+      },
+      {
+        "tested": false,
+        "icon": "vscode",
+        "name": "VS Code",
+        "url": "/code/",
+        "path": "/code",
+        "target": "http://localhost:8123",
+        "test": "which code-server",
+        "install": "mamba install -y conda-forge::code-server",
+        "ws": true,
+        "run": "code-server --bind-addr=localhost:8123 --auth=none"
+      },
+      {
+        "tested": false,
+        "icon": "desktop",
+        "name": "Graphical X11 Desktop (Xpra)",
+        "url": "/xpra/",
+        "path": "/xpra",
+        "target": "http://localhost:10000",
+        "test": "which xpra",
+        "ws": true,
+        "install": "sudo apt-get update; sudo DEBIAN_FRONTEND=noninteractive apt-get install -y xpra xterm",
+        "run": "xpra start --bind-tcp=localhost:10000 --start=xterm"
+      },
+      {
+        "tested": false,
+        "icon": "desktop",
+        "name": "Pluto Julia Notebook",
+        "url": "/pluto/",
+        "path": "/pluto",
+        "target": "http://localhost:10000",
+        "test": "which julia && ! echo 'import Pluto' | julia 2>&1 | grep -q 'not found'",
+        "ws": true,
+        "install": "mamba install -y conda-forge::julia && ",
+        "run": "xpra start --bind-tcp=localhost:10000 --start=xterm"
       }
     ],
     "url": "https://www.sagemath.org/",
