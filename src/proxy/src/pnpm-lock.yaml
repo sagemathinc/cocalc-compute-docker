@@ -29,6 +29,9 @@ dependencies:
   http-proxy:
     specifier: ^1.18.1
     version: 1.18.1(debug@4.3.4)
+  lodash:
+    specifier: ^4.17.21
+    version: 4.17.21
   path-to-regexp:
     specifier: ^6.2.1
     version: 6.2.1
@@ -549,6 +552,10 @@ packages:
     engines: {node: '>= 0.6'}
     dependencies:
       tsscmp: 1.0.6
+    dev: false
+
+  /lodash@4.17.21:
+    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
     dev: false
 
   /media-typer@0.3.0:

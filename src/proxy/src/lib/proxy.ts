@@ -10,6 +10,7 @@ import { createServer } from "https";
 import { callback } from "awaiting";
 import { pathToRegexp } from "path-to-regexp";
 import { stripAuthCookie } from "./auth";
+import { debounce } from "lodash";
 
 const log = debug("proxy:create-proxy");
 
@@ -127,7 +128,15 @@ export default async function createProxy({
   };
 
   const watcher = watch(configPath, ChokidarOpts);
-  watcher.on("all", updateConfigPath);
+  // debounce reading file so don't read it while it is
+  // being written resulting in corruption.  Client code
+  // *should* always write a different file, then move
+  // it onto config file which is atomic... but we do
+  // not want to rely on that.
+  watcher.on(
+    "all",
+    debounce(updateConfigPath, 1000, { leading: true, trailing: true }),
+  );
   watcher.on("error", (err) => {
     log.debug(`error watching configPath '${configPath}' -- ${err}`);
   });
@@ -136,13 +145,7 @@ export default async function createProxy({
 
 function createRoutes(server, router, config) {
   const wsHandlers: { regexp; handler }[] = [];
-  for (const {
-    path,
-    target,
-    ws,
-    options,
-    wsOptions,
-  } of config) {
+  for (const { path, target, ws = true, options, wsOptions } of config) {
     const proxy = createProxyServer({ target, ...options });
     log(`proxy: ${path} --> ${target}  ${ws ? "(+ websockets enabled)" : ""}`);
     proxy.on("error", (err) => {

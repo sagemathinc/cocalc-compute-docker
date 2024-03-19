@@ -23,24 +23,23 @@ Here,
 
 ```json
 [
-  { "path": "/api", "target": "http://localhost:11434/api" },
-  { "path": "/", "target": "http://localhost:8080", "ws": true, options:{}, wsOptions:{}}
+  { "path": "/api", "target": "http://localhost:11434/api", "ws":false },
+  { "path": "/", "target": "http://localhost:8080", options:{}, wsOptions:{}}
 ]
 ```
 
 The above config sends any path under /api to `http://localhost:11434/api` and everything else
-to `http://localhost:8080`, and also proxies websockets
-to `http://localhost:8080`. The path is [the path input to app.use for express.js](https://expressjs.com/en/4x/api.html#app.use) middleware, so regular expressions are allowed. The target is the URL of an http server.
+to http://localhost:8080, but does not bother to proxy websockets for  /api \(by default it does proxy websockets, e.g., for port 8080\). The path is [the path input to app.use for express.js](https://expressjs.com/en/4x/api.html#app.use) middleware, so regular expressions are allowed. The target is the URL of an http server.
 Each entry can also optionally pass in any of the 
-[node-http-proxy options](https://github.com/http-party/node-http-proxy?tab=readme-ov-file#options) as `options` and for the websocket upgrade pass in `wsOptions`.
+[node\-http\-proxy options](https://github.com/http-party/node-http-proxy?tab=readme-ov-file#options) as `options` and for the websocket upgrade pass in `wsOptions`.
 
 Here's another one:
 
 ```json
 [
-  { "path": "/code", "target": "http://localhost:8123", "ws": true },
-  { "path": "/lab", "target": "http://localhost:8888/lab", "ws": true },
-  { "path": "/xpra", "target": "http://localhost:10000", "ws": true }
+  { "path": "/code", "target": "http://localhost:8123" },
+  { "path": "/lab", "target": "http://localhost:8888/lab" },
+  { "path": "/xpra", "target": "http://localhost:10000" }
 ]
 ```
 

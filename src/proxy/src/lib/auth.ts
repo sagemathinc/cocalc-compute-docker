@@ -35,6 +35,7 @@ import { readFile } from "fs/promises";
 import debug from "debug";
 import { randomBytes } from "crypto";
 import { watch } from "chokidar";
+import { debounce } from "lodash";
 
 // it's important this isn't being used by any target of our proxy, or things could break.
 export const AUTH_PATH = `/__cocalc_proxy_${Math.random()}`;
@@ -76,7 +77,10 @@ export default async function enableAuth({
   };
   await updateAuthToken();
   const watcher = watch(authTokenPath, ChokidarOpts);
-  watcher.on("all", updateAuthToken);
+  watcher.on(
+    "all",
+    debounce(updateAuthToken, 1000, { leading: true, trailing: true }),
+  );
   watcher.on("error", (err) => {
     log(`error watching authTokenPath '${authTokenPath}' -- ${err}`);
   });
