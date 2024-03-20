@@ -8,7 +8,6 @@ RUN apt-get install -y automake
 
 RUN /tmp/install.sh 4ti2
 RUN /tmp/install.sh admcycles
-RUN /tmp/install.sh antic
 RUN /tmp/install.sh benzene
 RUN /tmp/install.sh biopython
 RUN /tmp/install.sh bliss
