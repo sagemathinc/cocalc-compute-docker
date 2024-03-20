@@ -108,7 +108,7 @@ RUN /tmp/install.sh python_igraph
 RUN /tmp/install.sh pyx
 RUN /tmp/install.sh qdldl_python
 #RUN /tmp/install.sh r
-RUN /tmp/install.sh retrolab
+#RUN /tmp/install.sh retrolab
 #RUN /tmp/install.sh rst2ipynb
 RUN /tmp/install.sh rubiks
 RUN /tmp/install.sh saclib

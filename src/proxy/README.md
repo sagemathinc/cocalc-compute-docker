@@ -39,7 +39,9 @@ Here's another one:
 [
   { "path": "/code", "target": "http://localhost:8123" },
   { "path": "/lab", "target": "http://localhost:8888/lab" },
-  { "path": "/xpra", "target": "http://localhost:10000" }
+  { "path": "/xpra", "target": "http://localhost:10000" },
+  { "path": "/port/:port", "target": "http://localhost:[port]/port/[port]" },
+  { "path": "/server/:port", "target": "http://localhost:[port]" },
 ]
 ```
 

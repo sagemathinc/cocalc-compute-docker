@@ -208,7 +208,7 @@ run-sagemath-core:
 push-sagemath-core:
 	docker push $(DOCKER_USER)/sagemath-core$(ARCH):$(SAGEMATH_TAG)
 assemble-sagemath-core:
-	./src/scripts/\ $(DOCKER_USER)/sagemath-core $(SAGEMATH_TAG) $(SAGEMATH_TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_TAG) $(SAGEMATH_TAG)
 	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_TAG) latest
 
 SAGEMATH_VERSION=$(shell $(GET_VERSION) sagemath)

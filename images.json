@@ -85,7 +85,7 @@
         "test": "which jupyter",
         "install": "pip3 install jupyter",
         "target": "http://localhost:8888/lab",
-        "run": "jupyter lab --NotebookApp.token='' --NotebookApp.password='' --ServerApp.disable_check_xsrf=True --no-browser --NotebookApp.allow_remote_access=True --NotebookApp.base_url='/lab' --ip=localhost --port=8888"
+        "launch": "jupyter lab --NotebookApp.token='' --NotebookApp.password='' --ServerApp.disable_check_xsrf=True --no-browser --NotebookApp.allow_remote_access=True --NotebookApp.base_url='/lab' --ip=localhost --port=8888"
       },
       "vscode": {
         "tested": false,
@@ -96,7 +96,7 @@
         "target": "http://localhost:8123",
         "test": "which code-server",
         "install": "curl -fsSL https://code-server.dev/install.sh | sh",
-        "run": "code-server --bind-addr=localhost:8123 --auth=none"
+        "launch": "code-server --bind-addr=localhost:8123 --auth=none"
       },
       "xpra": {
         "tested": false,
@@ -107,7 +107,7 @@
         "target": "http://localhost:10000",
         "test": "which xpra",
         "install": "sudo apt-get update; sudo DEBIAN_FRONTEND=noninteractive apt-get install -y xpra xterm",
-        "run": "xpra start --bind-tcp=localhost:10000 --start=xterm"
+        "launch": "xpra start --bind-tcp=localhost:10000 --start=xterm"
       },
       "pluto": {
         "tested": false,
@@ -115,10 +115,10 @@
         "label": "Pluto Julia Notebook",
         "url": "/pluto/",
         "path": "/pluto",
-        "target": "http://localhost:10000",
+        "target": "http://localhost:8124",
         "test": "which julia && ! echo 'import Pluto' | julia 2>&1 | grep -q 'not found'",
         "install": "echo 'using Pkg; Pkg.add(\"Pluto\");' | julia",
-        "run": "xpra start --bind-tcp=localhost:10000 --start=xterm"
+        "launch": "echo 'import Pluto; Pluto.run(launch_browser=false, require_secret_for_access=false, host=\"localhost\", port=8124)' | julia"
       }
     }
   },
@@ -202,7 +202,8 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/sagemath",
     "versions": [
       { "tag": "10.1", "tested": true },
-      { "tag": "10.2", "tested": true }
+      { "tag": "10.2", "tested": true },
+      { "tag": "10.3", "tested": true }
     ],
     "description": "[SageMath](https://sagemath.org) is an open-source mathematics software system, integrating numerous software packages and providing a unified interface. It is designed for advanced algebra, geometry, number theory, cryptography, and various other fields of mathematics, accessible through a Python-based language. This image does not include optional packages, so it is smaller."
   },
@@ -216,8 +217,11 @@
     "icon": "sagemath",
     "url": "https://www.sagemath.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/sagemath",
-    "description": "[SageMath](https://sagemath.org) is an open-source mathematics software system, integrating numerous software packages and providing a unified interface. It is designed for advanced algebra, geometry, number theory, cryptography, and various other fields of mathematics, accessible through a Python-based language.  This image also includes all of the following [https://doc.sagemath.org/html/en/reference/spkg/#optional-packages](https://doc.sagemath.org/html/en/reference/spkg/#optional-packages): 4ti2 admcycles antic benzene biopython bliss buckygen coxeter3 cryptominisat csdp cunningham_tables d3js database_cremona_ellcurve database_cubic_hecke database_jones_numfield database_knotinfo database_kohel database_mutation_class database_odlyzko_zeta database_stein_watkins database_symbolic_data debugpy dot2tex dsdp e_antic ecos_python fricas frobby gap_jupyter gap_packages gitpython igraph ipympl jupyterlab kenzo kissat latte_int libnauty libogg libsemigroups lidia lrslib mathics mathics_scanner mcqd meataxe mpfrcx msolve nibabel notedown onetbb osqp_python palettable papilo pari_elldata pari_galpol pari_nftables pari_seadata perl_term_readline_gnu phitigra pint plantri pybtex pycosat pycryptosat pysingular pytest pytest_mock pytest_xdist python_build python_igraph pyx qdldl_python retrolab rubiks saclib sage_sws2rst scip scip_sdp scs singular_jupyter sirocco slabbe snappy soplex sqlalchemy symengine tdlib texlive texttable tides topcom.   NOTE: this was everything we could successfully install in Jan 2024.  On arm64, we also have to exclude the following (which all build on identically configured x86_64): cbc, glucose, latte, lidia, snappy, and tides",
-    "versions": [{ "tag": "10.2", "tested": true }]
+    "description": "[SageMath](https://sagemath.org) is an open-source mathematics software system, integrating numerous software packages and providing a unified interface. It is designed for advanced algebra, geometry, number theory, cryptography, and various other fields of mathematics, accessible through a Python-based language.  This image also includes all of the following [https://doc.sagemath.org/html/en/reference/spkg/#optional-packages](https://doc.sagemath.org/html/en/reference/spkg/#optional-packages): 4ti2 admcycles benzene biopython bliss buckygen coxeter3 cryptominisat csdp cunningham_tables d3js database_cremona_ellcurve database_cubic_hecke database_jones_numfield database_knotinfo database_kohel database_mutation_class database_odlyzko_zeta database_stein_watkins database_symbolic_data debugpy dot2tex dsdp e_antic ecos_python fricas frobby gap_jupyter gap_packages gitpython igraph ipympl jupyterlab kenzo kissat latte_int libnauty libogg libsemigroups lidia lrslib mathics mathics_scanner mcqd meataxe mpfrcx msolve nibabel notedown onetbb osqp_python palettable papilo pari_elldata pari_galpol pari_nftables pari_seadata perl_term_readline_gnu phitigra pint plantri pybtex pycosat pycryptosat pysingular pytest pytest_mock pytest_xdist python_build python_igraph pyx qdldl_python retrolab rubiks saclib sage_sws2rst scip scip_sdp scs singular_jupyter sirocco slabbe snappy soplex sqlalchemy symengine tdlib texlive texttable tides topcom.   NOTE: this was everything we could successfully install in Jan 2024.  On arm64, we also have to exclude the following (which all build on identically configured x86_64): cbc, glucose, latte, lidia, snappy, and tides",
+    "versions": [
+      { "tag": "10.2", "tested": true },
+      { "tag": "10.3", "tested": true }
+    ]
   },
   "rstats": {
     "label": "R - Studio and Jupyter",

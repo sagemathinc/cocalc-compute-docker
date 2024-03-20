@@ -31,3 +31,8 @@ ENV PROXY_AUTH_TOKEN_FILE=/token
 ENV DEBUG=*
 
 CMD . /nvm/nvm.sh && cd /proxy && ./bin/start-proxy.js
+
+# For testing, it is useful to exec into the container and install and run vscode:
+#  make run-proxy
+#  docker exec -it run-proxy bash
+#    curl -fsSL https://code-server.dev/install.sh | sh && code-server --bind-addr=localhost:80 --auth=none
