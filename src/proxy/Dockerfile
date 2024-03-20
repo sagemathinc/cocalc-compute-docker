@@ -37,4 +37,6 @@ CMD . /nvm/nvm.sh && cd /proxy && ./bin/start-proxy.js
 #  docker exec -it run-proxy bash
 #    curl -fsSL https://code-server.dev/install.sh | sh && code-server --bind-addr=localhost:80 --auth=none
 # and
-#    apt install python-is-python3 && python3 -m http.server 9000
+#    apt install -y python-is-python3 && python3 -m http.server 9000
+# and
+#    apt update; apt install -y python3-pip; pip3 install jupyterlab; jupyter lab --NotebookApp.token='' --NotebookApp.password='' --ServerApp.disable_check_xsrf=True --no-browser --NotebookApp.allow_remote_access=True --NotebookApp.base_url='/port/8888' --ip=localhost --port=8888 --allow-root

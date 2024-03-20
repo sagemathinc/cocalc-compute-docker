@@ -147,9 +147,9 @@ export default async function createProxy({
 }
 
 function createRoutes(server, router, config, isAuthCookieValid) {
-  const wsHandlers: { regexp; handler }[] = [];
+  const wsHandlers: { regexps; handler }[] = [];
   for (const { path, target, ws = true, options, wsOptions } of config) {
-    const proxy = createProxyServer({ target, ...options });
+    const proxy = createProxyServer({ target, ...options, path });
     log(`proxy: ${path} --> ${target}  ${ws ? "(+ websockets enabled)" : ""}`);
     proxy.on("error", (err) => {
       log(`proxy ${path} error: `, err);
@@ -164,12 +164,13 @@ function createRoutes(server, router, config, isAuthCookieValid) {
         target,
         prependPath: false,
         ...wsOptions,
+        path,
       });
       wsProxy.on("error", (err) => {
         log(`websocket proxy ${path} error: `, err);
       });
       wsHandlers.push({
-        regexp: pathToRegexp(path + "(.*)"),
+        regexps: [pathToRegexp(path), pathToRegexp(path + "/(.*)")],
         handler: (req, socket, head) => {
           wsProxy.ws(req, socket, head);
         },
@@ -187,12 +188,14 @@ function createRoutes(server, router, config, isAuthCookieValid) {
         socket.destroy();
         return;
       }
-      for (const { regexp, handler } of wsHandlers) {
-        if (regexp.test(req.url)) {
-          log(`websocket upgrade: FOUND handler matching url='${req.url}'`);
-          stripAuthCookieFromRequest(req);
-          handler(req, socket, head);
-          return;
+      for (const { regexps, handler } of wsHandlers) {
+        for (const regexp of regexps) {
+          if (regexp.test(req.url)) {
+            log(`websocket upgrade: FOUND handler matching url='${req.url}'`);
+            stripAuthCookieFromRequest(req);
+            handler(req, socket, head);
+            return;
+          }
         }
       }
       log(`websocket upgrade: NO handler matched url='${req.url}'`);
@@ -210,4 +213,3 @@ function stripAuthCookieFromRequest(req) {
     req.headers["cookie"] = stripAuthCookie(req.headers["cookie"]);
   }
 }
-

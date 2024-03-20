@@ -91,11 +91,9 @@ export default async function enableAuth({
       auth = req.cookies[COOKIE_NAME];
     } else {
       // work even without cookie middleware -- used for websocket upgrade.
-      console.log(req.headers["cookie"]);
       for (const x of req.headers["cookie"].split(";")) {
         const [key, val] = x.split("=");
         if (key.trim() == COOKIE_NAME) {
-          console.log({ key, val });
           auth = val.trim();
           break;
         }

@@ -33,7 +33,7 @@ to http://localhost:8080, but does not bother to proxy websockets for  /api \(by
 Each entry can also optionally pass in any of the 
 [node\-http\-proxy options](https://github.com/http-party/node-http-proxy?tab=readme-ov-file#options) as `options` and for the websocket upgrade pass in `wsOptions`.
 
-Here's another one:
+Here's another configuration:
 
 ```json
 [
@@ -45,8 +45,11 @@ Here's another one:
 ]
 ```
 
-which will server VS Code on `https://example.com/code/`, and JupyterLab on `https://example.com/lab` and Xpra on `https://example.com/xpra/` if
-you run VSCode via:
+which will server VS Code on `https://example.com/code/`, and JupyterLab on `https://example.com/lab` and Xpra on `https://example.com/xpra/` .
+
+Also, the `/port/:port` and `/server/:port` setup proxies that use [route parameters](https://expressjs.com/en/guide/routing.html), each parameter in the path gets substituted for the target, which implements the sort of proxying [described here](https://doc.cocalc.com/howto/webserver.html); the server route lets you acccess VS Code at `https://example.com/server/8123/` and JupyterLab at `https://example.om/port/8123` if you configure the base\_url for JupyterLab to be `/port/8123` . 
+
+Here we assume you run VSCode via:
 
 ```sh
 code-server --bind-addr=localhost:8123 --auth=none
@@ -58,7 +61,7 @@ and JupyterLab via:
 jupyter lab --NotebookApp.token='' --NotebookApp.password='' --ServerApp.disable_check_xsrf=True --no-browser --NotebookApp.allow_remote_access=True --NotebookApp.base_url='/lab' --ip=localhost --port=8888
 ```
 
-and 
+and xpra as follows:
 
 ```sh
 xpra start --bind-tcp=localhost:10000 --start=xterm 
