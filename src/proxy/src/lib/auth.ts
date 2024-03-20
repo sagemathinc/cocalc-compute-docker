@@ -85,13 +85,32 @@ export default async function enableAuth({
     log(`error watching authTokenPath '${authTokenPath}' -- ${err}`);
   });
 
+  const isAuthCookieValid = (req) => {
+    let auth = "";
+    if (req.cookies != null) {
+      auth = req.cookies[COOKIE_NAME];
+    } else {
+      // work even without cookie middleware -- used for websocket upgrade.
+      console.log(req.headers["cookie"]);
+      for (const x of req.headers["cookie"].split(";")) {
+        const [key, val] = x.split("=");
+        if (key.trim() == COOKIE_NAME) {
+          console.log({ key, val });
+          auth = val.trim();
+          break;
+        }
+      }
+    }
+    return auth == authToken.current;
+  };
+
   const handle = (req, res, next) => {
     const reqAuthToken =
       req.body?.[POST_NAME] || req.query.auth_token || req.cookies[COOKIE_NAME];
 
     if (reqAuthToken === authToken.current) {
-      // the token is correct
-      if (req.cookies[COOKIE_NAME] != authToken.current) {
+      // the token is correct, but is the cookie -- if not, set the cookie
+      if (!isAuthCookieValid(req)) {
         // but the cookie isn't, then they just authenticated, so we store
         // the correct cookie
         new cookies(req, res).set(COOKIE_NAME, authToken.current, {
@@ -129,6 +148,7 @@ export default async function enableAuth({
   };
 
   router.use("*", handle);
+  return isAuthCookieValid;
 }
 
 // HTML page that asks the user to paste the auth token

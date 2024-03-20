@@ -42,6 +42,7 @@ export default async function createProxy({
   let disable: null | Function = null;
   let config: null | Configuration = null;
   let updating = false;
+  let isAuthCookieValid = (_req) => false;
   const updateConfigPath = async () => {
     log("updating configuration from ", configPath);
     if (updating) {
@@ -104,14 +105,16 @@ export default async function createProxy({
         );
         // Use the cookie-parser middleware so req.cookies is defined.
         app.use(cookieParser());
-        await enableAuth({ router, authTokenPath });
+        isAuthCookieValid = await enableAuth({ router, authTokenPath });
       } else {
+        // probably never used (?)
         log(
           "auth token not enabled -- any client can connect to the proxied site",
         );
+        isAuthCookieValid = (_req) => true;
       }
 
-      createRoutes(server, router, config);
+      createRoutes(server, router, config, isAuthCookieValid);
 
       app.use(router);
 
@@ -143,7 +146,7 @@ export default async function createProxy({
   await updateConfigPath();
 }
 
-function createRoutes(server, router, config) {
+function createRoutes(server, router, config, isAuthCookieValid) {
   const wsHandlers: { regexp; handler }[] = [];
   for (const { path, target, ws = true, options, wsOptions } of config) {
     const proxy = createProxyServer({ target, ...options });
@@ -152,7 +155,7 @@ function createRoutes(server, router, config) {
       log(`proxy ${path} error: `, err);
     });
     router.use(path, (req, res) => {
-      stripCookie(req);
+      stripAuthCookieFromRequest(req);
       proxy.web(req, res);
     });
     if (ws) {
@@ -179,10 +182,15 @@ function createRoutes(server, router, config) {
       socket.on("error", (err) => {
         log("websocket upgrade socket error", err);
       });
+      if (!isAuthCookieValid(req)) {
+        socket.write("HTTP/1.1 400 inavalid auth cookie\r\n\r\n");
+        socket.destroy();
+        return;
+      }
       for (const { regexp, handler } of wsHandlers) {
         if (regexp.test(req.url)) {
           log(`websocket upgrade: FOUND handler matching url='${req.url}'`);
-          stripCookie(req);
+          stripAuthCookieFromRequest(req);
           handler(req, socket, head);
           return;
         }
@@ -197,7 +205,7 @@ function createRoutes(server, router, config) {
 // SECURITY: We do NOT include the auth cookie in what we
 // send to the target, so one proxied service can't gain
 // access to another one.
-function stripCookie(req) {
+function stripAuthCookieFromRequest(req) {
   if (req.headers["cookie"] != null) {
     req.headers["cookie"] = stripAuthCookie(req.headers["cookie"]);
   }
