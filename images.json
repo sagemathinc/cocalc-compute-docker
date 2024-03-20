@@ -16,6 +16,11 @@
         "version": "1.10.2",
         "tag": "test",
         "tested": true
+      },
+      {
+        "version": "1.11",
+        "tag": "test",
+        "tested": false
       }
     ],
     "description": "Nodejs package.  The lightweight subset of the CoCalc Javascript code needed to run cocalc directly on the compute server for supporting websocketfs mounting, terminals, and jupyter notebooks."

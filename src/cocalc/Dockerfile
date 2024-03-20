@@ -1,7 +1,11 @@
-# Start with the first stage of the build.
+# This Docker image is built for two reasons:
+#   - testing
+#   - clean way to put together some code that gets published to npm!
+# This docker image itself does not get published
 
-ARG MYAPP_IMAGE=ubuntu:22.04
-FROM $MYAPP_IMAGE AS build_image
+ARG BASE_TAG=
+ARG ARCH=
+FROM sagemathinc/base${ARCH}:${BASE_TAG}
 
 MAINTAINER William Stein <wstein@sagemath.com>
 
@@ -74,12 +78,6 @@ RUN . /nvm/nvm.sh && cd /cocalc/src/compute && rm -rf node_modules && pnpm insta
 
 RUN rm -rf /cocalc/.git
 
-# 2-stage build to minimize wasted space
-FROM $MYAPP_IMAGE
-
-# Copy the cocalc directory from the build image.
-COPY --from=build_image /cocalc /cocalc
-
 COPY start-compute.js /cocalc/src/compute/compute
 COPY start-filesystem.js /cocalc/src/compute/compute
 COPY start-compute.sh /cocalc/
@@ -87,8 +85,9 @@ COPY start-filesystem.sh /cocalc/
 COPY start-env.sh /cocalc/
 COPY docker_pull.py /cocalc/
 COPY disk_enlarger.py /cocalc/
+COPY supervisor /cocalc/supervisor
 
-# These directories aren't used but are big.
+# These directories in the cocalc install aren't used but are big.
 RUN cd /cocalc/src/packages \
    && rm -rf assets cdn database frontend hub next project static
 
@@ -96,3 +95,6 @@ RUN cd /cocalc/src/packages \
 RUN rm -f /cocalc/src/packages/node_modules/.pnpm/better-sqlite3*/node_modules/better-sqlite3/deps/sqlite3/sqlite3.c
 
 RUN chmod a+rwx /cocalc/src/compute/compute/start*.js /cocalc/start*.sh /cocalc/*.py
+
+USER user
+CMD /cocalc/start-compute.sh
