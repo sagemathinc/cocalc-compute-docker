@@ -1,5 +1,5 @@
 import debug from "debug";
-import { createProxyServer } from "http-proxy";
+import { createProxyServer } from "./proxy-with-params";
 import { readFile } from "fs/promises";
 import { watch } from "chokidar";
 import enableAuth, { AUTH_PATH } from "./auth";
@@ -210,3 +210,4 @@ function stripAuthCookieFromRequest(req) {
     req.headers["cookie"] = stripAuthCookie(req.headers["cookie"]);
   }
 }
+

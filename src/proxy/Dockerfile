@@ -36,3 +36,5 @@ CMD . /nvm/nvm.sh && cd /proxy && ./bin/start-proxy.js
 #  make run-proxy
 #  docker exec -it run-proxy bash
 #    curl -fsSL https://code-server.dev/install.sh | sh && code-server --bind-addr=localhost:80 --auth=none
+# and
+#    apt install python-is-python3 && python3 -m http.server 9000
