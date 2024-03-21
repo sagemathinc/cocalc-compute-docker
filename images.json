@@ -13,7 +13,7 @@
         "tested": true
       },
       {
-        "version": "1.11.1",
+        "version": "1.11.2",
         "tag": "test",
         "tested": false
       }
@@ -54,7 +54,8 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/base",
     "versions": [
       { "tag": "1.0", "tested": true },
-      { "tag": "1.1", "tested": true }
+      { "tag": "1.1", "tested": true },
+      { "tag": "1.2", "tested": true }
     ],
     "description": "Base container that many others derive from."
   },

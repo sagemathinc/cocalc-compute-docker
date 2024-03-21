@@ -23,18 +23,3 @@ usermod -aG docker user
 # use the right version of nodejs, if installed
 echo "[ -f /cocalc/nvm/nvm.sh ] && source /cocalc/nvm/nvm.sh" >> /etc/bash.bashrc
 
-# We run supervisord as the normal user and log to /var/log/supervisor/:
-cat <<EOF > /etc/supervisor/supervisord.conf
-[supervisord]
-nodaemon=false
-pidfile=%(here)s/supervisord.pid
-logfile=/var/log/supervisor/supervisord.log
-childlogdir=/var/log/supervisor
-user=user
-
-[include]
-files = /etc/supervisor/conf.d/*
-EOF
-
-mkdir -p /var/log/supervisor/
-chown user:user -R /var/log/supervisor/ /etc/supervisor/
