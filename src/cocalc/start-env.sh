@@ -7,7 +7,7 @@ set -ev
 # avoid possible confusion
 unset COCALC_PROJECT_ID
 
-# Where to tstore logs
+# Where to store logs
 export LOGS='/tmp/logs'
 
 # The api key that grants access to the project
@@ -49,8 +49,14 @@ export PROXY_AUTH_TOKEN_FILE=/cocalc/conf/auth_token
 # Make the cocalc version of nodejs available.
 # this is VERY verbose hence "set +v"
 set +v
+# Usually /cocalc/nvm/ is installed
 if [ -f /cocalc/nvm/nvm.sh ]; then
     NVM_DIR=/cocalc/nvm source /cocalc/nvm/nvm.sh
+else
+    # In some testing situations we only have /nvm
+    if [ -f /nvm/nvm.sh ]; then
+        NVM_DIR=/nvm source /nvm/nvm.sh
+    fi
 fi;
 set -v
 

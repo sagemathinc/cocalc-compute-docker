@@ -50,7 +50,7 @@ cocalc:
 	cd src/cocalc && docker build --build-arg COMMIT=$(COMMIT) --build-arg BRANCH=$(BRANCH)  --build-arg ARCH=${ARCH} --build-arg BASE_TAG=$(BASE_TAG)  -t $(DOCKER_USER)/compute-cocalc$(ARCH):$(COCALC_TAG) .
 
 run-cocalc:
-	docker run --name run-cocalc -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(COCALC_TAG)
+	docker run --network=host --name run-cocalc -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(COCALC_TAG)
 
 # Copy from docker image and publish @cocalc/compute-cocalc$(ARCH)
 # to the npm registry.  This only works, of course, if you are signed

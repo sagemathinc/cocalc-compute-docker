@@ -41,7 +41,7 @@ Here's another configuration:
   { "path": "/lab", "target": "http://localhost:8888/lab" },
   { "path": "/xpra", "target": "http://localhost:10000" },
   { "path": "/port/:port", "target": "http://localhost:[port]/port/[port]" },
-  { "path": "/server/:port", "target": "http://localhost:[port]" },
+  { "path": "/server/:port", "target": "http://localhost:[port]" }
 ]
 ```
 

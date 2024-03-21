@@ -86,6 +86,7 @@ COPY start-env.sh /cocalc/
 COPY docker_pull.py /cocalc/
 COPY disk_enlarger.py /cocalc/
 COPY supervisor /cocalc/supervisor
+COPY apps /cocalc/apps
 
 # These directories in the cocalc install aren't used but are big.
 RUN cd /cocalc/src/packages \
