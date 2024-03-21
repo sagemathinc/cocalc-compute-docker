@@ -13,7 +13,7 @@
         "tested": true
       },
       {
-        "version": "1.11.2",
+        "version": "1.11.3",
         "tag": "test",
         "tested": false
       }
@@ -83,10 +83,8 @@
         "label": "JupyterLab",
         "url": "/lab",
         "path": "/lab",
-        "test": "which jupyter",
-        "install": "pip3 install jupyter",
         "target": "http://localhost:8888/lab",
-        "launch": "jupyter lab --NotebookApp.token='' --NotebookApp.password='' --ServerApp.disable_check_xsrf=True --no-browser --NotebookApp.allow_remote_access=True --NotebookApp.base_url='/lab' --ip=localhost --port=8888"
+        "launch": "supervisorctl start jupyterlab"
       },
       "vscode": {
         "tested": false,
@@ -95,9 +93,7 @@
         "url": "/code/",
         "path": "/code",
         "target": "http://localhost:8123",
-        "test": "which code-server",
-        "install": "curl -fsSL https://code-server.dev/install.sh | sh",
-        "launch": "code-server --bind-addr=localhost:8123 --auth=none"
+        "launch": "supervisorctl start code-server"
       },
       "xpra": {
         "tested": false,
@@ -106,9 +102,7 @@
         "url": "/xpra/",
         "path": "/xpra",
         "target": "http://localhost:10000",
-        "test": "which xpra",
-        "install": "sudo apt-get update; sudo DEBIAN_FRONTEND=noninteractive apt-get install -y xpra xterm",
-        "launch": "xpra start --bind-tcp=localhost:10000 --start=xterm"
+        "launch": "supervisorctl start xpra"
       },
       "pluto": {
         "tested": false,
@@ -117,9 +111,7 @@
         "url": "/pluto/",
         "path": "/pluto",
         "target": "http://localhost:8124",
-        "test": "which julia && ! echo 'import Pluto' | julia 2>&1 | grep -q 'not found'",
-        "install": "echo 'using Pkg; Pkg.add(\"Pluto\");' | julia",
-        "launch": "echo 'import Pluto; Pluto.run(launch_browser=false, require_secret_for_access=false, host=\"localhost\", port=8124)' | julia"
+        "launch": "supervisorctl start pluto"
       }
     }
   },
