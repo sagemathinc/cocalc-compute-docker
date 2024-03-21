@@ -13,12 +13,7 @@
         "tested": true
       },
       {
-        "version": "1.10.2",
-        "tag": "test",
-        "tested": true
-      },
-      {
-        "version": "1.11",
+        "version": "1.11.0",
         "tag": "test",
         "tested": false
       }

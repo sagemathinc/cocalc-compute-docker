@@ -16,10 +16,10 @@ I've taken great pains to ensure we fully support both architectures. This adds 
 
 To build the cocalc npm package and push it to npmjs with the label "test":
 
-1. Update version of cocalc in this line in images.json: `{ "label": "test", "version": "1.8.1", "tag": "test", "tested": false }`
-   e.g., from 1.8.1 to something newer than any tag, e.g., 1.8.3
+1. Update version of cocalc in this line in [images.json](./images.json): `{ "label": "test", "version": "1.8.1", "tag": "test", "tested": false }`
+   e.g., from 1.8.1 to something newer than any tag, e.g., 1.8.3 or 1.9.0. 
 2. `make cocalc && make push-cocalc`
-3. Create a compute sever on cocalc.com and for the images check "Advanced" and then select the "test" version of cocalc. That compute server will then use this testing npm package.
+3. Create a compute sever on [cocalc.com](http://cocalc.com) and for the images check "Advanced" and then select the "test" version of cocalc. That compute server will then use this testing npm package.
 
 When ready to release in prod, i.e., to push a package to npmjs with the label "latest":
 
