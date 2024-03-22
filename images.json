@@ -96,7 +96,6 @@
         "label": "JupyterLab",
         "url": "/lab",
         "path": "/lab",
-        "target": "http://localhost:8888/lab",
         "launch": "supervisorctl start jupyterlab"
       },
       "vscode": {
@@ -104,18 +103,17 @@
         "label": "VS Code",
         "url": "/code/",
         "path": "/code",
-        "target": "http://localhost:8123",
         "launch": "supervisorctl start code-server"
       },
       "xpra": {
         "icon": "desktop",
-        "label": "Graphical X11 Desktop (Xpra)",
+        "label": "X11 Desktop",
         "url": "/xpra/",
         "path": "/xpra",
-        "target": "http://localhost:10000",
         "launch": "supervisorctl start xpra"
       },
       "pluto": {
+        "disabled": true,
         "icon": "julia",
         "label": "Pluto Julia Notebook",
         "url": "/pluto/",
