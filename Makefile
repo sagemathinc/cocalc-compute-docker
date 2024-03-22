@@ -324,7 +324,7 @@ assemble-julia:
 	rm -rf /tmp/cocalc-rstats
 	cp -ar /tmp/cocalc /tmp/cocalc-rstats
 	rm -f /tmp/cocalc-rstats/done
-	node -e "const data = require('fs').readFileSync('images.json'); const json = JSON.parse(data); console.log(JSON.stringify(json.rstats.proxy,0,2));" > /tmp/cocalc-openwebui/conf/proxy.json
+	node -e "const data = require('fs').readFileSync('images.json'); const json = JSON.parse(data); console.log(JSON.stringify(json.rstats.proxy,0,2));" > /tmp/cocalc-rstats/conf/proxy.json
 	touch /tmp/cocalc-rstats/done
 
 # See https://docs.posit.co/resources/install-r-source/#install-required-dependencies
@@ -338,7 +338,7 @@ rstats:
 push-rstats:
 	docker push $(DOCKER_USER)/rstats$(ARCH):$(R_TAG)
 run-rstats: /tmp/cocalc-rstats/done
-	docker run  -v /tmp/cocalc-rstats/:/cocalc  --name run-rstats  -it --rm --network=host $(DOCKER_USER)/rstats$(ARCH):$(R_TAG) bash
+	docker run  -v /tmp/cocalc-rstats/:/cocalc  --name run-rstats  -it --rm --network=host $(DOCKER_USER)/rstats$(ARCH):$(R_TAG)
 assemble-rstats:
 	./src/scripts/assemble.sh $(DOCKER_USER)/rstats $(R_TAG)
 
