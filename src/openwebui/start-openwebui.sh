@@ -18,3 +18,22 @@ else
   echo "No GPU's"
   $RUN < /dev/null
 fi;
+
+docker logs -f --tail=999 --timestamps open-webui  &
+docker logs -f --tail=999 --timestamps ollama  &
+
+# Stop all the extra containers started by docker compose when this script
+# receives SIGINT or SIGTERM. Thanks to
+#    https://github.com/Supervisor/supervisor/issues/147#issuecomment-454063690
+stop_script() {
+    cd /tmp/open-webui
+    ./run-compose.sh --drop
+    exit 0
+}
+# Wait for supervisor to stop script
+trap stop_script SIGINT SIGTERM
+
+while true
+do
+    sleep 1
+done

@@ -6,11 +6,6 @@ USER root
 
 RUN apt-get update && apt-get install -y pciutils
 
-# Create a token just for testing.  In production use, this /cocalc will get bind mounted over this
-RUN mkdir -p /cocalc/conf && echo "test" > /cocalc/conf/auth_token && chmod og-rwx /cocalc/conf/auth_token
-# Similar for proxy.json for testing:
-COPY .proxy.json /cocalc/conf/proxy.json
-
 COPY start-openwebui.sh /opt/start-openwebui.sh
 RUN chmod a+x /opt/start-openwebui.sh
 

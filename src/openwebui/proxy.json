@@ -1,4 +1,0 @@
-[
-  { "path": "/ollama-api", "target": "http://localhost:11434/api" },
-  { "path": "/", "target": "http://localhost:3000", "ws": true }
-]

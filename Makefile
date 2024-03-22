@@ -72,6 +72,9 @@ rm-tmp-cocalc:
 	curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v$(NVM_VERSION)/install.sh | NVM_DIR=/tmp/cocalc/nvm PROFILE=/dev/null bash
 	bash -c "unset NVM_DIR NVM_BIN NVM_INC && source /tmp/cocalc/nvm/nvm.sh && nvm install --no-progress $(NODE_VERSION)"
 	rm -rf /tmp/cocalc/nvm/.cache
+	mkdir -p /tmp/cocalc/conf
+	cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 8 | head -n 1 > /tmp/cocalc/conf/auth_token
+	node -e "const data = require('fs').readFileSync('images.json'); const json = JSON.parse(data); console.log(JSON.stringify(json.defaults.proxy,0,2));" > /tmp/cocalc/conf/proxy.json
 	touch /tmp/cocalc/done
 
 # Copy from docker image and publish @cocalc/compute-cocalc$(ARCH)
@@ -195,13 +198,17 @@ publish-proxy-npm:
 ## IMAGE: openwebui
 OPENWEBUI_TAG=$(shell $(GET_TAG) openwebui)
 PROXY_VERSION=1.3.0
+/tmp/cocalc-openwebui/done: /tmp/cocalc/done
+	rm -rf /tmp/cocalc-openwebui
+	cp -ar /tmp/cocalc /tmp/cocalc-openwebui
+	node -e "const data = require('fs').readFileSync('images.json'); const json = JSON.parse(data); console.log(JSON.stringify(json.openwebui.proxy,0,2));" > /tmp/cocalc-openwebui/conf/proxy.json
+
 openwebui:
-	node -e "const data = require('fs').readFileSync('images.json'); const json = JSON.parse(data); console.log(json.openwebui.proxy);" > src/openwebui/.proxy.json
 	cd src/openwebui && docker build --build-arg PROXY_VERSION=${PROXY_VERSION} --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) -t $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG) .
-run-openwebui:
-	docker run --name run-openwebui --gpus all -it --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock --network=host $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
-run-openwebui-nogpu:
-	docker run --name run-openwebui-nogpu -it --rm --network=host --privileged -v /var/run/docker.sock:/var/run/docker.sock  $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
+run-openwebui:  /tmp/cocalc-openwebui/done
+	docker run -v /tmp/cocalc-openwebui/:/cocalc --name run-openwebui --gpus all -it --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock --network=host $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
+run-openwebui-nogpu: /tmp/cocalc-openwebui/done
+	docker run -v /tmp/cocalc-openwebui:/cocalc --name run-openwebui-nogpu -it --rm --network=host --privileged -v /var/run/docker.sock:/var/run/docker.sock  $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
 push-openwebui:
 	docker push $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
 assemble-openwebui:
