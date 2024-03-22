@@ -171,9 +171,10 @@
     "description": "Run a node of a [MicroK8s](https://microk8s.io/) Kubernetes cluster. The kubectl and helm commands are configured and available to use from a terminal on the compute server.  If you [setup ssh keys](https://doc.cocalc.com/account/ssh.html) and directly ssh as root into the the compute server, you can also [create a multinode cluster](https://microk8s.io/docs/clustering)."
   },
   "jupyterhub": {
+    "comment": "I need to update this to work with new proxy system, I guess.  For now, it disables the proxy.  Nobody uses this so it doesn't matter.",
     "authToken": true,
     "proxy": false,
-    "disabled": false,
+    "disabled": true,
     "label": "JupyterHub",
     "package": "sagemathinc/jupyterhub",
     "minDiskSizeGb": 30,
@@ -369,13 +370,21 @@
     "description": "[Open WebUI](https://github.com/open-webui/open-webui?tab=readme-ov-file#open-webui-formerly-ollama-webui-) provides a ChatGPT style UI for a vast collection of free open models, with a huge feature set.  CoCalc adds cloud hosting, one-click setup, a layer of authentication, and an optional domain name.  When you start the container the latest version of Open WebUI is installed using Docker compose, **which can take around 1 minute during which the site is not accessible**.   Only users that know the random token can create an account on your server.  After your server starts, visit the https URL of your server, and create a new admin account.  Your chats, models and documents are stored only in Docker volumes on the compute server, which are not backed up in any way or sent anywhere except to you; in particular, when you delete the compute server, all chats are completely erased.  Use a terminal on the compute server and the [docker command line](https://docs.docker.com/storage/volumes/) if you need to extract data from these volumes.",
     "authToken": true,
     "proxy": [
-      { "path": "/ollama-api", "target": "http://localhost:11434/api", "ws": false },
+      {
+        "path": "/ollama-api",
+        "target": "http://localhost:11434/api",
+        "ws": false
+      },
       {
         "path": "/",
         "target": "http://localhost:3000"
       }
     ],
     "versions": [
+      {
+        "tag": "2024-03-16",
+        "tested": true
+      },
       {
         "tag": "2024-03-22",
         "tested": false

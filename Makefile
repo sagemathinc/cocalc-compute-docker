@@ -163,11 +163,18 @@ assemble-microk8s:
 	./src/scripts/assemble.sh $(DOCKER_USER)/microk8s $(MICROK8S_TAG)
 
 ## IMAGE: jupyterhub
+/tmp/cocalc-jupyterhub/done: /tmp/cocalc/done
+	rm -rf /tmp/cocalc-jupyterhub
+	cp -ar /tmp/cocalc /tmp/cocalc-jupyterhub
+	rm -f /tmp/cocalc-jupyterhub/done
+	node -e "const data = require('fs').readFileSync('images.json'); const json = JSON.parse(data); console.log(JSON.stringify(json.jupyterhub.proxy,0,2));" > /tmp/cocalc-openwebui/conf/proxy.json
+	touch /tmp/cocalc-jupyterhub/done
+
 JUPYTERHUB_TAG = $(shell $(GET_TAG) jupyterhub)
 jupyterhub:
 	cd src/jupyterhub && docker build  --build-arg ARCH=${ARCH} --build-arg MICROK8S_TAG=$(MICROK8S_TAG)  -t $(DOCKER_USER)/jupyterhub$(ARCH):$(JUPYTERHUB_TAG) .
-run-jupyterhub:
-	docker run --name run-jupyterhub -it --rm $(DOCKER_USER)/jupyterhub$(ARCH):$(JUPYTERHUB_TAG)
+run-jupyterhub: /tmp/cocalc-jupyterhub/done
+	docker run -v /tmp/cocalc-jupyterhub/:/cocalc -v /data/.cache/.kube:/home/user/.kube --name run-jupyterhub -it --rm $(DOCKER_USER)/jupyterhub$(ARCH):$(JUPYTERHUB_TAG)
 push-jupyterhub:
 	docker push $(DOCKER_USER)/jupyterhub$(ARCH):$(JUPYTERHUB_TAG)
 assemble-jupyterhub:
@@ -201,7 +208,9 @@ PROXY_VERSION=1.3.0
 /tmp/cocalc-openwebui/done: /tmp/cocalc/done
 	rm -rf /tmp/cocalc-openwebui
 	cp -ar /tmp/cocalc /tmp/cocalc-openwebui
+	rm -f /tmp/cocalc-openwebui/done
 	node -e "const data = require('fs').readFileSync('images.json'); const json = JSON.parse(data); console.log(JSON.stringify(json.openwebui.proxy,0,2));" > /tmp/cocalc-openwebui/conf/proxy.json
+	touch /tmp/cocalc-openwebui/done
 
 openwebui:
 	cd src/openwebui && docker build --build-arg PROXY_VERSION=${PROXY_VERSION} --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) -t $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG) .
