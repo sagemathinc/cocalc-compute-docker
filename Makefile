@@ -52,6 +52,28 @@ cocalc:
 run-cocalc:
 	docker run --network=host --name run-cocalc -it --rm $(DOCKER_USER)/compute-cocalc$(ARCH):$(COCALC_TAG)
 
+# Try to build something that matches /cocalc on a production compute server.
+# This is done via src/packages/server/compute/cloud/install.ts and startup-script.ts
+# when the compute server starts. We do the same here (more or less) for testing purposes.
+# https://github.com/sagemathinc/cocalc/issues/6963
+NODE_VERSION=18.17.1
+# see https://github.com/nvm-sh/nvm#install--update-script for this version:
+NVM_VERSION=0.39.5
+rm-tmp-cocalc:
+	rm /tmp/cocalc/done
+/tmp/cocalc/done:
+	rm -rf /tmp/cocalc
+	docker rm temp-copy-cocalc || true
+	docker create --name temp-copy-cocalc $(DOCKER_USER)/compute-cocalc$(ARCH):$(COCALC_TAG)
+	docker cp temp-copy-cocalc:/cocalc /tmp/cocalc
+	docker rm temp-copy-cocalc
+	cp -rv $(COCALC_NPM)/* /tmp/cocalc
+	mkdir -p /tmp/cocalc/nvm
+	curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v$(NVM_VERSION)/install.sh | NVM_DIR=/tmp/cocalc/nvm PROFILE=/dev/null bash
+	bash -c "unset NVM_DIR NVM_BIN NVM_INC && source /tmp/cocalc/nvm/nvm.sh && nvm install --no-progress $(NODE_VERSION)"
+	rm -rf /tmp/cocalc/nvm/.cache
+	touch /tmp/cocalc/done
+
 # Copy from docker image and publish @cocalc/compute-cocalc$(ARCH)
 # to the npm registry.  This only works, of course, if you are signed
 # into npm as a user that can publish to @cocalc.
@@ -81,8 +103,6 @@ push-cocalc:
 # We also run the assemble target to create the multiplatform
 #     $(DOCKER_USER)/base
 # which is what gets used everywhere else.
-# TODO: most other code doesn't use this base tag, but needs to. We're
-# using latest until all the other containers use it properly.
 BASE_TAG = $(shell $(GET_TAG) base)
 base:
 	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH):$(BASE_TAG) .
@@ -108,8 +128,8 @@ assemble-filesystem:
 COMPUTE_TAG = $(shell $(GET_TAG) compute)
 compute:
 	cd src && docker build --build-arg ARCH=${ARCH} --build-arg BASE_TAG=$(BASE_TAG)  -t $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG) . -f compute/Dockerfile
-run-compute:
-	docker run --name run-compute -it --rm $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG)
+run-compute: /tmp/cocalc/done
+	docker run --name run-compute -v /tmp/cocalc:/cocalc -it --rm $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG)
 push-compute:
 	docker push $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG)
 assemble-compute:
@@ -176,6 +196,7 @@ publish-proxy-npm:
 OPENWEBUI_TAG=$(shell $(GET_TAG) openwebui)
 PROXY_VERSION=1.3.0
 openwebui:
+	node -e "const data = require('fs').readFileSync('images.json'); const json = JSON.parse(data); console.log(json.openwebui.proxy);" > src/openwebui/.proxy.json
 	cd src/openwebui && docker build --build-arg PROXY_VERSION=${PROXY_VERSION} --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg ARCH1=$(ARCH1) -t $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG) .
 run-openwebui:
 	docker run --name run-openwebui --gpus all -it --rm --privileged -v /var/run/docker.sock:/var/run/docker.sock --network=host $(DOCKER_USER)/openwebui$(ARCH):$(OPENWEBUI_TAG)
