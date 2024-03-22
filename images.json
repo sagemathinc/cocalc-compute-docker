@@ -171,7 +171,7 @@
     "comment": "I need to update this to work with new proxy system, I guess.  For now, it disables the proxy.  Nobody uses this so it doesn't matter.",
     "authToken": true,
     "proxy": [],
-    "disabled": true,
+    "disabled": false,
     "label": "JupyterHub",
     "package": "sagemathinc/jupyterhub",
     "minDiskSizeGb": 30,
