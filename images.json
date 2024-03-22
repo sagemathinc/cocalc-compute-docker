@@ -8,7 +8,7 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cocalc",
     "versions": [
       {
-        "version": "1.10.1",
+        "version": "1.12.0",
         "tag": "latest",
         "tested": true
       },
@@ -56,7 +56,7 @@
       { "tag": "1.0", "tested": true },
       { "tag": "1.1", "tested": true },
       { "tag": "1.2", "tested": true },
-      { "tag": "1.3", "tested": false }
+      { "tag": "1.3", "tested": true }
     ],
     "description": "Base container that many others derive from."
   },
@@ -71,7 +71,7 @@
       { "tag": "1.0", "tested": true },
       { "tag": "1.1", "tested": true },
       { "tag": "1.2", "tested": true },
-      { "tag": "1.3", "tested": false }
+      { "tag": "1.3", "tested": true }
     ],
     "description": "Compute container that runs the lightweight nodejs cocalc code for serving files, terminals and jupyter."
   },
@@ -100,7 +100,6 @@
         "launch": "supervisorctl start jupyterlab"
       },
       "vscode": {
-        "tested": false,
         "icon": "vscode",
         "label": "VS Code",
         "url": "/code/",
@@ -109,7 +108,6 @@
         "launch": "supervisorctl start code-server"
       },
       "xpra": {
-        "tested": false,
         "icon": "desktop",
         "label": "Graphical X11 Desktop (Xpra)",
         "url": "/xpra/",
@@ -118,7 +116,6 @@
         "launch": "supervisorctl start xpra"
       },
       "pluto": {
-        "tested": false,
         "icon": "julia",
         "label": "Pluto Julia Notebook",
         "url": "/pluto/",
@@ -231,7 +228,7 @@
     ]
   },
   "rstats": {
-    "label": "R - Studio and Jupyter",
+    "label": "R Statistics",
     "package": "sagemathinc/rstats",
     "minDiskSizeGb": 10,
     "dockerSizeGb": 3,
@@ -242,21 +239,14 @@
     "authToken": true,
     "proxy": [{ "path": "/", "target": "http://localhost:8787" }],
     "versions": [
-      { "label": "4.3.2", "tag": "4.3.2", "tested": true },
-      {
-        "version": "4.3.2",
-        "label": "2024-02 (R version 4.3.2)",
-        "tag": "2024-02",
-        "tested": true
-      },
       {
         "version": "4.3.2",
         "label": "2024-03-22 (R version 4.3.2)",
         "tag": "2024-03-22",
-        "tested": false
+        "tested": true
       }
     ],
-    "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization.   The CoCalc R compute server image includes includes (1) **Rstudio** Server and (2) the **R Jupyter kernel.**  To use RStudio, click on the displayed https link after the server starts running (Select the 'Custom Domain Name with SSL' option below to select a custom domain name avoid a security certificate warning). To use a Jupyter notebook, open a notebook in CoCalc on the compute server and select the R kernel.  _**DISCLAIMER: RSTUDIO/POSIT PBC IS IN NO WAY ASSOCIATED WITH COCALC.**"
+    "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization.   The CoCalc R compute server image includes includes (1) **Rstudio** Server and (2) the **R Jupyter kernel.**  To use RStudio, click on the displayed https link after the server starts running (Select the 'Custom Domain Name with SSL' option below to select a custom domain name avoid a security certificate warning) and copy/paste the security token. To use a Jupyter notebook, open a notebook in CoCalc on the compute server and select the R kernel.  _**DISCLAIMER: RSTUDIO/POSIT PBC IS IN NO WAY ASSOCIATED WITH COCALC.**"
   },
   "julia": {
     "label": "Julia",
@@ -388,12 +378,8 @@
     ],
     "versions": [
       {
-        "tag": "2024-03-16",
-        "tested": true
-      },
-      {
         "tag": "2024-03-22",
-        "tested": false
+        "tested": true
       }
     ],
     "jupyterKernels": false

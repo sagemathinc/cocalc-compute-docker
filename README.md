@@ -25,7 +25,11 @@ When ready to release in prod, i.e., to push a package to npmjs with the label "
 
 1. Update this line in images.json `{ "label": "latest", "version": "1.8.2", "tag": "latest", "tested": true }`,
    e.g., from 1.8.2 to 1.8.4, which is newer than the one you just tested
-2. `make COCALC_TAG=latest cocalc && make COCALC_TAG=latest push-cocalc`
+2. Then
+
+```sh
+make COCALC_TAG=latest cocalc && make COCALC_TAG=latest push-cocalc
+```
 
 You should also commit and push to github the new images.json file, though that isn't strictly necessary \(since the compute server uses the latest and test tags, not the npm package version\).
 
