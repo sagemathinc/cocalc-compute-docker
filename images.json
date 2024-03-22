@@ -173,7 +173,7 @@
   "jupyterhub": {
     "comment": "I need to update this to work with new proxy system, I guess.  For now, it disables the proxy.  Nobody uses this so it doesn't matter.",
     "authToken": true,
-    "proxy": false,
+    "proxy": [],
     "disabled": true,
     "label": "JupyterHub",
     "package": "sagemathinc/jupyterhub",
@@ -240,7 +240,7 @@
     "url": "https://www.r-project.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/rstats",
     "authToken": true,
-    "proxy": false,
+    "proxy": [{ "path": "/", "target": "http://localhost:8787" }],
     "versions": [
       { "label": "4.3.2", "tag": "4.3.2", "tested": true },
       {
@@ -248,6 +248,12 @@
         "label": "2024-02 (R version 4.3.2)",
         "tag": "2024-02",
         "tested": true
+      },
+      {
+        "version": "4.3.2",
+        "label": "2024-03-22 (R version 4.3.2)",
+        "tag": "2024-03-22",
+        "tested": false
       }
     ],
     "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization.   The CoCalc R compute server image includes includes (1) **Rstudio** Server and (2) the **R Jupyter kernel.**  To use RStudio, click on the displayed https link after the server starts running (Select the 'Custom Domain Name with SSL' option below to select a custom domain name avoid a security certificate warning). To use a Jupyter notebook, open a notebook in CoCalc on the compute server and select the R kernel.  _**DISCLAIMER: RSTUDIO/POSIT PBC IS IN NO WAY ASSOCIATED WITH COCALC.**"

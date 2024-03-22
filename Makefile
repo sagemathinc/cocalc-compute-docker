@@ -320,6 +320,12 @@ assemble-julia:
 	./src/scripts/assemble.sh $(DOCKER_USER)/julia $(JULIA_TAG)
 
 ## IMAGE: rstats
+/tmp/cocalc-rstats/done: /tmp/cocalc/done
+	rm -rf /tmp/cocalc-rstats
+	cp -ar /tmp/cocalc /tmp/cocalc-rstats
+	rm -f /tmp/cocalc-rstats/done
+	node -e "const data = require('fs').readFileSync('images.json'); const json = JSON.parse(data); console.log(JSON.stringify(json.rstats.proxy,0,2));" > /tmp/cocalc-openwebui/conf/proxy.json
+	touch /tmp/cocalc-rstats/done
 
 # See https://docs.posit.co/resources/install-r-source/#install-required-dependencies
 # NOTE: I tried using just "r" for this docker image and everything works until trying
@@ -331,8 +337,8 @@ rstats:
 	cd src/rstats && docker build  --build-arg ARCH=${ARCH} --build-arg ARCH1=${ARCH1} --build-arg R_VERSION=$(R_VERSION) -t $(DOCKER_USER)/rstats$(ARCH):$(R_TAG) .
 push-rstats:
 	docker push $(DOCKER_USER)/rstats$(ARCH):$(R_TAG)
-run-rstats:
-	docker run  --name run-rstats  -it --rm --network=host $(DOCKER_USER)/rstats$(ARCH):$(R_TAG) bash
+run-rstats: /tmp/cocalc-rstats/done
+	docker run  -v /tmp/cocalc-rstats/:/cocalc  --name run-rstats  -it --rm --network=host $(DOCKER_USER)/rstats$(ARCH):$(R_TAG) bash
 assemble-rstats:
 	./src/scripts/assemble.sh $(DOCKER_USER)/rstats $(R_TAG)
 
