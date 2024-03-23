@@ -5,7 +5,7 @@
 set +e
 
 function run_jupyter() {
-    jupyter lab --NotebookApp.token='' --NotebookApp.password='' --ServerApp.disable_check_xsrf=True --no-browser --NotebookApp.allow_remote_access=True --NotebookApp.base_url='/lab' --ip=localhost --collaborative --port=$PORT
+    jupyter lab --NotebookApp.token='' --NotebookApp.password='' --ServerApp.disable_check_xsrf=True --no-browser --NotebookApp.allow_remote_access=True --NotebookApp.base_url='/lab' --ip=localhost --port=$PORT
 }
 
 run_jupyter
