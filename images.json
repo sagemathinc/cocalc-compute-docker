@@ -96,7 +96,8 @@
         "label": "JupyterLab",
         "url": "/lab",
         "path": "/lab",
-        "launch": "supervisorctl start jupyterlab"
+        "launch": "supervisorctl start jupyterlab",
+        "requiresDns": true
       },
       "vscode": {
         "icon": "vscode",
