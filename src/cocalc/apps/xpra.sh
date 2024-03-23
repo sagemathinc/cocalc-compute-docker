@@ -13,5 +13,5 @@ if [ $? -ne 0 ]; then
 fi
 
 set -ev
-xpra start --bind-tcp=localhost:$PORT --daemon=no --start=xterm
+xpra start --bind-tcp=localhost:$PORT --sharing=yes  --daemon=no --start=xterm
 
