@@ -4,7 +4,7 @@ FROM sagemathinc/sagemath-core${ARCH}:${SAGEMATH_VERSION} AS base
 
 COPY optional/install.sh /tmp
 RUN chmod a+x /tmp/install.sh
-RUN apt-get install -y automake
+RUN apt-get update && apt-get install -y automake
 
 RUN /tmp/install.sh 4ti2
 RUN /tmp/install.sh admcycles

@@ -229,7 +229,8 @@ math:
 push-math:
 	make push-sagemath && make push-rlang && make push-anaconda && make push-julia
 
-## IMAGE: sagemath-core
+## Helpful build artifact: sagemath-core -- this is just used for convenience
+## so we don't have to build sage repeatedly
 
 # This takes a long time to run (e.g., hours!), since it **builds sage from source**.
 # You only ever should do this once per Sage release and architecture.  It results
@@ -248,6 +249,23 @@ assemble-sagemath-core:
 	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_TAG) $(SAGEMATH_TAG)
 	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-core $(SAGEMATH_TAG) latest
 
+
+## IMAGE: sagemath
+# this depends on sagemath-core existing locally
+sagemath:
+	cd src/sagemath && \
+	docker build  --build-arg SAGEMATH_VARIANT="core" --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
+run-sagemath:
+	docker run --name run-sagemath -it --rm $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) bash
+push-sagemath:
+	docker push $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION)
+assemble-sagemath:
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath $(SAGEMATH_VERSION)
+
+
+## Helpful build artifact: sagemath-optional -- this is just used for convenience
+## so we don't have to build sage optional packages repeatedly
+
 SAGEMATH_VERSION=$(shell $(GET_VERSION) sagemath)
 SAGEMATH_TAG=$(shell $(GET_TAG) sagemath)
 sagemath-optional:
@@ -261,20 +279,8 @@ assemble-sagemath-optional:
 	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-optional $(SAGEMATH_TAG) latest
 
 
-## IMAGE: sagemath
-# this depends on sagemath-core existing
-sagemath:
-	cd src/sagemath && \
-	docker build  --build-arg SAGEMATH_VARIANT="core" --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
-run-sagemath:
-	docker run --name run-sagemath -it --rm $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) bash
-push-sagemath:
-	docker push $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION)
-assemble-sagemath:
-	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath $(SAGEMATH_VERSION)
-
 ## IMAGE: sagemathopt
-# this depends on sagemath-optional existing
+# this depends on sagemath-optional existing locally
 sagemathopt:
 	cd src/sagemath && \
 	docker build  --build-arg SAGEMATH_VARIANT="optional" --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
