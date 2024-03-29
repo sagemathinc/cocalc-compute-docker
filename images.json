@@ -295,7 +295,7 @@
   "anaconda-gpu": {
     "priority": 15,
     "disabled": false,
-    "label": "Anaconda",
+    "label": "Anaconda: Scientific Computing",
     "package": "sagemathinc/anaconda",
     "minDiskSizeGb": 30,
     "dockerSizeGb": 1,
@@ -303,7 +303,7 @@
     "icon": "python",
     "url": "https://www.sagemath.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/anaconda",
-    "description": "[Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with GPU support and a pre-installed Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using `conda install package` command in a terminal or `!conda install -y package` in a Jupyter notebook.",
+    "description": "Anaconda is a distribution of Python, R, SageMath and Julia with GPU support for scientific computing (data science, machine learning, data processing, etc.).  This is the [Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with a Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using `conda install package` command in a terminal or `!conda install -y package` in a Jupyter notebook.",
     "versions": [{ "tag": "2024-03-10", "tested": true }]
   },
   "pytorch": {
