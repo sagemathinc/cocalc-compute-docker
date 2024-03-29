@@ -352,7 +352,7 @@ assemble-rstats:
 ## IMAGE: anaconda
 ANACONDA_TAG=$(shell $(GET_TAG) anaconda)
 anaconda:
-	cd src/anaconda && docker build  --build-arg ARCH=${ARCH} -t $(DOCKER_USER)/anaconda$(ARCH):$(ANACONDA_TAG) .
+	cd src/anaconda && docker build  --build-arg ARCH=${ARCH}  --build-arg COMPUTE_TAG=$(COMPUTE_TAG) -t $(DOCKER_USER)/anaconda$(ARCH):$(ANACONDA_TAG) .
 push-anaconda:
 	docker push $(DOCKER_USER)/anaconda$(ARCH):$(ANACONDA_TAG)
 run-anaconda:
@@ -437,4 +437,14 @@ run-jax:
 	docker run --name run-jax --gpus all -it --rm $(DOCKER_USER)/jax:$(JAX_TAG) bash
 run-jax-nogpu:
 	docker run  --name run-jax-nogpu -it --rm $(DOCKER_USER)/jax:$(JAX_TAG) bash
+
+
+HPC_VERSION=$(shell $(GET_VERSION) hpc)
+HPC_TAG=$(shell $(GET_TAG) hpc)
+hpc:
+	cd src/hpc && docker build --build-arg ARCH=${ARCH}  --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg HPC_VERSION=$(HPC_VERSION) -t $(DOCKER_USER)/hpc:$(HPC_TAG) .
+push-hpc:
+	docker push $(DOCKER_USER)/hpc:$(HPC_TAG)
+run-hpc: /tmp/cocalc/done
+	docker run  --name run-hpc -v /tmp/cocalc:/cocalc -it --rm $(DOCKER_USER)/hpc:$(HPC_TAG)
 
