@@ -163,7 +163,8 @@
     "description": "Run a node of a [MicroK8s](https://microk8s.io/) Kubernetes cluster. The kubectl and helm commands are configured and available to use from a terminal on the compute server.  If you [setup ssh keys](https://doc.cocalc.com/account/ssh.html) and directly ssh as root into the the compute server, you can also [create a multinode cluster](https://microk8s.io/docs/clustering)."
   },
   "hpc": {
-    "label": "HPC: Slurm, Fortran, etc.",
+    "arch": "x86_64",
+    "label": "HPC",
     "package": "sagemathinc/hpc",
     "minDiskSizeGb": 25,
     "dockerSizeGb": 16,
@@ -178,7 +179,7 @@
         "tested": true
       }
     ],
-    "description": "Includes [Slurm](https://slurm.schedmd.com/documentation.html), the [Intel HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit.html), clang, gfortran, and other compilers."
+    "description": "High Performance Computing (HPC) image.  Includes [Slurm](https://slurm.schedmd.com/documentation.html), the [Intel HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit.html), clang, gfortran, and other compilers."
   },
   "jupyterhub": {
     "comment": "I need to update this to work with new proxy system, I guess.  For now, it disables the proxy.  Nobody uses this so it doesn't matter.",

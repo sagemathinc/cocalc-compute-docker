@@ -16,6 +16,14 @@ service munge start
 # when we implement clusters.
 # sed -i "s/localhost/$(hostname)/g" /etc/slurm/slurm.conf
 
+# We set the cpu count every time on startup.  This is important
+# because autodetection doesn't seem to work, and also the user can
+# change their machine type.
+export cpu_count=$(lscpu | grep '^CPU(s):' | awk '{print $2}')
+sed -i "s/CPUs=[0-9]*/CPUs=$cpu_count/" /etc/slurm/slurm.conf
+sed -i "s/CoresPerSocket=[0-9]*/CoresPerSocket=$cpu_count/" /etc/slurm/slurm.conf
+
+
 # And start control daemon
 service slurmctld start
 
