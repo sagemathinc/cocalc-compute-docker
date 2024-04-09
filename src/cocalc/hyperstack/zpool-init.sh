@@ -31,9 +31,6 @@ if [ -e /dev/vdc ]; then
     # have local fast ephemeral ssd
     zpool create -f tank /dev/vdc
 
-    # enable caching
-    # TODO
-
 else
 
     # do NOT have local fast ssd
