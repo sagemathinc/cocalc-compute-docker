@@ -42,7 +42,7 @@ else
     mv /etc/fstab.new /etc/fstab
 fi
 
-# setup mountpoints and filesystms
+# setup mountpoints, filesystem and compression
 
 # User data:
 zfs create -o mountpoint=/data tank/data
