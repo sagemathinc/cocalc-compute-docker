@@ -13,6 +13,8 @@ fi
 zpool status tank
 
 if [ $? -eq 0 ]; then
+    # make sure ssd is setup if it exists
+    ./zpool-local-ssd.sh
     # pool already exists, so done and ready
     exit 0
 fi
@@ -21,6 +23,8 @@ fi
 zpool import tank -m
 
 if [ $? -eq 0 ]; then
+    # make sure ssd is setup if it exists
+    ./zpool-local-ssd.sh
     # pool imported fine, so done and ready
     exit 0
 fi
@@ -30,6 +34,8 @@ set -e
 if [ -e /dev/vdc ]; then
     # have local fast ephemeral ssd
     zpool create -f tank /dev/vdc
+    # also setup the local ssd to cache the zfs filesystems, etc.
+    ./zpool-local-ssd.sh
 
 else
 
@@ -38,8 +44,6 @@ else
     umount /ephemeral
     set -e
     zpool create -f tank /dev/vdb
-    sed '/\/ephemeral/d' /etc/fstab > /etc/fstab.new
-    mv /etc/fstab.new /etc/fstab
 fi
 
 # setup mountpoints, filesystem and compression

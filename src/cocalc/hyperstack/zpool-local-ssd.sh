@@ -2,24 +2,40 @@
 
 set -ev
 
-if [ ! -e /dev/vdc ]; then
-    # there is definitely no local ephemeral disk, since the first data disk
-    # has to be /dev/vdc
-    exit 0
-fi
-
 disk="vdb"
 device="/dev/${disk}"
 zpool="local-ssd"
 
+# No matter what when the machine boots up, if we actually need to do something
+# and if there is a fast local ssd,
+# then /dev/vdb will be mounted as a normal ext4 filesystem as ephemeral.
+# If this is not the case, we don't have a fast local ssd.
+# Alternatively, everything was already setup and we just rebooted, so don't have
+# to do anything either.
+
+set +e
+# check for ephemeral local ssd
+df -h /ephemeral | grep /dev/vdb
+if [ $? -ne 0 ]; then
+    # above was an error, so there's no ephemeral local ssd to deal with
+    exit 0
+fi
+
+set -e
+
 # Get rid of any previous or default use of the local ephemeral disk.
 # Destroy loUnmount disk if it happens to be mounted (e.g., as /ephemeral)
-sed '/\/ephemeral/d' /etc/fstab > /etc/fstab.new
-mv /etc/fstab.new /etc/fstab
+# IMPORTANT!! Do not mess with /etc/fstab and remove the line
+#      /dev/vdb /ephemeral ext4 defaults,nofail 0 0
+# It seems like a good idea, but if you do that, then the boot image somewhere
+# or some cloudinit script will put in some other similar MUCH WORSE automount
+# thing and totally break the ephemeral disk and this script (with /dev/vdb1 busy).
+# So just don't do that!!!
+
+umount $device 2>/dev/null || true
 zpool destroy -f ${zpool} 2>/dev/null || true
 zpool remove tank ${disk}1  2>/dev/null || true
 zpool remove tank ${disk}2 2>/dev/null || true
-umount $device 2>/dev/null || true
 
 # Clear any existing partition table
 dd if=/dev/zero of=$device bs=512 count=1 conv=notrunc
