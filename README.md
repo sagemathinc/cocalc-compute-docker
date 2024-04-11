@@ -18,8 +18,10 @@ To build the cocalc npm package and push it to npmjs with the label "test":
 
 1. Update version of cocalc in this line in [images.json](./images.json): `{ "label": "test", "version": "1.8.1", "tag": "test", "tested": false }`
    e.g., from 1.8.1 to something newer than any tag, e.g., 1.8.3 or 1.9.0. 
-2. `make cocalc && make push-cocalc`
-3. Create a compute sever on [cocalc.com](http://cocalc.com) and for the images check "Advanced" and then select the "test" version of cocalc. That compute server will then use this testing npm package.
+```sh
+make cocalc && make push-cocalc
+```
+2. Create a compute sever on [cocalc.com](http://cocalc.com) and for the images check "Advanced" and then select the "test" version of cocalc. That compute server will then use this testing npm package.
 
 When ready to release in prod, i.e., to push a package to npmjs with the label "latest":
 
@@ -154,7 +156,7 @@ You can also visit the following URL's directly:
 
 - [visit this url while signed in as an admin](https://cocalc.com/api/v2/compute/get-images?ttl=0), which triggers a cache clear of images.json.
 - [and visit this url](https://cocalc.com/api/v2/compute/get-images-google?ttl=0), to clear the Google images cache.
-- NOTE: even after clearing the cache, cocalc.com might still take at least a minute until you see the difference.  The "cache" you're clearing is a record in the database, and individual hubs only update their view from the database record once per minute.
+- NOTE: even after clearing the cache, [cocalc.com](http://cocalc.com) might still take A LONG TIME until you see the difference.  The "cache" you're clearing is a record in the database, and individual hubs only update their view from the database record once per minute.  **Also, GitHub itself caches raw files for a long time.**  If you need to be very careful about what images.json you're using, change the actual URL to link to a specific version on GitHub via admin Settings.
 
 Once you successfully create the new images, they should be an option when you click "Advanced" when creating a compute server (make sure to click the above link and refresh your browser). You can try the image out, and if it works well, as an admin click the button "Mark Google Cloud Image as Tested" at the bottom of a specific compute server's configuration modal. This causes the google cloud image to get labeled `tested : true`, at which point all users will see this image by default (without having to click "Advanced"). NOTE: any user can click "Advanced" and use images before they are marked as tested.
 
