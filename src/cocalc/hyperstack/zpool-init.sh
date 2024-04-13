@@ -38,8 +38,14 @@ fi
 zpool import tank -m
 
 if [ $? -eq 0 ]; then
+    # there is a tank already
     if [ $local_ssd = 'yes' ]; then
         ./zpool-local-ssd.sh
+    else
+        # Remove any faulted cache/log devices due to not having a local ssd anymore.
+        # This happens the first time when we switch from having a local ssd to not.
+        zpool remove tank `zpool status tank | awk '/cache/ {p=1} p && /FAULTED/ {print $1}' | tr -d ' '` || true
+        zpool remove tank `zpool status tank | awk '/logs/ {p=1} p && /UNAVAIL/ {print $1}' | tr -d ' '` || true
     fi
     # pool imported fine, so done and ready
     ./zpool-add.sh
