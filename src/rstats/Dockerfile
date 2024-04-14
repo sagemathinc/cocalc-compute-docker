@@ -41,6 +41,10 @@ RUN \
   && wget https://s3.amazonaws.com/rstudio-ide-build/server/jammy/${ARCH1}/rstudio-server-2024.04.0-daily-470-${ARCH1}.deb \
   && echo "y" | dpkg -i rstudio-server-2024.04.0-daily-470-${ARCH1}.deb
 
+# So user can easily install packages
+RUN chown -R user:user /usr/local
+RUN chown -R user:user /var/log
+
 # RStudio shows a lot of errors without a proper locale setup.
 RUN apt update && apt -y install locales && locale-gen en_US.UTF-8
 ENV LANG en_US.UTF-8
