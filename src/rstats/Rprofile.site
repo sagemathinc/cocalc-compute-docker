@@ -1,0 +1,2 @@
+options(bitmapType='cairo-png')
+

@@ -41,6 +41,12 @@ RUN \
   && wget https://s3.amazonaws.com/rstudio-ide-build/server/jammy/${ARCH1}/rstudio-server-2024.04.0-daily-470-${ARCH1}.deb \
   && echo "y" | dpkg -i rstudio-server-2024.04.0-daily-470-${ARCH1}.deb
 
+# See https://forum.posit.co/t/missing-x11-support-in-rstudio/174814/2 and
+# https://discourse.openondemand.org/t/graphics-display-issues-with-r-built-from-source-for-rstudio-server/1123/5
+# File must end in a newline!!!!
+#  https://github.com/easybuilders/easybuild-easyconfigs/issues/4918#issuecomment-417486880
+COPY Rprofile.site /usr/local/lib/R/etc/Rprofile.site
+
 # So user can easily install packages
 RUN chown -R user:user /usr/local
 RUN chown -R user:user /var/log
@@ -54,6 +60,7 @@ ENV LC_ALL en_US.UTF-8
 COPY start-rstudio.sh /opt/start-rstudio.sh
 RUN chmod a+x /opt/start-rstudio.sh
 COPY rstudio.conf /etc/supervisor/conf.d/
+
 
 WORKDIR /home/user
 USER user
