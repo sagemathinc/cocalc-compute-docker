@@ -24,7 +24,7 @@ fi
 set -e
 
 # Get rid of any previous or default use of the local ephemeral disk.
-# Destroy loUnmount disk if it happens to be mounted (e.g., as /ephemeral)
+# Unmount and destroy disk if it happens to be mounted (e.g., as /ephemeral)
 # IMPORTANT!! Do not mess with /etc/fstab and remove the line
 #      /dev/vdb /ephemeral ext4 defaults,nofail 0 0
 # It seems like a good idea, but if you do that, then the boot image somewhere
