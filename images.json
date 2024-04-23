@@ -97,14 +97,16 @@
         "url": "/lab",
         "path": "/lab",
         "launch": "supervisorctl start jupyterlab",
-        "requiresDns": true
+        "requiresDns": true,
+        "videos": ["https://youtu.be/LLtLFtD8qfo"]
       },
       "vscode": {
         "icon": "vscode",
         "label": "VS Code",
         "url": "/code/",
         "path": "/code",
-        "launch": "supervisorctl start code-server"
+        "launch": "supervisorctl start code-server",
+        "videos": ["https://youtu.be/c7XHYBDTplw"]
       },
       "xpra": {
         "icon": "desktop",
@@ -244,6 +246,7 @@
     "dockerSizeGb": 2,
     "gpu": false,
     "icon": "r",
+    "videos": ["https://youtu.be/Owq90O0vLJo"],
     "url": "https://www.r-project.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/rstats",
     "authToken": true,
@@ -262,7 +265,7 @@
         "tested": true
       }
     ],
-    "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization.   The CoCalc R compute server image includes includes (1) **Rstudio** Server and (2) the **R Jupyter kernel.**  To use RStudio, click on the displayed https link after the server starts running (Select the 'Custom Domain Name with SSL' option below to select a custom domain name avoid a security certificate warning) and copy/paste the security token. To use a Jupyter notebook, open a notebook in CoCalc on the compute server and select the R kernel.  _**DISCLAIMER: RSTUDIO/POSIT PBC IS IN NO WAY ASSOCIATED WITH COCALC.**"
+    "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization.   The CoCalc R compute server image includes includes (1) **RStudio** Server and (2) the **R Jupyter kernel.**  To use RStudio, click on the displayed https link after the server starts running (Select the 'Custom Domain Name with SSL' option below to select a custom domain name avoid a security certificate warning) and copy/paste the security token. To use a Jupyter notebook, open a notebook in CoCalc on the compute server and select the R kernel.  _**DISCLAIMER: RSTUDIO/POSIT PBC IS IN NO WAY ASSOCIATED WITH COCALC.**"
   },
   "julia": {
     "label": "Julia",
@@ -322,6 +325,7 @@
     "url": "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch",
     "icon": "pytorch",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/pytorch",
+    "videos": ["https://youtu.be/JG6jm6yv_KE"],
     "upstreamVersions": "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch/tags",
     "versions": [
       { "label": "2.2.0 (2023-11)", "tag": "23.11-py3", "tested": true },
@@ -360,6 +364,7 @@
     "url": "https://github.com/googlecolab",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/colab",
     "upstreamVersions": "https://console.cloud.google.com/artifacts/docker/colab-images/us/public/runtime",
+    "videos": ["https://youtu.be/kcxyShH3wYE"],
     "versions": [
       {
         "label": "2023-09-21",
@@ -388,6 +393,7 @@
     "icon": "robot",
     "url": "https://openwebui.com/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/openwebui",
+    "videos": ["https://youtu.be/OMN1af0LUcA"],
     "description": "[Open WebUI](https://github.com/open-webui/open-webui?tab=readme-ov-file#open-webui-formerly-ollama-webui-) provides a ChatGPT style UI for a vast collection of free open models, with a huge feature set.  CoCalc adds cloud hosting, one-click setup, a layer of authentication, and an optional domain name.  When you start the container the latest version of Open WebUI is installed using Docker compose, **which can take around 1 minute during which the site is not accessible**.   Only users that know the random token can create an account on your server.  After your server starts, visit the https URL of your server, and create a new admin account.  Your chats, models and documents are stored only in Docker volumes on the compute server, which are not backed up in any way or sent anywhere except to you; in particular, when you delete the compute server, all chats are completely erased.  Use a terminal on the compute server and the [docker command line](https://docs.docker.com/storage/volumes/) if you need to extract data from these volumes.",
     "authToken": true,
     "proxy": [
@@ -435,6 +441,7 @@
     "icon": "times",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/jax",
     "upstreamVersions": "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/jax/tags",
+    "videos": ["https://youtu.be/Uwn3ngzXD0Y"],
     "versions": [
       {
         "label": "0.4.17 (2023-10)",
