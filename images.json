@@ -242,8 +242,8 @@
   "rstats": {
     "label": "R Statistics",
     "package": "sagemathinc/rstats",
-    "minDiskSizeGb": 10,
-    "dockerSizeGb": 2,
+    "minDiskSizeGb": 15,
+    "dockerSizeGb": 3,
     "gpu": false,
     "icon": "r",
     "videos": ["https://youtu.be/Owq90O0vLJo"],
