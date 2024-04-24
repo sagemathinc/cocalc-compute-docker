@@ -2,27 +2,15 @@
 
 set -v
 
-# check for ephemeral local ssd -- this works right when we boot up, but not later,
-# due to cloud init (?) always reinitializing the local ssd.
-df -h /ephemeral | grep /dev/vdb
-if [ $? -ne 0 ]; then
-    # above was an error, so there's DEFINITELY no ephemeral local ssd to deal with
+
+if [ -n "$COCALC_LOCAL_SSD" ]; then
+    # There is a local SSD -- we just assume it is /dev/vdb
+    # since that's what it is on hyperstack.
+    local_ssd=yes
+    first_volume=/dev/vdc
+else
     local_ssd=no
     first_volume=/dev/vdb
-else
-    # There might be a local ssd, or it could be that the cloud-init stuff from upstream
-    # just tried to turn our volume into a fake ephemeral. (I wish it wouldn't.)
-    stat /dev/vdc
-    if [ $? -ne 0 ]; then
-        # There is no /dev/vdc, hence /dev/vdb must be our data, since there is always a data volume.
-        # I.e., this is the case where the annoying cloud init processed our volume.
-        local_ssd=no
-        first_volume=/dev/vdb
-    else
-        # There is a /dev/vdc as well, so /dev/vdb is truly the ephemeral disk.
-        local_ssd=yes
-        first_volume=/dev/vdc
-    fi
 fi
 
 echo "local_ssd=$local_ssd"
@@ -39,7 +27,7 @@ do
     sleep 1
 done
 sleep 1
-# We can now assume that the external volume is plugged in.
+# We can now assume that the external user data volume is plugged in.
 
 which zpool
 
@@ -101,7 +89,7 @@ fi
 set -e
 
 if [ $local_ssd = 'yes' ]; then
-    # have local fast ephemeral ssd
+    # have local fast ssd
     zpool create -f tank $first_volume
     # also setup the local ssd to cache the zfs filesystems, etc.
     ./zpool-local-ssd.sh
@@ -109,7 +97,10 @@ if [ $local_ssd = 'yes' ]; then
 else
 
     # do NOT have local fast ssd
-    umount /ephemeral
+    # Ubuntu may automount /dev/vdb at /mnt, so we have to unmount it or
+    # zfs can't create a pool, since vdb will be "in use".
+    umount /mnt > /dev/null || true
+    # create our pool
     zpool create -f tank /dev/vdb
 fi
 

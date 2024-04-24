@@ -2,6 +2,11 @@
 
 set -ev
 
+if [ "$COCALC_LOCAL_SSD"x -eq "x" ]; then
+    echo "There is no local ssd so nothing to configure."
+    exit 0
+fi
+
 disk="vdb"
 device="/dev/${disk}"
 zpool="local-ssd"
@@ -12,14 +17,6 @@ zpool="local-ssd"
 # If this is not the case, we don't have a fast local ssd.
 # Alternatively, everything was already setup and we just rebooted, so don't have
 # to do anything either.
-
-set +e
-# check for ephemeral local ssd
-df -h /ephemeral | grep /dev/vdb
-if [ $? -ne 0 ]; then
-    # above was an error, so there's no ephemeral local ssd to deal with
-    exit 0
-fi
 
 set -e
 
