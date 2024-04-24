@@ -6,14 +6,27 @@ set -v
 # due to cloud init (?) always reinitializing the local ssd.
 df -h /ephemeral | grep /dev/vdb
 if [ $? -ne 0 ]; then
-    # above was an error, so there's no ephemeral local ssd to deal with
+    # above was an error, so there's DEFINITELY no ephemeral local ssd to deal with
     local_ssd=no
     first_volume=/dev/vdb
 else
-    # yes, there is the local ssd.
-    local_ssd=yes
-    first_volume=/dev/vdc
+    # There might be a local ssd, or it could be that the cloud-init stuff from upstream
+    # just tried to turn our volume into a fake ephemeral. (I wish it wouldn't.)
+    stat /dev/vdc
+    if [ $? -ne 0 ]; then
+        # There is no /dev/vdc, hence /dev/vdb must be our data, since there is always a data volume.
+        # I.e., this is the case where the annoying cloud init processed our volume.
+        local_ssd=no
+        first_volume=/dev/vdb
+    else
+        # There is a /dev/vdc as well, so /dev/vdb is truly the ephemeral disk.
+        local_ssd=yes
+        first_volume=/dev/vdc
+    fi
 fi
+
+echo "local_ssd=$local_ssd"
+echo "first_volume=$first_volume"
 
 # Wait for first external volume to be visible.  This can be totally random -- usually it is
 # already there, but sometimes it takes a little while.  It's VERY important to wait, since
@@ -39,6 +52,7 @@ fi
 zpool status tank
 
 if [ $? -eq 0 ]; then
+    echo "tank zpool is already available"
     # This case would happen if the VM is rebooted.
 
     # Make sure ssd is setup if it exists
@@ -56,7 +70,9 @@ fi
 parted -m $first_volume print | grep :zfs:
 
 if [ $? -eq 0 ]; then
-    # zfs is definitely there!  Import it.
+    set -e
+    echo "zfs user data definitely exists!  Import it."
+
     # The -f is important since each time we start the compute server
     # the root file system is reset, so without -f we get this error
     #     cannot import 'tank': pool was previously in use from another system.
@@ -72,18 +88,18 @@ if [ $? -eq 0 ]; then
     else
         # Remove any faulted cache/log devices due to not having a local ssd anymore.
         # This happens the first time when we switch from having a local ssd to not.
-        zpool remove tank `zpool status tank | awk '/cache/ {p=1} p && /FAULTED/ {print $1}' | tr -d ' '` || true
-        zpool remove tank `zpool status tank | awk '/logs/ {p=1} p && /UNAVAIL/ {print $1}' | tr -d ' '` || true
+        zpool remove tank `zpool status tank | awk '/cache/ {p=1} p && /FAULTED/ {print $1}' | tr -d ' '` 2>/dev/null || true
+        zpool remove tank `zpool status tank | awk '/logs/ {p=1} p && /UNAVAIL/ {print $1}' | tr -d ' '` 2>/dev/null|| true
     fi
     # pool imported fine, so done and ready
     ./zpool-add.sh
 
     # If docker is installed, restart it (since it could have started before we setup our zpool).
-    service docker restart
+    service docker restart  2>/dev/null || true
     exit 0
 fi
-
 set -e
+
 if [ $local_ssd = 'yes' ]; then
     # have local fast ephemeral ssd
     zpool create -f tank $first_volume
@@ -113,4 +129,4 @@ mkdir -p /etc/docker
 echo '{"storage-driver":"zfs"}' > /etc/docker/daemon.json
 
 # If docker is installed, restart it.
-service docker restart || true
+service docker restart  2>/dev/null || true

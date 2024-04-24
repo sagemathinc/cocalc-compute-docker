@@ -23,7 +23,8 @@ fi
 
 set -e
 
-# Get rid of any previous or default use of the local ephemeral disk.
+echo "Get rid of any previous or default use of the local ephemeral disk, and set it up."
+
 # Unmount and destroy disk if it happens to be mounted (e.g., as /ephemeral)
 # IMPORTANT!! Do not mess with /etc/fstab and remove the line
 #      /dev/vdb /ephemeral ext4 defaults,nofail 0 0
@@ -40,8 +41,14 @@ zpool remove tank ${disk}2 2>/dev/null || true
 # Clear any existing partition table
 dd if=/dev/zero of=$device bs=512 count=1 conv=notrunc
 
-# Create a new partition table
-parted -s $device mklabel gpt
+# Create a new partition table - sometimes we have to keep trying
+while ! parted -s $device mklabel gpt
+do
+    echo "Trying again to unmount $device"
+    umount $device || true
+    sleep 1
+done
+
 
 # Create partition 1 (20GB)
 parted -s $device mkpart primary 0GB 20GB

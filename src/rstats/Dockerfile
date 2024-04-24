@@ -21,9 +21,30 @@ RUN /tmp/build-r.sh ${R_VERSION}
 # Did it work?
 RUN /usr/local/bin/R --version
 
+# Dependencies for installing the popular R packages
+RUN \
+  apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+     libharfbuzz-dev libfribidi-dev  libxml2-dev libssl-dev libgit2-dev
+
 # Install R Jupyter Kernel package into R itself (so the R Jupyter kernel works),
 # and some other packages e.g., rmarkdown which requires reticulate to use Python.
-RUN echo "options(Ncpus = 8); install.packages(c('tidyverse', 'repr', 'IRdisplay', 'evaluate', 'crayon', 'pbdZMQ', 'httr', 'devtools', 'uuid', 'digest', 'IRkernel', 'rmarkdown', 'reticulate', 'formatR', 'Cairo'), repos='https://cloud.r-project.org')" | R --no-save
+ADD install_packages.R /tmp
+
+RUN Rscript --no-save /tmp/install_packages.R tidyverse
+RUN Rscript --no-save /tmp/install_packages.R repr
+RUN Rscript --no-save /tmp/install_packages.R IRdisplay IRkernel
+RUN Rscript --no-save /tmp/install_packages.R evaluate
+RUN Rscript --no-save /tmp/install_packages.R crayon
+RUN Rscript --no-save /tmp/install_packages.R pbdZMQ
+RUN Rscript --no-save /tmp/install_packages.R httr
+RUN Rscript --no-save /tmp/install_packages.R devtools
+RUN Rscript --no-save /tmp/install_packages.R uuid
+RUN Rscript --no-save /tmp/install_packages.R digest
+RUN Rscript --no-save /tmp/install_packages.R rmarkdown
+RUN Rscript --no-save /tmp/install_packages.R reticulate
+RUN Rscript --no-save /tmp/install_packages.R formatR
+RUN Rscript --no-save /tmp/install_packages.R Cairo
 
 COPY ir /usr/local/share/jupyter/kernels/ir
 
