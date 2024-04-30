@@ -361,6 +361,18 @@ assemble-anaconda:
 	./src/scripts/assemble.sh $(DOCKER_USER)/anaconda $(ANACONDA_TAG)
 
 
+## IMAGE: lean theorem prover
+LEAN_TAG=$(shell $(GET_TAG) lean)
+lean:
+	cd src/lean && docker build  --build-arg ARCH=${ARCH}  --build-arg COMPUTE_TAG=$(COMPUTE_TAG) -t $(DOCKER_USER)/lean$(ARCH):$(LEAN_TAG) .
+push-lean:
+	docker push $(DOCKER_USER)/lean$(ARCH):$(LEAN_TAG)
+run-lean:
+	docker run  --name run-lean  -it --rm $(DOCKER_USER)/lean$(ARCH):$(LEAN_TAG)
+assemble-lean:
+	./src/scripts/assemble.sh $(DOCKER_USER)/lean $(LEAN_TAG)
+
+
 #####
 # GPU only images below
 # Only need to worry about x86_64 for this, obviously:

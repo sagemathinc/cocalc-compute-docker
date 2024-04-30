@@ -291,6 +291,20 @@
     ],
     "description": "[Julia](https://julialang.org/) is a high-performance programming language designed for technical computing, combining the speed of C with the ease of use of Python. It excels in numerical analysis, computational science, and data processing with its efficient syntax and ability to handle high-level mathematical operations."
   },
+  "lean": {
+    "priority": 0,
+    "disabled": false,
+    "label": "LEAN Theorem Prover",
+    "package": "sagemathinc/lean",
+    "minDiskSizeGb": 10,
+    "dockerSizeGb": 1,
+    "gpu": false,
+    "icon": "file-code",
+    "url": "https://lean-lang.org/",
+    "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/lean",
+    "description": "Lean is an open source theorem prover that aims to bridge the gap between interactive and automated theorem proving.",
+    "versions": [{ "tag": "2024-04-29", "label": "4.7.0", "tested": false }]
+  },
   "anaconda": {
     "priority": 8,
     "disabled": false,
