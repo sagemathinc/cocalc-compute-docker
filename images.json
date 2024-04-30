@@ -303,7 +303,7 @@
     "url": "https://lean-lang.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/lean",
     "description": "[Lean](https://lean-lang.org/) is an open source theorem prover that aims to bridge the gap between interactive and automated theorem proving.  This image comes with Lean 4, VS Code, and the Lean VS Code plugin preinstalled.  Start it up, and click the 'VS Code' button, then start fully using Lean!    Lean has excellent support for parallel computing, so select a server with a **large number of CPUs**.  Since you are likely working interactively, spot instances are a good choice.",
-    "versions": [{ "tag": "2024-04-29.p1", "label": "4.7.0", "tested": true }],
+    "versions": [{ "tag": "2024-04-29.p2", "label": "4.7.0", "tested": true }],
     "jupyterKernels": false
   },
   "anaconda": {

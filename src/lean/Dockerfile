@@ -10,10 +10,13 @@ RUN chown -R user:user /usr/local
 
 USER user
 
-# INSTEAL LEAN VS Code extension
-RUN code-server --install-extension leanprover.lean4
-
 ENV ELAN_HOME=/usr/local/
+ENV XDG_DATA_HOME=/usr/local
+
+# Install/update the LEAN vs code extension.  It gets installed
+# into /usr/local because of the XDG_DATA_HOME env var.
+# See https://coder.com/docs/code-server/latest/FAQ#where-are-extensions-stored
+RUN code-server --install-extension leanprover.lean4
 
 # Install LEAN
 # See https://github.com/leanprover/elan?tab=readme-ov-file#manual-installation
