@@ -18,9 +18,11 @@ To build the cocalc npm package and push it to npmjs with the label "test":
 
 1. Update version of cocalc in this line in [images.json](./images.json): `{ "label": "test", "version": "1.8.1", "tag": "test", "tested": false }`
    e.g., from 1.8.1 to something newer than any tag, e.g., 1.8.3 or 1.9.0. 
+
 ```sh
 make cocalc && make push-cocalc
 ```
+
 2. Create a compute sever on [cocalc.com](http://cocalc.com) and for the images check "Advanced" and then select the "test" version of cocalc. That compute server will then use this testing npm package.
 
 When ready to release in prod, i.e., to push a package to npmjs with the label "latest":
@@ -139,8 +141,7 @@ For example, the following will create the x86_64 and arm64 Julia images with ta
 ```sh
 [prod3.test] kucalc-prod3-ctl-ws-3:~/kucalc/cluster2> c ssh hub-mentions
 $ cd /cocalc/src/packages/server/ && node
-> a = require('./dist/compute/cloud/google-cloud/create-image')
-> await a.createImages({image:"julia", tag:'1.10.1'})
+> a = require('./dist/compute/cloud/google-cloud/create-image'); await a.createImages({image:"julia", tag:'1.10.1'})
 ...
 
 CREATED [ 'cocalc-julia-1-10-1-arm64', 'cocalc-julia-1-10-1' ]
