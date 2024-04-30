@@ -13,6 +13,8 @@ USER user
 # INSTEAL LEAN VS Code extension
 RUN code-server --install-extension leanprover.lean4
 
+ENV ELAN_HOME=/usr/local/
+
 # Install LEAN
 # See https://github.com/leanprover/elan?tab=readme-ov-file#manual-installation
 RUN \
@@ -20,9 +22,7 @@ RUN \
   && curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf > elan-init.sh \
   && chmod +x elan-init.sh \
   && ./elan-init.sh -y \
-  && cp -rv /home/user/.elan/* /usr/local/ \
-  && rm -rf /home/user/.elan elan-init.sh \
-  && elan default stable
+  && rm ./elan-init.sh
 
 
 
