@@ -134,6 +134,7 @@
     "dockerSizeGb": 1,
     "gpu": false,
     "icon": "python",
+    "vidoes": ["https://youtu.be/_y5FEj9o4aY"],
     "url": "https://www.python.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/python",
     "versions": [
@@ -281,6 +282,7 @@
     "gpu": false,
     "icon": "julia",
     "url": "https://julialang.org/",
+    "videos": ["https://youtu.be/OM7R3im9Vgg"],
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/julia",
     "versions": [
       { "label": "1.9.4", "tag": "1.9.4", "tested": true },
@@ -298,6 +300,7 @@
     "dockerSizeGb": 1,
     "gpu": false,
     "icon": "python",
+    "videos": ["https://youtu.be/k2UqTsSYBz8"],
     "url": "https://www.sagemath.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/anaconda",
     "description": "Anaconda is a distribution of Python, R, SageMath and Julia for scientific computing (data science, machine learning, data processing, etc.).  This is the [Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with a Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using `conda install package` command in a terminal or `!conda install -y package` in a Jupyter notebook.  You can also use `pip install` as usual.",
@@ -316,6 +319,7 @@
     "dockerSizeGb": 1,
     "gpu": true,
     "icon": "python",
+    "videos": ["https://youtu.be/7fzLd6HD-Qs"],
     "url": "https://www.sagemath.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/anaconda",
     "description": "Anaconda is a distribution of Python, R, SageMath and Julia with GPU support for scientific computing (data science, machine learning, data processing, etc.).  This is the [Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with a Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using `conda install package` command in a terminal or `!conda install -y package` in a Jupyter notebook.  You can also use `pip install` as usual.",
@@ -391,7 +395,7 @@
     "description": "[Google Colab](https://colab.google/) comes preinstalled with a wide range of popular data science and machine learning libraries, such as TensorFlow, PyTorch, Matplotlib, and Pandas. It also includes support for Python and its various packages, enabling users to jump straight into coding without worrying about setup and installation."
   },
   "openwebui": {
-    "label": "OpenWebUI (Ollama)",
+    "label": "Open WebUI (Ollama)",
     "package": "sagemathinc/openwebui",
     "minDiskSizeGb": 30,
     "dockerSizeGb": 1,
