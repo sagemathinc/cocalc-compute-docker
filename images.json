@@ -183,6 +183,7 @@
     "microk8s": false,
     "icon": "cube",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/hpc",
+    "videos": ["https://youtu.be/qxF7a246t_I"],
     "versions": [
       {
         "label": "2024-03-28",
