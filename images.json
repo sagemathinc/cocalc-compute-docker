@@ -365,7 +365,10 @@
     "url": "https://github.com/conda-forge/miniforge",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/anaconda",
     "description": "Anaconda is a distribution of Python, R, SageMath and Julia with GPU support for scientific computing (data science, machine learning, data processing, etc.).  This is the [Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with a Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using `conda install package` command in a terminal or `!conda install -y package` in a Jupyter notebook.  You can also use `pip install` as usual.    This image does not include SageMath or Julia (etc.), but you can quickly install either via `conda install -y sage` and `conda install -y julia`.",
-    "versions": [{ "tag": "2024-03-10", "tested": true }]
+    "versions": [{ "tag": "2024-03-10", "tested": true }],
+    "tutorials": [
+      "https://github.com/sagemathinc/cocalc-howto/blob/main/tensorflow.md"
+    ]
   },
   "pytorch": {
     "priority": 10,
@@ -396,6 +399,10 @@
     "gpu": true,
     "minDiskSizeGb": 50,
     "dockerSizeGb": 10,
+    "videos": ["https://youtu.be/aGHxjVHgOr8"],
+    "tutorials": [
+      "https://github.com/sagemathinc/cocalc-howto/blob/main/tensorflow.md"
+    ],
     "url": "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/tensorflow",
     "icon": "tensorflow",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/tensorflow",
