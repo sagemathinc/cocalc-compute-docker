@@ -184,6 +184,9 @@
     "icon": "cube",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/hpc",
     "videos": ["https://youtu.be/qxF7a246t_I"],
+    "tutorials": [
+      "https://github.com/sagemathinc/cocalc-howto/blob/main/hpc.md"
+    ],
     "versions": [
       {
         "label": "2024-03-28",
@@ -227,6 +230,9 @@
     "url": "https://www.sagemath.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/sagemath",
     "videos": ["https://youtu.be/MlSq8UpzyTQ"],
+    "tutorials": [
+      "https://github.com/sagemathinc/cocalc-howto/blob/main/build-sage.md"
+    ],
     "versions": [
       { "tag": "10.1", "tested": true },
       { "tag": "10.2", "tested": true },
@@ -259,6 +265,9 @@
     "gpu": false,
     "icon": "r",
     "videos": ["https://youtu.be/Owq90O0vLJo"],
+    "tutorials": [
+      "https://github.com/sagemathinc/cocalc-howto/blob/main/rstudio.md"
+    ],
     "url": "https://www.r-project.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/rstats",
     "authToken": true,
@@ -317,6 +326,10 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/lean",
     "description": "[Lean](https://lean-lang.org/) is an open source theorem prover that aims to bridge the gap between interactive and automated theorem proving.  This image comes with Lean 4, VS Code, and the Lean VS Code plugin preinstalled.  Start it up, and click the 'VS Code' button, then start fully using Lean!    Lean has excellent support for parallel computing, so select a server with a **large number of CPUs**.  Since you are likely working interactively, spot instances are a good choice.",
     "versions": [{ "tag": "2024-04-29.p2", "label": "4.7.0", "tested": true }],
+    "videos": ["https://youtu.be/H1KzvpgUyMU"],
+    "tutorials": [
+      "https://github.com/sagemathinc/cocalc-howto/blob/main/lean.md"
+    ],
     "jupyterKernels": false,
     "requireDns": true
   },
@@ -365,6 +378,9 @@
     "icon": "pytorch",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/pytorch",
     "videos": ["https://youtu.be/JG6jm6yv_KE"],
+    "tutorials": [
+      "https://github.com/sagemathinc/cocalc-howto/blob/main/pytorch.md"
+    ],
     "upstreamVersions": "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/pytorch/tags",
     "versions": [
       { "label": "2.2.0 (2023-11)", "tag": "23.11-py3", "tested": true },
@@ -404,6 +420,9 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/colab",
     "upstreamVersions": "https://console.cloud.google.com/artifacts/docker/colab-images/us/public/runtime",
     "videos": ["https://youtu.be/kcxyShH3wYE"],
+    "tutorials": [
+      "https://github.com/sagemathinc/cocalc-howto/blob/main/colab.md"
+    ],
     "versions": [
       {
         "label": "2023-09-21",
@@ -463,6 +482,9 @@
     "minDiskSizeGb": 33,
     "dockerSizeGb": 4,
     "icon": "nvidia",
+    "tutorials": [
+      "https://github.com/sagemathinc/cocalc-howto/blob/main/cuda.md"
+    ],
     "url": "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/cuda",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/cuda",
     "description": "The CUDA Toolkit from NVIDIA provides everything you need to develop GPU-accelerated applications.  The CUDA Toolkit includes GPU-accelerated libraries, a compiler, development tools and the CUDA runtime.   It enables dramatic increases in computing performance by harnessing the power of NVIDIA graphics processing units (GPUs) for a wide range of computing tasks.",
@@ -483,6 +505,9 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/jax",
     "upstreamVersions": "https://catalog.ngc.nvidia.com/orgs/nvidia/containers/jax/tags",
     "videos": ["https://youtu.be/Uwn3ngzXD0Y"],
+    "tutorials": [
+      "https://github.com/sagemathinc/cocalc-howto/blob/main/jax.md"
+    ],
     "versions": [
       {
         "label": "0.4.17 (2023-10)",
