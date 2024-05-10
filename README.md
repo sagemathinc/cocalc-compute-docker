@@ -23,6 +23,12 @@ To build the cocalc npm package and push it to npmjs with the label "test":
 make cocalc && make push-cocalc
 ```
 
+```sh
+# or with a different branch:
+
+make BRANCH=bugday cocalc && make BRANCH=bugday push-cocalc
+```
+
 2. Create a compute sever on [cocalc.com](http://cocalc.com) and for the images check "Advanced" and then select the "test" version of cocalc. That compute server will then use this testing npm package.
 
 When ready to release in prod, i.e., to push a package to npmjs with the label "latest":

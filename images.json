@@ -8,12 +8,12 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cocalc",
     "versions": [
       {
-        "version": "1.13.10",
+        "version": "1.13.12",
         "tag": "latest",
         "tested": true
       },
       {
-        "version": "1.12.5",
+        "version": "1.13.11",
         "tag": "test",
         "tested": false
       }
@@ -292,6 +292,12 @@
         "label": "2024-04-23 (R version 4.3.3)",
         "tag": "2024-04-23",
         "tested": true
+      },
+      {
+        "version": "4.4.0",
+        "label": "2024-05-10 (R version 4.4.0)",
+        "tag": "2024-05-10",
+        "tested": true
       }
     ],
     "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization.   The CoCalc R compute server image includes includes (1) **RStudio** Server and (2) the **R Jupyter kernel.**  To use RStudio, click on the displayed https link after the server starts running (Select the 'Custom Domain Name with SSL' option below to select a custom domain name avoid a security certificate warning) and copy/paste the security token. To use a Jupyter notebook, open a notebook in CoCalc on the compute server and select the R kernel.  _**DISCLAIMER: RSTUDIO/POSIT PBC IS IN NO WAY ASSOCIATED WITH COCALC.**"
@@ -309,7 +315,8 @@
     "versions": [
       { "label": "1.9.4", "tag": "1.9.4", "tested": true },
       { "label": "1.10.0", "tag": "1.10.0", "tested": true },
-      { "label": "1.10.1", "tag": "1.10.1", "tested": true }
+      { "label": "1.10.1", "tag": "1.10.1", "tested": true },
+      { "label": "1.10.3", "tag": "1.10.3", "tested": true }
     ],
     "description": "[Julia](https://julialang.org/) is a high-performance programming language designed for technical computing, combining the speed of C with the ease of use of Python. It excels in numerical analysis, computational science, and data processing with its efficient syntax and ability to handle high-level mathematical operations."
   },
@@ -444,6 +451,11 @@
       {
         "label": "2024-02-06",
         "tag": "release-colab_20240205-060127_RC00",
+        "tested": true
+      },
+      {
+        "label": "2024-03-29",
+        "tag": "release-colab_20240328-060159_RC01",
         "tested": true
       }
     ],
