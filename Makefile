@@ -132,8 +132,10 @@ JUICEFS_TAG = $(shell $(GET_TAG) juicefs)
 
 # JFS_VERSION from https://api.github.com/repos/juicedata/juicefs/releases/latest
 JFS_VERSION=1.1.2
+# See https://github.com/GoogleCloudPlatform/gcsfuse/tags
+GCSFUSE_VERSION=2.0.1
 juicefs:
-	cd src && docker build  --build-arg ARCH=${ARCH} --build-arg ARCH1=${ARCH1} --build-arg ARCH=${ARCH}  --build-arg JFS_VERSION=${JFS_VERSION} --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/juicefs$(ARCH):$(JUICEFS_TAG) . -f juicefs/Dockerfile
+	cd src && docker build  --build-arg ARCH=$(ARCH) --build-arg ARCH1=$(ARCH1) --build-arg ARCH=$(ARCH)  --build-arg JFS_VERSION=$(JFS_VERSION) --build-arg GCSFUSE_VERSION=$(GCSFUSE_VERSION) --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/juicefs$(ARCH):$(JUICEFS_TAG) . -f juicefs/Dockerfile
 run-juicefs: /tmp/cocalc/done
 	docker run --name run-juicefs -it --rm -v /tmp/cocalc:/cocalc $(DOCKER_USER)/juicefs$(ARCH):$(JUICEFS_TAG)
 push-juicefs:
