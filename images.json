@@ -45,6 +45,16 @@
     "versions": [{ "tag": "1.1", "tested": true }],
     "description": "Filesystem container."
   },
+  "juicefs": {
+    "system": true,
+    "label": "Global Filesystem",
+    "package": "sagemathinc/juicefs",
+    "icon": "files",
+    "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/juicefs",
+    "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/juicefs",
+    "versions": [{ "tag": "1.0", "tested": false }],
+    "description": "Global Shared Filesystem container."
+  },
   "base": {
     "system": true,
     "label": "Base",

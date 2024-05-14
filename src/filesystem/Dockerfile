@@ -1,13 +1,10 @@
+ARG ARCH=
 ARG BASE_TAG=
-FROM sagemathinc/base:${BASE_TAG}
+FROM sagemathinc/base${ARCH}:${BASE_TAG}
 
 USER root
 
-# Copy over the cocalc script -- this is to make testing and devel easier.
-# In production these are mounted in.
-COPY cocalc /cocalc
-
-# unionfs-fuse -- used for our layed sync filesystem
+# unionfs-fuse -- used for our layered sync filesystem
 # lz4 -- used for compression when transfering files for sync.
 # file rsync  bsdextrautils (to provide hexdump) bzip2 (to provide bunzip2) unzip gunzip tar xz gzip -- used for filesystem operations by api/frontend, e.g., copying/moving/etc.
 # yapf3 -- for formatting code

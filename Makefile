@@ -119,13 +119,27 @@ assemble-base:
 ## IMAGE: filesystem
 FILESYSTEM_TAG = $(shell $(GET_TAG) filesystem)
 filesystem:
-	cd src && docker build  --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG) . -f filesystem/Dockerfile
-run-filesystem:
-	rm -rf /tmp/filesystem && mkdir /tmp/filesystem && chmod a+rwx /tmp/filesystem && docker run --name run-filesystem -it --rm -v /tmp/filesystem:/data -v /cocalc:/cocalc $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG)
+	cd src && docker build  --build-arg ARCH=${ARCH}  --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG) . -f filesystem/Dockerfile
+run-filesystem: /tmp/cocalc/done
+	rm -rf /tmp/filesystem && mkdir /tmp/filesystem && chmod a+rwx /tmp/filesystem && docker run --name run-filesystem -it --rm -v /tmp/filesystem:/data -v /tmp/cocalc:/cocalc $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG)
 push-filesystem:
 	docker push $(DOCKER_USER)/filesystem$(ARCH):$(FILESYSTEM_TAG)
 assemble-filesystem:
 	./src/scripts/assemble.sh $(DOCKER_USER)/filesystem $(FILESYSTEM_TAG)
+
+## IMAGE: juicefs
+JUICEFS_TAG = $(shell $(GET_TAG) juicefs)
+
+# JFS_VERSION from https://api.github.com/repos/juicedata/juicefs/releases/latest
+JFS_VERSION=1.1.2
+juicefs:
+	cd src && docker build  --build-arg ARCH=${ARCH} --build-arg ARCH1=${ARCH1} --build-arg ARCH=${ARCH}  --build-arg JFS_VERSION=${JFS_VERSION} --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/juicefs$(ARCH):$(JUICEFS_TAG) . -f juicefs/Dockerfile
+run-juicefs: /tmp/cocalc/done
+	docker run --name run-juicefs -it --rm -v /tmp/cocalc:/cocalc $(DOCKER_USER)/juicefs$(ARCH):$(JUICEFS_TAG)
+push-juicefs:
+	docker push $(DOCKER_USER)/juicefs$(ARCH):$(JUICEFS_TAG)
+assemble-juicefs:
+	./src/scripts/assemble.sh $(DOCKER_USER)/juicefs $(JUICEFS_TAG)
 
 ## IMAGE: compute
 COMPUTE_TAG = $(shell $(GET_TAG) compute)
@@ -137,6 +151,8 @@ push-compute:
 	docker push $(DOCKER_USER)/compute$(ARCH):$(COMPUTE_TAG)
 assemble-compute:
 	./src/scripts/assemble.sh $(DOCKER_USER)/compute $(COMPUTE_TAG)
+
+
 
 ## IMAGE: python
 PYTHON_TAG = $(shell $(GET_TAG) python)
