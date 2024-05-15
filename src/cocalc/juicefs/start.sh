@@ -1,10 +1,7 @@
 #!/usr/bin/env bash
 set -ev
 
-export SERVICE_ACCOUNT=/secrets/google-service-account.json
-export BUCKET=compute-server-storage-2
-export COMPUTE_SERVER_ID=3767
-export MOUNT=/home/user/jfs
+./check-env.sh
 
 # Configure google cloud storage credentials
 
