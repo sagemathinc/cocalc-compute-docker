@@ -4,6 +4,14 @@ FROM sagemathinc/base${ARCH}:${BASE_TAG}
 
 USER root
 
+# Install fuse3.  This changes, e.g., the fusermount binary, and makes it so -o nonempty
+# will work properly (by default) with juicefs.  Obviously this should be installed in base,
+# but I'm worried that it might break websocketfs, etc., so am going to wait and do
+# that later.
+RUN \
+     apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y -o Dpkg::Options::="--force-confnew" fuse3
+
 # Install JuiceFS Go binary -- https://juicefs.com/docs/community/getting-started/installation/
 # We do things more manually so we explicitly update version instead of it randomly
 # updating whenever we build the image.

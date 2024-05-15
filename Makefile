@@ -130,8 +130,8 @@ assemble-filesystem:
 ## IMAGE: juicefs
 JUICEFS_TAG = $(shell $(GET_TAG) juicefs)
 
-# JFS_VERSION from https://api.github.com/repos/juicedata/juicefs/releases/latest
-JFS_VERSION=1.1.2
+# JFS_VERSION from https://github.com/juicedata/juicefs/tags
+JFS_VERSION=1.2.0-beta1
 # See https://github.com/GoogleCloudPlatform/gcsfuse/tags
 GCSFUSE_VERSION=2.0.1
 juicefs:

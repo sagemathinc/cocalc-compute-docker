@@ -8,7 +8,7 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cocalc",
     "versions": [
       {
-        "version": "1.13.12",
+        "version": "1.13.13",
         "tag": "latest",
         "tested": true
       },
@@ -47,13 +47,13 @@
   },
   "juicefs": {
     "system": true,
-    "label": "Global Filesystem",
+    "label": "JuiceFS Cloud-Native Distributed File System",
     "package": "sagemathinc/juicefs",
     "icon": "files",
     "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/juicefs",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/juicefs",
-    "versions": [{ "tag": "1.0", "tested": false }],
-    "description": "Global Shared Filesystem container."
+    "versions": [{ "tag": "2024-05-15", "tested": false }],
+    "description": "JuiceFS is a High-Performance, Cloud-Native, Distributed File System. This container includes juicefs, gcsfuse and keydb."
   },
   "base": {
     "system": true,
