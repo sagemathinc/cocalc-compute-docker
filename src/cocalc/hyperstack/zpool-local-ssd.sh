@@ -2,7 +2,7 @@
 
 set -ev
 
-if [ "$COCALC_LOCAL_SSD"x -eq "x" ]; then
+if [ -z "$COCALC_LOCAL_SSD" ]; then
     echo "There is no local ssd so nothing to configure."
     exit 0
 fi
