@@ -24,4 +24,11 @@ apt-get install -y \
        python-is-python3 \
        tmux \
        htop \
-       supervisor
+       supervisor \
+       wireguard
+
+# I want a simple unified experience for our users, where they can just do "pip install"
+# in one global simple environment.  This is new in Ubuntu 22.04.  We may change later,
+# but we basically install nothing using apt, so this should be fine.
+rm -fv /usr/lib/python*/EXTERNALLY-MANAGED
+

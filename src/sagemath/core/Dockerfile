@@ -1,4 +1,4 @@
-FROM ubuntu:22.04 AS base
+FROM ubuntu:24.04 AS base
 
 USER root
 
@@ -41,7 +41,7 @@ RUN rm -rf /usr/local/sage/.git
 # Now use multisage build to squash all the images into one, so the
 # result is much smaller (otherwise nothing
 # we deleted above is really gone):
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 USER root
 
 COPY --from=base /usr/local/sage /usr/local/sage

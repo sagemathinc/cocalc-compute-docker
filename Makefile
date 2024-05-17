@@ -30,10 +30,13 @@ all-arm64:
 push-all-arm64:
 	make push-core && make push-math
 
+prune-all:
+	time docker system prune -a
+
 core:
-	make cocalc && make base && make filesystem && make compute && make python
+	make base && make cocalc && make filesystem && make compute && make python
 push-core:
-	make push-cocalc && make push-filesystem && make push-compute && make push-python
+	make push-filesystem && make push-cocalc && make push-compute && make push-python
 
 ## IMAGE: cocalc
 
@@ -159,7 +162,7 @@ assemble-compute:
 ## IMAGE: python
 PYTHON_TAG = $(shell $(GET_TAG) python)
 python:
-	cd src/python && docker build --build-arg COMPUTE_TAG=$(COMPUTE_TAG)  -t $(DOCKER_USER)/python$(ARCH):$(PYTHON_TAG) .
+	cd src/python && docker build --build-arg ARCH=${ARCH} --build-arg COMPUTE_TAG=$(COMPUTE_TAG)  -t $(DOCKER_USER)/python$(ARCH):$(PYTHON_TAG) .
 run-python:
 	docker run --name run-python --network=host -it --rm $(DOCKER_USER)/python$(ARCH):$(PYTHON_TAG) bash
 push-python:
@@ -426,7 +429,7 @@ run-pytorch:
 run-pytorch-nogpu:
 	docker run --name run-pytorch-nogpu -it --rm $(DOCKER_USER)/pytorch:$(PYTORCH_TAG) bash
 
-# Fortunately nvcr.io/nvidia/tensorflow uses Ubuntu 22.04LTS too.
+# Fortunately nvcr.io/nvidia/tensorflow uses Ubuntu  too.
 TENSORFLOW_VERSION=$(shell $(GET_VERSION) tensorflow)
 TENSORFLOW_TAG=$(shell $(GET_TAG) tensorflow)
 tensorflow:

@@ -1,6 +1,6 @@
 # Start with the first stage of the build.
 
-ARG MYAPP_IMAGE=ubuntu:22.04
+ARG MYAPP_IMAGE=ubuntu:24.04
 FROM $MYAPP_IMAGE AS build_image
 
 MAINTAINER William Stein <wstein@sagemath.com>

@@ -5,6 +5,7 @@ set -ev
 # Install pip and Jupyter
 apt-get update
 apt-get install -y python3-pip python3-dev
+
 pip install jupyter
 python3 -m ipykernel install --name python3 --display-name "Python `python3 --version | awk '{print $2}'`"
 

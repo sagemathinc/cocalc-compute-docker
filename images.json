@@ -42,7 +42,10 @@
     "icon": "files",
     "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/filesystem",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/filesystem",
-    "versions": [{ "tag": "1.1", "tested": true }],
+    "versions": [
+      { "tag": "1.1", "tested": true },
+      { "tag": "1.2", "tested": false }
+    ],
     "description": "Filesystem container."
   },
   "juicefs": {
@@ -52,7 +55,7 @@
     "icon": "files",
     "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/juicefs",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/juicefs",
-    "versions": [{ "tag": "2024-05-15", "tested": false }],
+    "versions": [{ "tag": "1.0", "tested": false }],
     "description": "JuiceFS is a High-Performance, Cloud-Native, Distributed File System. This container includes juicefs, gcsfuse and keydb."
   },
   "base": {
@@ -66,7 +69,8 @@
       { "tag": "1.0", "tested": true },
       { "tag": "1.1", "tested": true },
       { "tag": "1.2", "tested": true },
-      { "tag": "1.3", "tested": true }
+      { "tag": "1.3", "tested": true },
+      { "tag": "1.4", "tested": false }
     ],
     "description": "Base container that many others derive from."
   },
@@ -81,7 +85,8 @@
       { "tag": "1.0", "tested": true },
       { "tag": "1.1", "tested": true },
       { "tag": "1.2", "tested": true },
-      { "tag": "1.3", "tested": true }
+      { "tag": "1.3", "tested": true },
+      { "tag": "1.4", "tested": false }
     ],
     "description": "Compute container that runs the lightweight nodejs cocalc code for serving files, terminals and jupyter."
   },
@@ -160,6 +165,11 @@
         "label": "3.10.12",
         "tag": "2024-02",
         "tested": true
+      },
+      {
+        "label": "3.12.3",
+        "tag": "2024-05-17",
+        "tested": false
       }
     ],
     "description": "[Python](https://python.org) is a versatile and user-friendly programming language, known for its clear syntax and readability. It is widely used for web development, data analysis, artificial intelligence, and scientific computing."
@@ -202,6 +212,11 @@
         "label": "2024-03-28",
         "tag": "2024-03-28",
         "tested": true
+      },
+      {
+        "label": "2024-05-17",
+        "tag": "2024-05-17",
+        "tested": false
       }
     ],
     "description": "High Performance Computing (HPC) image.  Includes [Slurm](https://slurm.schedmd.com/documentation.html), the [Intel HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit.html), clang, gfortran, and other compilers."
@@ -224,6 +239,10 @@
       {
         "tag": "2024-03.p4",
         "tested": true
+      },
+      {
+        "tag": "2024-05-17",
+        "tested": false
       }
     ],
     "description": "Run a [JupyterHub](https://jupyter.org/hub) server hosted by CoCalc for your research group, class, or personal work.  This is [the official Kubernetes install](https://z2jh.jupyter.org/en/stable/jupyterhub/installation.html) of JupyterHub, and can be [fully customized](https://z2jh.jupyter.org/en/stable/jupyterhub/customization.html).",
@@ -246,7 +265,8 @@
     "versions": [
       { "tag": "10.1", "tested": true },
       { "tag": "10.2", "tested": true },
-      { "tag": "10.3", "tested": true }
+      { "tag": "10.3", "tested": true },
+      { "tag": "10.3.p1", "tested": false }
     ],
     "description": "[SageMath](https://sagemath.org) is an open-source mathematics software system, integrating numerous software packages and providing a unified interface. It is designed for advanced algebra, geometry, number theory, cryptography, and various other fields of mathematics, accessible through a Python-based language. This image does not include optional packages, so it is smaller."
   },
@@ -264,7 +284,8 @@
     "description": "[SageMath](https://sagemath.org) is an open-source mathematics software system, integrating numerous software packages and providing a unified interface. It is designed for advanced algebra, geometry, number theory, cryptography, and various other fields of mathematics, accessible through a Python-based language.  This image also includes all of the following [https://doc.sagemath.org/html/en/reference/spkg/#optional-packages](https://doc.sagemath.org/html/en/reference/spkg/#optional-packages): 4ti2 admcycles benzene biopython bliss buckygen coxeter3 cryptominisat csdp cunningham_tables d3js database_cremona_ellcurve database_cubic_hecke database_jones_numfield database_knotinfo database_kohel database_mutation_class database_odlyzko_zeta database_stein_watkins database_symbolic_data debugpy dot2tex dsdp e_antic ecos_python fricas frobby gap_jupyter gap_packages gitpython igraph ipympl jupyterlab kenzo kissat latte_int libnauty libogg libsemigroups lidia lrslib mathics mathics_scanner mcqd meataxe mpfrcx msolve nibabel notedown onetbb osqp_python palettable papilo pari_elldata pari_galpol pari_nftables pari_seadata perl_term_readline_gnu phitigra pint plantri pybtex pycosat pycryptosat pysingular pytest pytest_mock pytest_xdist python_build python_igraph pyx qdldl_python retrolab rubiks saclib sage_sws2rst scip scip_sdp scs singular_jupyter sirocco slabbe snappy soplex sqlalchemy symengine tdlib texlive texttable tides topcom.   NOTE: this was everything we could successfully install in Jan 2024.  On arm64, we also have to exclude the following (which all build on identically configured x86_64): cbc, glucose, latte, lidia, snappy, and tides",
     "versions": [
       { "tag": "10.2", "tested": true },
-      { "tag": "10.3", "tested": true }
+      { "tag": "10.3", "tested": true },
+      { "tag": "10.3.p1", "tested": false }
     ]
   },
   "rstats": {
@@ -308,6 +329,12 @@
         "label": "2024-05-10 (R version 4.4.0)",
         "tag": "2024-05-10",
         "tested": true
+      },
+      {
+        "version": "4.4.0",
+        "label": "2024-05-17 (R version 4.4.0)",
+        "tag": "2024-05-17",
+        "tested": false
       }
     ],
     "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization.   The CoCalc R compute server image includes includes (1) **RStudio** Server and (2) the **R Jupyter kernel.**  To use RStudio, click on the displayed https link after the server starts running (Select the 'Custom Domain Name with SSL' option below to select a custom domain name avoid a security certificate warning) and copy/paste the security token. To use a Jupyter notebook, open a notebook in CoCalc on the compute server and select the R kernel.  _**DISCLAIMER: RSTUDIO/POSIT PBC IS IN NO WAY ASSOCIATED WITH COCALC.**"
@@ -326,7 +353,8 @@
       { "label": "1.9.4", "tag": "1.9.4", "tested": true },
       { "label": "1.10.0", "tag": "1.10.0", "tested": true },
       { "label": "1.10.1", "tag": "1.10.1", "tested": true },
-      { "label": "1.10.3", "tag": "1.10.3", "tested": true }
+      { "label": "1.10.3", "tag": "1.10.3", "tested": true },
+      { "label": "1.10.3", "tag": "1.10.3.p1", "tested": false }
     ],
     "description": "[Julia](https://julialang.org/) is a high-performance programming language designed for technical computing, combining the speed of C with the ease of use of Python. It excels in numerical analysis, computational science, and data processing with its efficient syntax and ability to handle high-level mathematical operations."
   },
@@ -342,7 +370,10 @@
     "url": "https://lean-lang.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/lean",
     "description": "[Lean](https://lean-lang.org/) is an open source theorem prover that aims to bridge the gap between interactive and automated theorem proving.  This image comes with Lean 4, VS Code, and the Lean VS Code plugin preinstalled.  Start it up, and click the 'VS Code' button, then start fully using Lean!    Lean has excellent support for parallel computing, so select a server with a **large number of CPUs**.  Since you are likely working interactively, spot instances are a good choice.",
-    "versions": [{ "tag": "2024-04-29.p2", "label": "4.7.0", "tested": true }],
+    "versions": [
+      { "tag": "2024-04-29.p2", "label": "4.7.0", "tested": true },
+      { "tag": "2024-05-17", "label": "4.7.0.p1", "tested": false }
+    ],
     "videos": ["https://youtu.be/H1KzvpgUyMU"],
     "tutorials": [
       "https://github.com/sagemathinc/cocalc-howto/blob/main/lean.md"
@@ -365,7 +396,8 @@
     "description": "Anaconda is a distribution of Python, R, SageMath and Julia for scientific computing (data science, machine learning, data processing, etc.).  This is the [Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with a Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using `conda install package` command in a terminal or `!conda install -y package` in a Jupyter notebook.  You can also use `pip install` as usual.  This image does not include SageMath or Julia (etc.), but you can quickly install either via `conda install -y sage` and `conda install -y julia`.",
     "versions": [
       { "tag": "2024-03.p3", "tested": true },
-      { "tag": "2024-03-10", "tested": true }
+      { "tag": "2024-03-10", "tested": true },
+      { "tag": "2024-05-17", "tested": false }
     ]
   },
   "anaconda-gpu": {
@@ -381,7 +413,10 @@
     "url": "https://github.com/conda-forge/miniforge",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/anaconda",
     "description": "Anaconda is a distribution of Python, R, SageMath and Julia with GPU support for scientific computing (data science, machine learning, data processing, etc.).  This is the [Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with a Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using `conda install package` command in a terminal or `!conda install -y package` in a Jupyter notebook.  You can also use `pip install` as usual.    This image does not include SageMath or Julia (etc.), but you can quickly install either via `conda install -y sage` and `conda install -y julia`.",
-    "versions": [{ "tag": "2024-03-10", "tested": true }],
+    "versions": [
+      { "tag": "2024-03-10", "tested": true },
+      { "tag": "2024-05-17", "tested": false }
+    ],
     "tutorials": [
       "https://github.com/sagemathinc/cocalc-howto/blob/main/tensorflow.md"
     ]
