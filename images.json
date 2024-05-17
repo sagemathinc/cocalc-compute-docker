@@ -58,6 +58,16 @@
     "versions": [{ "tag": "1.0", "tested": false }],
     "description": "JuiceFS is a High-Performance, Cloud-Native, Distributed File System. This container includes juicefs, gcsfuse and keydb."
   },
+  "wireguard": {
+    "system": true,
+    "label": "Wireguard VPN",
+    "package": "sagemathinc/wireguard",
+    "icon": "files",
+    "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/wireguard",
+    "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/wireguard",
+    "versions": [{ "tag": "1.0", "tested": false }],
+    "description": "Wireguard encrypted VPN."
+  },
   "base": {
     "system": true,
     "label": "Base",

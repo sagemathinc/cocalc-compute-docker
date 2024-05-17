@@ -148,6 +148,18 @@ push-juicefs:
 assemble-juicefs:
 	./src/scripts/assemble.sh $(DOCKER_USER)/juicefs $(JUICEFS_TAG)
 
+
+WIREGUARD_TAG = $(shell $(GET_TAG) wireguard)
+wireguard:
+	cd src/wireguard && docker build  -t $(DOCKER_USER)/wireguard$(ARCH):$(WIREGUARD_TAG) .
+run-wireguard:
+	docker run --name run-wireguard -it --rm $(DOCKER_USER)/wireguard$(ARCH):$(WIREGUARD_TAG)
+push-wireguard:
+	docker push $(DOCKER_USER)/wireguard$(ARCH):$(WIREGUARD_TAG)
+assemble-wireguard:
+	./src/scripts/assemble.sh $(DOCKER_USER)/wireguard $(WIREGUARD_TAG)
+
+
 ## IMAGE: compute
 COMPUTE_TAG = $(shell $(GET_TAG) compute)
 compute:
