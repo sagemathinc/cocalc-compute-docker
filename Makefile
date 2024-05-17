@@ -34,9 +34,11 @@ prune-all:
 	time docker system prune -a
 
 core:
-	make base && make cocalc && make filesystem && make compute && make python
+	make base && make cocalc && make filesystem && make compute && make python && make anaconda && make openwebui && make lean
 push-core:
-	make push-filesystem && make push-cocalc && make push-compute && make push-python
+	make push-base && make push-filesystem && make push-compute && make push-python  && make push-anaconda && make push-openwebui && make push-lean
+assemble-core:
+	make assemble-base && make assemble-filesystem && make assemble-compute && make assemble-python  && make assemble-anaconda && make assemble-openwebui && make assemble-lean
 
 ## IMAGE: cocalc
 
@@ -275,7 +277,7 @@ assemble-sagemath-core:
 # this depends on sagemath-core existing locally
 sagemath:
 	cd src/sagemath && \
-	docker build  --build-arg SAGEMATH_VARIANT="core" --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
+	docker build  --build-arg PYTHON_TAG=$(PYTHON_TAG) --build-arg SAGEMATH_VARIANT="core" --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION)  -t $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
 run-sagemath:
 	docker run --name run-sagemath --network=host -it --rm $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) bash
 push-sagemath:
@@ -290,7 +292,7 @@ assemble-sagemath:
 SAGEMATH_VERSION=$(shell $(GET_VERSION) sagemath)
 SAGEMATH_TAG=$(shell $(GET_TAG) sagemath)
 sagemath-optional:
-	cd src/sagemath && docker build --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=${SAGEMATH_VERSION} -t $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATH_TAG) -f optional/Dockerfile${ARCH0} .
+	cd src/sagemath && docker build --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=${SAGEMATH_VERSION} --build-arg PYTHON_TAG=$(PYTHON_TAG) -t $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATH_TAG) -f optional/Dockerfile${ARCH0} .
 run-sagemath-optional:
 	docker run --name run-sagemath-optional --network=host -it --rm $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATH_TAG) bash
 push-sagemath-optional:
@@ -394,6 +396,19 @@ assemble-lean:
 	./src/scripts/assemble.sh $(DOCKER_USER)/lean $(LEAN_TAG)
 
 
+# This is obviously x86 only:
+
+HPC_VERSION=$(shell $(GET_VERSION) hpc)
+HPC_TAG=$(shell $(GET_TAG) hpc)
+hpc:
+	cd src/hpc && docker build --build-arg ARCH=${ARCH}  --build-arg PYTHON_TAG=$(PYTHON_TAG) -t $(DOCKER_USER)/hpc:$(HPC_TAG) .
+push-hpc:
+	docker push $(DOCKER_USER)/hpc:$(HPC_TAG)
+run-hpc: /tmp/cocalc/done
+	docker run  --name run-hpc -v /tmp/cocalc:/cocalc -it --network=host --rm $(DOCKER_USER)/hpc:$(HPC_TAG)
+
+
+
 #####
 # GPU only images below
 # Only need to worry about x86_64 for this, obviously:
@@ -470,14 +485,4 @@ run-jax:
 	docker run --name run-jax --gpus all -it --network=host --rm $(DOCKER_USER)/jax:$(JAX_TAG) bash
 run-jax-nogpu:
 	docker run  --name run-jax-nogpu -it --rm $(DOCKER_USER)/jax:$(JAX_TAG) bash
-
-
-HPC_VERSION=$(shell $(GET_VERSION) hpc)
-HPC_TAG=$(shell $(GET_TAG) hpc)
-hpc:
-	cd src/hpc && docker build --build-arg ARCH=${ARCH}  --build-arg COMPUTE_TAG=$(COMPUTE_TAG) --build-arg HPC_VERSION=$(HPC_VERSION) -t $(DOCKER_USER)/hpc:$(HPC_TAG) .
-push-hpc:
-	docker push $(DOCKER_USER)/hpc:$(HPC_TAG)
-run-hpc: /tmp/cocalc/done
-	docker run  --name run-hpc -v /tmp/cocalc:/cocalc -it --network=host --rm $(DOCKER_USER)/hpc:$(HPC_TAG)
 

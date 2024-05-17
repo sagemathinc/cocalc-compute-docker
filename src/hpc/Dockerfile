@@ -1,5 +1,6 @@
 ARG ARCH=
-FROM sagemathinc/python${ARCH}
+ARG PYTHON_TAG=
+FROM sagemathinc/python${ARCH}:${PYTHON_TAG}
 
 USER root
 

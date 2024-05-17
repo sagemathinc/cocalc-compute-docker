@@ -3,7 +3,8 @@ ARG ARCH=
 ARG SAGEMATH_VARIANT=
 FROM sagemathinc/sagemath-${SAGEMATH_VARIANT}${ARCH}:${SAGEMATH_VERSION} as sagemath
 
-FROM sagemathinc/python
+ARG PYTHON_TAG=
+FROM sagemathinc/python${ARCH}:${PYTHON_TAG}
 
 # Install packages that Sage assumes are there
 USER root
