@@ -340,7 +340,7 @@ assemble-sagemath-dev:
 JULIA_VERSION=$(shell $(GET_VERSION) julia)
 JULIA_TAG=$(shell $(GET_TAG) julia)
 julia:
-	cd src/julia && docker build  --build-arg ARCH=${ARCH} --build-arg JULIA_VERSION=$(JULIA_VERSION) -t $(DOCKER_USER)/julia$(ARCH):$(JULIA_TAG) .
+	cd src/julia && docker build --build-arg PYTHON_TAG=$(PYTHON_TAG) --build-arg ARCH=${ARCH} --build-arg JULIA_VERSION=$(JULIA_VERSION) -t $(DOCKER_USER)/julia$(ARCH):$(JULIA_TAG) .
 run-julia:
 	docker run  --name run-julia --network=host -it --rm $(DOCKER_USER)/julia$(ARCH):$(JULIA_TAG) bash
 push-julia:
