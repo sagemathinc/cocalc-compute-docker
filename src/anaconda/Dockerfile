@@ -41,4 +41,10 @@ RUN \
   && mamba install -y jupyter \
   && mamba clean -a -y
 
+# Install the most popular Python packages -- same as for our python image
+RUN \
+     eval "$(/conda/bin/conda shell.bash hook)" \
+  && mamba install -y matplotlib pandas numpy scipy scikit-learn requests beautifulsoup4 sympy mpmath pyyaml networkx \
+  && mamba clean -a -y
+
 CMD source /conda/activate.sh && if [ -f /cocalc/start-compute.sh ]; then /cocalc/start-compute.sh; else bash; fi

@@ -375,7 +375,7 @@ assemble-julia:
 R_VERSION=$(shell $(GET_VERSION) rstats)
 R_TAG=$(shell $(GET_TAG) rstats)
 rstats:
-	cd src/rstats && docker build  --build-arg ARCH=${ARCH} --build-arg ARCH1=${ARCH1} --build-arg R_VERSION=$(R_VERSION) -t $(DOCKER_USER)/rstats$(ARCH):$(R_TAG) .
+	cd src/rstats && docker build  --build-arg ARCH=${ARCH} --build-arg ARCH1=${ARCH1}  --build-arg PYTHON_TAG=$(PYTHON_TAG) --build-arg R_VERSION=$(R_VERSION) -t $(DOCKER_USER)/rstats$(ARCH):$(R_TAG) .
 push-rstats:
 	docker push $(DOCKER_USER)/rstats$(ARCH):$(R_TAG)
 run-rstats: /tmp/cocalc-rstats/done

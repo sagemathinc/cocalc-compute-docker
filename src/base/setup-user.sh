@@ -17,7 +17,9 @@ echo '%user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
 # ability to mount fuse filesystems.
 sed -i 's/#user_allow_other/user_allow_other/g' /etc/fuse.conf
 
-# use docker without sudo.
+# use docker without sudo.  Note that in install-docker.sh we
+# made certain that the docker group is 999. This assumption is
+# also imposed when configuring the VM.
 usermod -aG docker user
 
 # use the right version of nodejs, if installed
