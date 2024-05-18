@@ -34,9 +34,9 @@ prune-all:
 	time docker system prune -a
 
 core:
-	make base && make cocalc && make filesystem && make compute && make python && make anaconda && make openwebui && make lean
+	make base && make cocalc && make filesystem && make compute && make python && make anaconda && make openwebui
 push-core:
-	make push-base && make push-filesystem && make push-compute && make push-python  && make push-anaconda && make push-openwebui && make push-lean
+	make push-base && make push-filesystem && make push-compute && make push-python  && make push-anaconda && make push-openwebui
 assemble-core:
 	make assemble-base && make assemble-filesystem && make assemble-compute && make assemble-python  && make assemble-anaconda && make assemble-openwebui && make assemble-lean
 
@@ -260,9 +260,11 @@ assemble-openwebui:
 
 
 math:
-	make sagemath && make rlang && make anaconda && make julia
+	make rstats && make julia && make lean
 push-math:
-	make push-sagemath && make push-rlang && make push-anaconda && make push-julia
+	make push-rstats && make push-julia && make push-lean
+assemble-core:
+	make assemble-rstats && make assemble-julia && make assemble-lean
 
 ## Helpful build artifact: sagemath-core -- this is just used for convenience
 ## so we don't have to build sage repeatedly
