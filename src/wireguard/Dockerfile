@@ -4,7 +4,7 @@ USER root
 
 RUN \
      apt-get update \
-  && DEBIAN_FRONTEND=noninteractive apt-get install -y wireguard python3 iproute2 \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y wireguard python3 iproute2 iputils-ping \
   && apt-get clean \
   && rm -rf /var/cache/apt/lists
 

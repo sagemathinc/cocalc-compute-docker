@@ -132,21 +132,23 @@ push-filesystem:
 assemble-filesystem:
 	./src/scripts/assemble.sh $(DOCKER_USER)/filesystem $(FILESYSTEM_TAG)
 
-## IMAGE: juicefs
-JUICEFS_TAG = $(shell $(GET_TAG) juicefs)
+## IMAGE: storage
+STORAGE_TAG = $(shell $(GET_TAG) storage)
 
 # JFS_VERSION from https://github.com/juicedata/juicefs/tags
 JFS_VERSION=1.2.0-beta1
 # See https://github.com/GoogleCloudPlatform/gcsfuse/tags
 GCSFUSE_VERSION=2.0.1
-juicefs:
-	cd src && docker build  --build-arg ARCH=$(ARCH) --build-arg ARCH1=$(ARCH1) --build-arg ARCH=$(ARCH)  --build-arg JFS_VERSION=$(JFS_VERSION) --build-arg GCSFUSE_VERSION=$(GCSFUSE_VERSION) --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/juicefs$(ARCH):$(JUICEFS_TAG) . -f juicefs/Dockerfile
-run-juicefs: /tmp/cocalc/done
-	docker run --name run-juicefs -it --rm -v /tmp/cocalc:/cocalc $(DOCKER_USER)/juicefs$(ARCH):$(JUICEFS_TAG)
-push-juicefs:
-	docker push $(DOCKER_USER)/juicefs$(ARCH):$(JUICEFS_TAG)
-assemble-juicefs:
-	./src/scripts/assemble.sh $(DOCKER_USER)/juicefs $(JUICEFS_TAG)
+# See https://github.com/Snapchat/KeyDB/releases
+KEYDB_VERSION=6.3.4
+storage:
+	cd src/storage && docker build  --build-arg ARCH=$(ARCH) --build-arg ARCH1=$(ARCH1) --build-arg ARCH=$(ARCH)  --build-arg JFS_VERSION=$(JFS_VERSION)  --build-arg KEYDB_VERSION=$(KEYDB_VERSION) --build-arg GCSFUSE_VERSION=$(GCSFUSE_VERSION) --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/storage$(ARCH):$(STORAGE_TAG) .
+run-storage:
+	docker run --name run-storage -it --rm $(DOCKER_USER)/storage$(ARCH):$(STORAGE_TAG) bash
+push-storage:
+	docker push $(DOCKER_USER)/storage$(ARCH):$(STORAGE_TAG)
+assemble-storage:
+	./src/scripts/assemble.sh $(DOCKER_USER)/storage $(STORAGE_TAG)
 
 
 WIREGUARD_TAG = $(shell $(GET_TAG) wireguard)
@@ -263,7 +265,7 @@ math:
 	make rstats && make julia && make lean
 push-math:
 	make push-rstats && make push-julia && make push-lean
-assemble-core:
+assemble-math:
 	make assemble-rstats && make assemble-julia && make assemble-lean
 
 ## Helpful build artifact: sagemath-core -- this is just used for convenience

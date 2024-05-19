@@ -17,15 +17,14 @@ apt-get install -y \
        cron \
        curl \
        wget \
-       fuse \
+       fuse3 \
        libfuse-dev \
        neovim \
        sudo \
        python-is-python3 \
        tmux \
        htop \
-       supervisor \
-       wireguard
+       supervisor
 
 # I want a simple unified experience for our users, where they can just do "pip install"
 # in one global simple environment.  This is new in Ubuntu 22.04.  We may change later,

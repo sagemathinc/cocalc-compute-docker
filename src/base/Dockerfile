@@ -19,13 +19,13 @@ ENV PIP_ROOT_USER_ACTION=ignore
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 
 COPY install-core-packages.sh /tmp/install-core-packages.sh
-RUN /tmp/install-core-packages.sh
+RUN /tmp/install-core-packages.sh && rm /tmp/install-core-packages.sh
 
 COPY install-docker.sh /tmp/install-docker.sh
-RUN /tmp/install-docker.sh
+RUN /tmp/install-docker.sh && rm /tmp/install-docker.sh
 
 COPY setup-user.sh /tmp/setup-user.sh
-RUN /tmp/setup-user.sh
+RUN /tmp/setup-user.sh && rm /tmp/setup-user.sh
 
 # FOR DEV/TESTING ONLY
 # Copy the cocalc directory -- this is going to usually be mounted
