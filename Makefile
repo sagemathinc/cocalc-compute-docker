@@ -151,15 +151,15 @@ assemble-storage:
 	./src/scripts/assemble.sh $(DOCKER_USER)/storage $(STORAGE_TAG)
 
 
-WIREGUARD_TAG = $(shell $(GET_TAG) wireguard)
-wireguard:
-	cd src/wireguard && docker build  -t $(DOCKER_USER)/wireguard$(ARCH):$(WIREGUARD_TAG) .
-run-wireguard:
-	docker run --name run-wireguard -it --rm $(DOCKER_USER)/wireguard$(ARCH):$(WIREGUARD_TAG)
-push-wireguard:
-	docker push $(DOCKER_USER)/wireguard$(ARCH):$(WIREGUARD_TAG)
-assemble-wireguard:
-	./src/scripts/assemble.sh $(DOCKER_USER)/wireguard $(WIREGUARD_TAG)
+VPN_TAG = $(shell $(GET_TAG) vpn)
+vpn:
+	cd src/vpn && docker build  -t $(DOCKER_USER)/vpn$(ARCH):$(VPN_TAG) .
+run-vpn:
+	docker run --name run-vpn -it --rm $(DOCKER_USER)/vpn$(ARCH):$(VPN_TAG)
+push-vpn:
+	docker push $(DOCKER_USER)/vpn$(ARCH):$(VPN_TAG)
+assemble-vpn:
+	./src/scripts/assemble.sh $(DOCKER_USER)/vpn $(VPN_TAG)
 
 
 ## IMAGE: compute

@@ -58,15 +58,15 @@
     "versions": [{ "tag": "1.0", "tested": false }],
     "description": "Highly scalable distributed file storage built on JuiceFS, Google Cloud Storage and KeyDB."
   },
-  "wireguard": {
+  "vpn": {
     "system": true,
-    "label": "Wireguard VPN",
-    "package": "sagemathinc/wireguard",
+    "label": "VPN",
+    "package": "sagemathinc/vpn",
     "icon": "files",
-    "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/wireguard",
-    "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/wireguard",
+    "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/vpn",
+    "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/vpn",
     "versions": [{ "tag": "1.0", "tested": false }],
-    "description": "Wireguard encrypted VPN."
+    "description": "VPN - encrypted virtual private network (built on wireguard)"
   },
   "base": {
     "system": true,

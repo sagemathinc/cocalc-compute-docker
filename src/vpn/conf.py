@@ -2,7 +2,6 @@
 """
 - run this script on network.json to generate all conf files.
 
-
 - run this on each node to create wireguard interface:
 
     wg-quick up ./wg`cat /cocalc/conf/compute_server_id`.conf
@@ -19,7 +18,7 @@ to break out of the private network.
     id=`cat /cocalc/conf/compute_server_id`
     wg syncconf wg$id <(wg-quick strip ./wg$id.conf)
 
-(and also source pings.)
+(and also the pings script as above)
 
 
 
