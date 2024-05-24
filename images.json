@@ -80,7 +80,7 @@
       { "tag": "1.1", "tested": true },
       { "tag": "1.2", "tested": true },
       { "tag": "1.3", "tested": true },
-      { "tag": "1.5.1", "tested": false }
+      { "tag": "1.5.1", "tested": true }
     ],
     "description": "Base container that many others derive from."
   },
@@ -96,7 +96,7 @@
       { "tag": "1.1", "tested": true },
       { "tag": "1.2", "tested": true },
       { "tag": "1.3", "tested": true },
-      { "tag": "1.5", "tested": false }
+      { "tag": "1.5", "tested": true }
     ],
     "description": "Compute container that runs the lightweight nodejs cocalc code for serving files, terminals and jupyter."
   },
@@ -179,7 +179,7 @@
       {
         "label": "3.12.3",
         "tag": "2024-05-18",
-        "tested": false
+        "tested": true
       }
     ],
     "description": "[Python](https://python.org) is a versatile and user-friendly programming language, known for its clear syntax and readability. It is widely used for web development, data analysis, artificial intelligence, and scientific computing."
@@ -226,7 +226,7 @@
       {
         "label": "2024-05-18",
         "tag": "2024-05-18",
-        "tested": false
+        "tested": true
       }
     ],
     "description": "High Performance Computing (HPC) image.  Includes [Slurm](https://slurm.schedmd.com/documentation.html), the [Intel HPC Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/hpc-toolkit.html), clang, gfortran, and other compilers."
@@ -338,7 +338,7 @@
         "version": "4.4.0",
         "label": "2024-05-18 (R version 4.4.0)",
         "tag": "2024-05-18",
-        "tested": false
+        "tested": true
       }
     ],
     "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization.   The CoCalc R compute server image includes includes (1) **RStudio** Server and (2) the **R Jupyter kernel.**  To use RStudio, click on the displayed https link after the server starts running (Select the 'Custom Domain Name with SSL' option below to select a custom domain name avoid a security certificate warning) and copy/paste the security token. To use a Jupyter notebook, open a notebook in CoCalc on the compute server and select the R kernel.  _**DISCLAIMER: RSTUDIO/POSIT PBC IS IN NO WAY ASSOCIATED WITH COCALC.**"
@@ -377,7 +377,7 @@
         "label": "1.10.3",
         "version": "1.10.3",
         "tag": "1.10.3.p2",
-        "tested": false
+        "tested": true
       }
     ],
     "description": "[Julia](https://julialang.org/) is a high-performance programming language designed for technical computing, combining the speed of C with the ease of use of Python. It excels in numerical analysis, computational science, and data processing with its efficient syntax and ability to handle high-level mathematical operations."
@@ -396,7 +396,7 @@
     "description": "[Lean](https://lean-lang.org/) is an open source theorem prover that aims to bridge the gap between interactive and automated theorem proving.  This image comes with Lean 4, VS Code, and the Lean VS Code plugin preinstalled.  Start it up, and click the 'VS Code' button, then start fully using Lean!    Lean has excellent support for parallel computing, so select a server with a **large number of CPUs**.  Since you are likely working interactively, spot instances are a good choice.",
     "versions": [
       { "tag": "2024-04-29.p2", "label": "4.7.0", "tested": true },
-      { "tag": "2024-05-18", "label": "4.7.0.p1", "tested": false }
+      { "tag": "2024-05-18", "label": "4.7.0.p1", "tested": true }
     ],
     "videos": ["https://youtu.be/H1KzvpgUyMU"],
     "tutorials": [
@@ -421,7 +421,7 @@
     "versions": [
       { "tag": "2024-03.p3", "tested": true },
       { "tag": "2024-03-10", "tested": true },
-      { "tag": "2024-05-18", "tested": false }
+      { "tag": "2024-05-18", "tested": true }
     ]
   },
   "anaconda-gpu": {
@@ -439,7 +439,7 @@
     "description": "Anaconda is a distribution of Python, R, SageMath and Julia with GPU support for scientific computing (data science, machine learning, data processing, etc.).  This is the [Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with a Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using `conda install package` command in a terminal or `!conda install -y package` in a Jupyter notebook.  You can also use `pip install` as usual.    This image does not include SageMath or Julia (etc.), but you can quickly install either via `conda install -y sage` and `conda install -y julia`.",
     "versions": [
       { "tag": "2024-03-10", "tested": true },
-      { "tag": "2024-05-18", "tested": false }
+      { "tag": "2024-05-18", "tested": true }
     ],
     "tutorials": [
       "https://github.com/sagemathinc/cocalc-howto/blob/main/tensorflow.md"
@@ -560,7 +560,7 @@
       },
       {
         "tag": "2024-05-18",
-        "tested": false
+        "tested": true
       }
     ],
     "jupyterKernels": false,
