@@ -155,11 +155,13 @@ VPN_TAG = $(shell $(GET_TAG) vpn)
 vpn:
 	cd src/vpn && docker build  -t $(DOCKER_USER)/vpn$(ARCH):$(VPN_TAG) .
 run-vpn:
-	docker run --name run-vpn -it --rm $(DOCKER_USER)/vpn$(ARCH):$(VPN_TAG)
+	docker run --name run-vpn -it --rm $(DOCKER_USER)/vpn$(ARCH):$(VPN_TAG) bash
 push-vpn:
 	docker push $(DOCKER_USER)/vpn$(ARCH):$(VPN_TAG)
 assemble-vpn:
 	./src/scripts/assemble.sh $(DOCKER_USER)/vpn $(VPN_TAG)
+assemble-vpn-latest:
+	./src/scripts/assemble.sh $(DOCKER_USER)/vpn $(VPN_TAG) latest
 
 
 ## IMAGE: compute

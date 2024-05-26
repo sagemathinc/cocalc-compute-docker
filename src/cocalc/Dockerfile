@@ -85,6 +85,8 @@ COPY start-filesystem.sh /cocalc/
 COPY start-env.sh /cocalc/
 COPY docker_pull.py /cocalc/
 COPY disk_enlarger.py /cocalc/
+COPY update_hosts.py /cocalc/
+COPY check_in.py /cocalc/
 COPY supervisor /cocalc/supervisor
 COPY hyperstack /cocalc/hyperstack
 COPY apps /cocalc/apps

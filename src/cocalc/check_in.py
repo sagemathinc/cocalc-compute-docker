@@ -28,7 +28,8 @@ Also, when vpn change, it should be written as valid json to the file /cocalc/co
 and when storage changes, write it /cocalc/conf/storage.json.
 
 """
-import datetime, json, sys, time, requests
+import datetime, json, subprocess, sys, time, requests
+import update_hosts
 from requests.auth import HTTPBasicAuth
 
 # by default, ping server every 30s. This parameter should
@@ -87,6 +88,7 @@ def check_in():
                 vpn = response_data.get('vpn', vpn)
                 with open('/cocalc/conf/vpn.json', 'w') as f:
                     json.dump(vpn, f, indent=2)
+                update_vpn()
 
             # Update storage settings if changed
             if 'storage_sha1' in response_data and 'storage' in response_data and response_data[
@@ -99,6 +101,28 @@ def check_in():
             print(f"Error: Received status code {response.status_code}")
     except Exception as e:
         print(f"Exception during check-in: {str(e)}")
+
+
+def run(args):
+    result = subprocess.run(args,
+                            check=True,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
+    print("Command Output:", result.stdout.decode())
+
+
+def update_vpn():
+    # Process latest vpn configuration
+    run('docker run -it --rm --network host --privileged -v /cocalc/conf:/cocalc/conf sagemathinc/vpn'
+        .split())
+    # Update /etc/hosts on the root VM
+    update_hosts.update_hosts()
+    # Update /etc/hosts in the compute docker container
+    run('docker exec -it compute sudo /cocalc/conf/update_hosts.py')
+    # NOTE: you can't just bind mount /etc/hosts into the container, and you can't just edit /etc/hosts
+    # from a bind mounted /etc in a container -- i.e., every approach to *directly* using /etc/hosts
+    # that I tried failed, and should fail (as it would lead to subtle bugs).  Being explicit with the update_hosts.py
+    # command is much better.
 
 
 if __name__ == '__main__':

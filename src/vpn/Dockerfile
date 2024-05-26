@@ -9,3 +9,6 @@ RUN \
   && rm -rf /var/cache/apt/lists
 
 COPY conf.py /conf.py
+COPY run.sh /run.sh
+
+CMD /run.sh
