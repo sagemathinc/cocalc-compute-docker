@@ -120,7 +120,7 @@ def update_vpn():
     # Update /etc/hosts on the root VM
     update_hosts.update_hosts()
     # Update /etc/hosts in the compute docker container
-    run('docker exec -it compute sudo /cocalc/conf/update_hosts.py')
+    run('docker exec -it compute sudo /cocalc/update_hosts.py')
     # NOTE: you can't just bind mount /etc/hosts into the container, and you can't just edit /etc/hosts
     # from a bind mounted /etc in a container -- i.e., every approach to *directly* using /etc/hosts
     # that I tried failed, and should fail (as it would lead to subtle bugs).  Being explicit with the update_hosts.py
