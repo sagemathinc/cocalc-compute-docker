@@ -112,8 +112,9 @@ def run(args):
 
 
 def update_vpn():
+    image = json.loads(open('/cocalc/conf/vpn.json').read())['image']
     # Process latest vpn configuration
-    run('docker run -it --rm --network host --privileged -v /cocalc/conf:/cocalc/conf sagemathinc/vpn'
+    run(f'docker run -it --rm --network host --privileged -v /cocalc/conf:/cocalc/conf {image}'
         .split())
     # Update /etc/hosts on the root VM
     update_hosts.update_hosts()

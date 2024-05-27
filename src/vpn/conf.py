@@ -156,7 +156,7 @@ if __name__ == '__main__':
             compute_server_id = int(id_file.read().strip())
 
     with open(vpn_json) as json_file:
-        nodes = json.load(json_file)
+        nodes = json.load(json_file)['nodes']
 
     write_conf(compute_server_id, nodes)
     write_hosts(nodes)
