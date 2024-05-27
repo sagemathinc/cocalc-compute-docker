@@ -13,7 +13,7 @@
         "tested": true
       },
       {
-        "version": "1.13.11",
+        "version": "1.14.0",
         "tag": "test",
         "tested": false
       }
@@ -65,7 +65,7 @@
     "icon": "files",
     "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/vpn",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/vpn",
-    "versions": [{ "tag": "1.5", "tested": false }],
+    "versions": [{ "tag": "1.6", "tested": false }],
     "description": "VPN - encrypted virtual private network (built on wireguard)"
   },
   "base": {

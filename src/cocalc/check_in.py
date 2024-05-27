@@ -103,19 +103,20 @@ def check_in():
         print(f"Exception during check-in: {str(e)}")
 
 
-def run(args):
-    result = subprocess.run(args,
+def run(cmd):
+    print(f"Run '{cmd}'")
+    result = subprocess.run(cmd.split(),
                             check=True,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE)
-    print("Command Output:", result.stdout.decode())
+    print("Done - Command Output:", result.stdout.decode())
 
 
 def update_vpn():
     image = json.loads(open('/cocalc/conf/vpn.json').read())['image']
     # Process latest vpn configuration
     run(f'docker run -it --rm --network host --privileged -v /cocalc/conf:/cocalc/conf {image}'
-        .split())
+        )
     # Update /etc/hosts on the root VM
     update_hosts.update_hosts()
     # Update /etc/hosts in the compute docker container
@@ -130,5 +131,8 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         period_s = int(sys.argv[1])
     while True:
+        t = time.time()
         check_in()
-        time.sleep(period_s)
+        wait_s = period_s - (time.time() - t)
+        print(f"Waiting {wait_s} seconds...")
+        time.sleep(wait_s)

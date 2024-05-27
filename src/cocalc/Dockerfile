@@ -31,7 +31,7 @@ RUN \
        curl \
        make \
        g++ \
-       fuse \
+       fuse3 \
        libfuse-dev \
        neovim \
        pkg-config
