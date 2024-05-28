@@ -101,7 +101,7 @@ AllowedIPs = {peer['vpn_ip']}/32
 
     open(f'wg{compute_server_id}.conf', 'w').write(conf)
 
-    if 'external_ip' not in interface:
+    if 'external_ip' not in interface or not interface['external_ip']:
         # We *have to* make all nodes hidden behind a firewall ping
         # every other node as well by running something like this below,
         # which will ping the targt node every 15 seconds for 2 minutes
