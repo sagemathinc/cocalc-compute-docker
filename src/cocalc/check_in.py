@@ -28,7 +28,7 @@ Also, when vpn change, it should be written as valid json to the file /cocalc/co
 and when storage changes, write it /cocalc/conf/storage.json.
 
 """
-import datetime, json, subprocess, sys, time, requests
+import datetime, json, os, sys, time, requests
 import update_hosts
 from requests.auth import HTTPBasicAuth
 
@@ -105,26 +105,25 @@ def check_in():
 
 def run(cmd):
     print(f"Run '{cmd}'")
-    result = subprocess.run(cmd.split(),
-                            check=True,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-    print("Done - Command Output:", result.stdout.decode())
+    os.system(cmd)
 
 
 def update_vpn():
     image = json.loads(open('/cocalc/conf/vpn.json').read())['image']
     # Process latest vpn configuration
-    run(f'docker run -it --rm --network host --privileged -v /cocalc/conf:/cocalc/conf {image}'
+    run(f'docker run --rm --network host --privileged -v /cocalc/conf:/cocalc/conf {image}'
         )
     # Update /etc/hosts on the root VM
     update_hosts.update_hosts()
     # Update /etc/hosts in the compute docker container
-    run('docker exec -it compute sudo /cocalc/update_hosts.py')
+    run('docker exec compute sudo /cocalc/update_hosts.py')
     # NOTE: you can't just bind mount /etc/hosts into the container, and you can't just edit /etc/hosts
     # from a bind mounted /etc in a container -- i.e., every approach to *directly* using /etc/hosts
     # that I tried failed, and should fail (as it would lead to subtle bugs).  Being explicit with the update_hosts.py
     # command is much better.
+    if os.path.exists('/cocalc/conf/pings.sh'):
+        # launch pings in the background to keep us on the vpn from behind our firewall.
+        os.system("exec /cocalc/conf/pings.sh &")
 
 
 if __name__ == '__main__':

@@ -17,6 +17,9 @@ cp -v hosts /cocalc/conf/hosts
 if [ -e pings.sh ]; then
    cp -v pings.sh /cocalc/conf
    chmod a+x /cocalc/conf/pings.sh
+else
+   # ensure it is not there if not needed
+   rm -f /cocalc/conf/pings.sh
 fi
 
 # actually do the configuration -- if up doesn't work, e.g., because

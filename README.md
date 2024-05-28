@@ -4,13 +4,17 @@ URL: https://github.com/sagemathinc/cocalc-compute-docker
 
 [Compute Server Documentation](https://doc.cocalc.com/compute_server.html)
 
-There will be sections below with step-by-step instructions
+There will be sections below with step\-by\-step instructions
 about how to update, build and test the compute server Docker images and npm pacckages we manage. For things that aren't documented yet, you have to
-just read the source code, Makefiles and Dockerfiles. The Makefile is useful as a makefile, but it's not at all a traditional "bullet proof" makefile that ensure any relevant dependency is automatically built. It's a useful way to run scripts, as documented here, and that is all.
+just read the source code, Makefiles and Dockerfiles. The Makefile is useful as a makefile, but it's not at all a traditional "bullet proof" makefile that ensure any relevant dependency is automatically built. It's a useful way to run scripts, as documented here, and that is all.  Sometimes you'll just have to read the makefile to figure out how to build dependencies of a target.
+
+**IMPORTANT:** For Docker containers we always <u>_explicitly use version numbers_</u>, and NEVER rely on latest anywhere here or in CoCalc.   This is important to understand.  The version to use is explicitly listed in images.json, and in the admin panel of cocalc, you specify to use a particular version of images.json \(which could be in a fork of this repo!\).    For the cocalc npm package we do use the latest and test tags.
 
 ## Architectures: `x86_64` and `arm64`
 
-I've taken great pains to ensure we fully support both architectures. This adds complexity and extra work at every step, unfortunately.
+I've taken great pains to ensure we fully support both architectures. This adds complexity and extra work at every step, but is the right thing to do at this point.  
+
+In particular, often the pattern is something like \(1\) running `make x && make push-x` on x86\_64, then run the same on arm64, then on exactly one of the two platforms run `make assemble-x`.   In particular, you must setup separate x86\_64 and arm64 build hosts \-\- there is no way around it.  We do not try to use the internal qemu based emulation, since many of our images \(e.g., building sage\) are just way too complicated for that to work.
 
 ## How to update the cocalc npm package
 
