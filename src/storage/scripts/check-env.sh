@@ -15,11 +15,6 @@ if [ -z $COMPUTE_SERVER_ID ]; then
     exit 1
 fi
 
-if [ -z $FILESYSTEM_ID ]; then
-    echo "Environment variable FILESYSTEM_ID must be set to the numerical id of the filesystem"
-    exit 1
-fi
-
 if [ -z $MOUNT ]; then
     echo "Environment variable MOUNT must be set to the mount point"
     exit 1
