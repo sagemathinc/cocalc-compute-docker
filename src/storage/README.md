@@ -4,6 +4,20 @@ We implement a "Global Filesystem" (i.e., a "globalfs") using
 - KeyDB
 - Google Cloud Storage
 
+You might run this container as follows:
+
+```sh
+docker run \
+  --init   \  # init: otherwise there will be many zombie process after unmounting.
+  --network host \  # so can access vpn (special to cocalc)
+  --name cocalc-storage \ # so can sudo 
+  --privileged \
+  -v /cocalc/conf:/cocalc/conf \ 
+  \ # mount filesystem into home directory and ensure it appears outside this container
+  --mount type=bind,source=/home/user,target=/home/user,bind-propagation=rshared \
+  sagemathinc/storage:x.y 
+```
+
 This container does the following:
 
 - It monitors the directory /data for a file storage.json, and when that file is created or changed, it updates its state.
@@ -54,8 +68,8 @@ This container does the following:
 ```
 
 - There are some changes that are not allowed.   E.g., the compression can't be changed after the filesystem is formatted.
-
-
-
-
+- Actually the only allowed changes are:
+  - change network topology
+  - change the mountpoint \(which of course can cause subtle problems\)
+  - change the port
 

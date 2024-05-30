@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
-"""
-
-
-"""
-
 import argparse, json, os, signal, subprocess, tempfile, time
 
+# We poll filesystem for changes to storage_json this frequently:
 INTERVAL = 5
 
+# Fallback default filename if not given explicitly
 storage_json = 'storage.json'
 
 
@@ -50,7 +47,8 @@ def mountpoint_fullpath(filesystem):
 
 
 def bucket_fullpath(filesystem):
-    return os.path.join('/mnt', f"bucket-{filesystem['id']}")
+    return os.path.join(os.environ['HOME'], '.local', 'mnt',
+                        f"storage-bucket-{filesystem['id']}")
 
 
 def run(cmd, check=True):
@@ -63,9 +61,13 @@ def run(cmd, check=True):
     try:
         subprocess.check_call(cmd, shell=True)
     except subprocess.CalledProcessError as e:
-        print(f"Command '{cmd}' failed with error code: {e.returncode}")
+        print(f"Command '{cmd}' failed with error code: {e.returncode}", e)
         if check:
             raise
+
+
+def mkdir(path):
+    os.makedirs(path, exist_ok=True)
 
 
 def mount_bucket(filesystem):
@@ -80,8 +82,7 @@ def mount_bucket(filesystem):
             temp.close()
             # use gcsfuse to mount the GCS bucket
             bucket = bucket_fullpath(filesystem)
-            run(f"sudo mkdir -p '{bucket}'")
-            run(f"sudo chown user:user '{bucket}'")
+            mkdir(bucket)
             run(f"gcsfuse --key-file {temp.name} {filesystem['bucket']} {bucket}"
                 )
     finally:
@@ -91,24 +92,39 @@ def mount_bucket(filesystem):
         pass
 
 
-def start_keydb(filesystem, network):
+def keydb_paths(filesystem, network):
     id = filesystem['id']
-    run(f"sudo mkdir -p /var/run/keydb-{id}/ /var/log/keydb-{id}/")
-    run(f"sudo chown user:user -R /var/run/keydb-{id}/ /var/log/keydb-{id}/")
-    # Where keydb will persist data:
-    data = f"{bucket_fullpath(filesystem)}/.keydb/{network['interface']}/data"
-    run(f"mkdir -p '{data}'")
-    keydb_config_file = f"{data}/keydb.conf"
+    return {
+        # Keydb pid file is located in here
+        "run":
+        os.path.join(os.environ['HOME'], '.local', 'var', 'run',
+                     f'keydb-{id}'),
+        # Keydb log file is here
+        "log":
+        os.path.join(os.environ['HOME'], '.local', 'var', 'log',
+                     f'keydb-{id}'),
+        # Where keydb will persist data:
+        "data":
+        os.path.join(bucket_fullpath(filesystem), 'keydb',
+                     network['interface'], 'data')
+    }
+
+
+def start_keydb(filesystem, network):
+    paths = keydb_paths(filesystem, network)
+    for key in paths:
+        mkdir(paths[key])
+    keydb_config_file = os.path.join(paths['data'], 'keydb.conf')
     keydb_config_content = f"""
 daemonize yes
 
 loglevel debug
-logfile /var/log/keydb-{id}/keydb-server.log
-pidfile /var/run/keydb-{id}/keydb-server.pid
+logfile {os.path.join(paths['log'], 'keydb-server.log')}
+pidfile {os.path.join(paths['run'], 'keydb-server.pid')}
 
 # data
 # **NOTE: aof on gcsfuse doesn't work AND causes replication to slow to a crawl!**
-dir {data}
+dir {paths['data']}
 
 # multimaster replication
 multi-master yes
@@ -151,7 +167,7 @@ def unmount_all():
     if storage is None:
         return
     for filesystem in storage['filesystems']:
-        unmount_filesystem(filesystem)
+        unmount_filesystem(filesystem, storage['network'])
 
 
 def unmount_path(mountpoint):
@@ -171,13 +187,13 @@ def unmount_path(mountpoint):
         break
 
 
-def unmount_filesystem(filesystem):
+def unmount_filesystem(filesystem, network):
     # unmount juicefs
     unmount_path(mountpoint_fullpath(filesystem))
 
     # stop keydb
-    id = filesystem['id']
-    pidfile = f"/var/run/keydb-{id}/keydb-server.pid"
+    paths = keydb_paths(filesystem, network)
+    pidfile = os.path.join(paths['run'], 'keydb-server.pid')
     if os.path.exists(pidfile):
         try:
             pid = int(open(pidfile).read())

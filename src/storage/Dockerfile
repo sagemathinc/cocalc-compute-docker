@@ -56,4 +56,4 @@ RUN \
   && gcsfuse --version \
   && keydb-server --version
 
-
+CMD /scripts/storage.py --storage-json=/cocalc/conf/storage.json
