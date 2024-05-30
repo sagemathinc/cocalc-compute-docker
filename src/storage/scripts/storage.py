@@ -4,7 +4,7 @@
 
 """
 
-import argparse, json, os, subprocess, tempfile, time
+import argparse, json, os, signal, subprocess, tempfile, time
 
 INTERVAL = 5
 
@@ -29,27 +29,31 @@ def wait_until_file_changes(path, last_known_mtime):
         last_known_mtime = mtime
 
 
-def init(storage_json):
-    print("INIT", storage_json)
-    storage = read_storage_json(storage_json)
+def mount_all():
+    print("MOUNT ALL", storage_json)
+    storage = read_storage_json()
     if storage is None:
         print("no ", storage_json, " so nothing to do")
         return
     for filesystem in storage['filesystems']:
-        init_filesystem(filesystem, storage['network'])
+        mount_filesystem(filesystem, storage['network'])
 
 
-def init_filesystem(filesystem, network):
+def mount_filesystem(filesystem, network):
     mount_bucket(filesystem)
     start_keydb(filesystem, network)
     mount_juicefs(filesystem)
 
 
-def bucket_path(filesystem):
-    return f"/mnt/bucket-{filesystem['id']}"
+def mountpoint_fullpath(filesystem):
+    return os.path.join(os.environ['HOME'], filesystem['mountpoint'])
 
 
-def run(cmd):
+def bucket_fullpath(filesystem):
+    return os.path.join('/mnt', f"bucket-{filesystem['id']}")
+
+
+def run(cmd, check=True):
     """
     Takes as input a shell command, runs it, streaming output to
     stdout and stderr as usual. Basically this is os.system(cmd),
@@ -60,7 +64,8 @@ def run(cmd):
         subprocess.check_call(cmd, shell=True)
     except subprocess.CalledProcessError as e:
         print(f"Command '{cmd}' failed with error code: {e.returncode}")
-        raise
+        if check:
+            raise
 
 
 def mount_bucket(filesystem):
@@ -74,7 +79,7 @@ def mount_bucket(filesystem):
             temp.write(json.dumps(service_account))
             temp.close()
             # use gcsfuse to mount the GCS bucket
-            bucket = bucket_path(filesystem)
+            bucket = bucket_fullpath(filesystem)
             run(f"sudo mkdir -p '{bucket}'")
             run(f"sudo chown user:user '{bucket}'")
             run(f"gcsfuse --key-file {temp.name} {filesystem['bucket']} {bucket}"
@@ -87,16 +92,47 @@ def mount_bucket(filesystem):
 
 
 def start_keydb(filesystem, network):
-    pass
+    id = filesystem['id']
+    run(f"sudo mkdir -p /var/run/keydb-{id}/ /var/log/keydb-{id}/")
+    run(f"sudo chown user:user -R /var/run/keydb-{id}/ /var/log/keydb-{id}/")
+    # Where keydb will persist data:
+    data = f"{bucket_fullpath(filesystem)}/.keydb/{network['interface']}/data"
+    run(f"mkdir -p '{data}'")
+    keydb_config_file = f"{data}/keydb.conf"
+    keydb_config_content = f"""
+daemonize yes
+
+loglevel debug
+logfile /var/log/keydb-{id}/keydb-server.log
+pidfile /var/run/keydb-{id}/keydb-server.pid
+
+# data
+# **NOTE: aof on gcsfuse doesn't work AND causes replication to slow to a crawl!**
+dir {data}
+
+# multimaster replication
+multi-master yes
+active-replica yes
+
+# no password: we do security by only binding on private encrypted VPN network
+protected-mode no
+bind 127.0.0.1 {network['interface']}
+port {filesystem['port']}
+"""
+    for peer in network['peers']:
+        keydb_config_content += f"replicaof {peer} {filesystem['port']}\n"
+    with open(keydb_config_file, 'w') as file:
+        file.write(keydb_config_content)
+    run(f"keydb-server {keydb_config_file}")
 
 
 def mount_juicefs(filesystem):
     pass
 
 
-def update(storage_json):
+def update():
     print("UPDATE", storage_json)
-    storage = read_storage_json(storage_json)
+    storage = read_storage_json()
     if storage is None:
         print("no ", storage_json, " so nothing to do")
         return
@@ -107,6 +143,51 @@ def update(storage_json):
 def update_filesystem(filesystem, network):
     print('update_filesystem: TODO')
     pass
+
+
+def unmount_all():
+    print("UNMOUNT ALL")
+    storage = read_storage_json()
+    if storage is None:
+        return
+    for filesystem in storage['filesystems']:
+        unmount_filesystem(filesystem)
+
+
+def unmount_path(mountpoint):
+    print(f"unmount {mountpoint}")
+    try:
+        if mountpoint not in os.popen(f"df {mountpoint} 2>/dev/null").read():
+            return
+    except:
+        return
+    while True:
+        try:
+            run(f"fusermount -u {mountpoint}")
+        except:
+            print("sleeping a second...")
+            time.sleep(1)
+            continue
+        break
+
+
+def unmount_filesystem(filesystem):
+    # unmount juicefs
+    unmount_path(mountpoint_fullpath(filesystem))
+
+    # stop keydb
+    id = filesystem['id']
+    pidfile = f"/var/run/keydb-{id}/keydb-server.pid"
+    if os.path.exists(pidfile):
+        try:
+            pid = int(open(pidfile).read())
+            os.kill(pid, signal.SIGKILL)
+            os.unlink(pidfile)
+        except Exception as e:
+            print(f"Error killing keydb -- '{e}'")
+
+    # unmount the bucket
+    unmount_path(bucket_fullpath(filesystem))
 
 
 def read_storage_json():
@@ -129,12 +210,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
     storage_json = args.storage_json
     last_known_mtime = get_mtime(storage_json)
-    init(storage_json)
-    while True:
-        try:
-            wait_until_file_changes(storage_json, last_known_mtime)
-            last_known_mtime = get_mtime(storage_json)
-            update(storage_json)
-        except Exception as e:
-            print(f"Error -- '{cmd}'")
-            pass
+    try:
+        mount_all()
+        while True:
+            try:
+                wait_until_file_changes(storage_json, last_known_mtime)
+                last_known_mtime = get_mtime(storage_json)
+                update()
+            except Exception as e:
+                print(f"Error -- '{cmd}'", e)
+                pass
+    finally:
+        unmount_all()
