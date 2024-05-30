@@ -1,4 +1,14 @@
 #!/usr/bin/env python3
+"""
+
+TODOS:
+   - figure out exactly when keydb has successfully startd and sync'd up
+   - mount all filesystems in parallel using threading
+   - implement configurability and defaults for how things are mounted and formated
+     (e.g., compression, metadata caching, file caching)
+   - use of ~/.local feels wrong. move to somewhere else.
+"""
+
 import argparse, json, os, signal, subprocess, tempfile, time
 
 # We poll filesystem for changes to storage_json this frequently:
@@ -6,6 +16,10 @@ INTERVAL = 5
 
 # Fallback default filename if not given explicitly
 storage_json = 'storage.json'
+
+###
+# Utilities
+###
 
 
 def get_mtime(path):
@@ -24,6 +38,50 @@ def wait_until_file_changes(path, last_known_mtime):
         if last_known_mtime != mtime:
             return
         last_known_mtime = mtime
+
+
+def run(cmd, check=True, env=None):
+    """
+    Takes as input a shell command, runs it, streaming output to
+    stdout and stderr as usual. Basically this is os.system(cmd),
+    but it will throw an exception if the exit status is nonzero.
+    """
+    print(f"run('{cmd}')")
+    if env is None:
+        env = os.environ
+    else:
+        env = {**os.environ, **env}
+    try:
+        subprocess.check_call(cmd, shell=True, env=env)
+    except subprocess.CalledProcessError as e:
+        print(f"Command '{cmd}' failed with error code: {e.returncode}", e)
+        if check:
+            raise
+
+
+def mkdir(path):
+    os.makedirs(path, exist_ok=True)
+
+
+###
+# Mount
+###
+
+
+def gcs_key_path(filesystem):
+    return os.path.join(os.environ['HOME'], '.local', 'var', 'storage',
+                        f"gcs_key-{filesystem['id']}")
+
+
+def gcs_key(filesystem):
+    path = gcs_key_path(filesystem)
+    directory = os.path.split(path)[0]
+    mkdir(directory)
+    os.chmod(directory, 0o700)
+    service_account = filesystem["secret_key"]
+    open(path, 'w').write(json.dumps(service_account))
+    os.chmod(path, 0o600)
+    return path
 
 
 def mount_all():
@@ -51,45 +109,17 @@ def bucket_fullpath(filesystem):
                         f"storage-bucket-{filesystem['id']}")
 
 
-def run(cmd, check=True):
-    """
-    Takes as input a shell command, runs it, streaming output to
-    stdout and stderr as usual. Basically this is os.system(cmd),
-    but it will throw an exception if the exit status is nonzero.
-    """
-    print(f"run('{cmd}')")
-    try:
-        subprocess.check_call(cmd, shell=True)
-    except subprocess.CalledProcessError as e:
-        print(f"Command '{cmd}' failed with error code: {e.returncode}", e)
-        if check:
-            raise
-
-
-def mkdir(path):
-    os.makedirs(path, exist_ok=True)
-
-
 def mount_bucket(filesystem):
     # write the service account key to a temporary file, being careful about permissions
     # so it is only readable by us.
-    service_account = filesystem["secret_key"]
-    try:
-        with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp:
-            print(temp.name)
-            os.chmod(temp.name, 0o600)  # set file permissions to -rw-------
-            temp.write(json.dumps(service_account))
-            temp.close()
-            # use gcsfuse to mount the GCS bucket
-            bucket = bucket_fullpath(filesystem)
-            mkdir(bucket)
-            run(f"gcsfuse --key-file {temp.name} {filesystem['bucket']} {bucket}"
-                )
-    finally:
-        # Remove the service account key from the filesystem
-        if os.path.isfile(temp.name):
-            os.remove(temp.name)
-        pass
+    key_file = gcs_key(filesystem)
+    # use gcsfuse to mount the GCS bucket
+    bucket = bucket_fullpath(filesystem)
+    mkdir(bucket)
+    # implicit dirs is so we can see the juicedb data, so we can tell
+    # if the volume is already formated.
+    run(f"gcsfuse --implicit-dirs --key-file {key_file} {filesystem['bucket']} {bucket}"
+        )
 
 
 def keydb_paths(filesystem, network):
@@ -123,7 +153,8 @@ logfile {os.path.join(paths['log'], 'keydb-server.log')}
 pidfile {os.path.join(paths['run'], 'keydb-server.pid')}
 
 # data
-# **NOTE: aof on gcsfuse doesn't work AND causes replication to slow to a crawl!**
+# **NOTE: aof on gcsfuse doesn't work AND causes replication
+# to slow to a crawl!**
 dir {paths['data']}
 
 # multimaster replication
@@ -140,10 +171,51 @@ port {filesystem['port']}
     with open(keydb_config_file, 'w') as file:
         file.write(keydb_config_content)
     run(f"keydb-server {keydb_config_file}")
+    # TODO!  We need to confirm here that keydb has fully started up and
+    # sync'd with any peers!!!!!
+    time.sleep(5)
+
+
+def juicefs_paths(filesystem):
+    id = filesystem['id']
+    return {
+        # juicefs log file is here
+        "log":
+        os.path.join(os.environ['HOME'], '.local', 'var', 'log',
+                     f'juicefs-{id}'),
+        "cache":
+        os.path.join(os.environ['HOME'], '.local', 'var', 'cache',
+                     f'juicefs-{id}'),
+    }
 
 
 def mount_juicefs(filesystem):
-    pass
+    key_file = gcs_key(filesystem)
+    volume = "storage"
+    if not os.path.exists(os.path.join(bucket_fullpath(filesystem), volume)):
+        run(f"juicefs format redis://localhost:{filesystem['port']} {volume} --storage gs --bucket gs://{filesystem['bucket']}",
+            check=False,
+            env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
+
+    paths = juicefs_paths(filesystem)
+    for key in paths:
+        mkdir(paths[key])
+
+    run(f"""
+juicefs mount \
+    --background \
+    --log {os.path.join(paths['log'], 'juicefs.log')} \
+    --writeback \
+    --cache-dir {paths['cache']} \
+    redis://localhost:{filesystem['port']} {mountpoint_fullpath(filesystem)}
+""",
+        check=True,
+        env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
+
+
+###
+# Update
+###
 
 
 def update():
@@ -159,6 +231,11 @@ def update():
 def update_filesystem(filesystem, network):
     print('update_filesystem: TODO')
     pass
+
+
+###
+# Unmount
+###
 
 
 def unmount_all():
@@ -197,13 +274,18 @@ def unmount_filesystem(filesystem, network):
     if os.path.exists(pidfile):
         try:
             pid = int(open(pidfile).read())
-            os.kill(pid, signal.SIGKILL)
+            os.kill(pid, signal.SIGTERM)
             os.unlink(pidfile)
         except Exception as e:
             print(f"Error killing keydb -- '{e}'")
 
     # unmount the bucket
     unmount_path(bucket_fullpath(filesystem))
+
+    # remove service account secret
+    path = gcs_key_path(filesystem)
+    if os.path.exists(path):
+        os.unlink(path)
 
 
 def read_storage_json():
@@ -237,4 +319,5 @@ if __name__ == '__main__':
                 print(f"Error -- '{cmd}'", e)
                 pass
     finally:
+        #pass
         unmount_all()
