@@ -4,7 +4,7 @@
 
 """
 
-import argparse, json, os, time
+import argparse, json, os, subprocess, tempfile, time
 
 INTERVAL = 5
 
@@ -30,12 +30,82 @@ def wait_until_file_changes(path, last_known_mtime):
 
 
 def init(storage_json):
-    print('init')
+    print("INIT", storage_json)
+    storage = read_storage_json(storage_json)
+    if storage is None:
+        print("no ", storage_json, " so nothing to do")
+        return
+    for filesystem in storage['filesystems']:
+        init_filesystem(filesystem, storage['network'])
+
+
+def init_filesystem(filesystem, network):
+    mount_bucket(filesystem)
+    start_keydb(filesystem, network)
+    mount_juicefs(filesystem)
+
+
+def bucket_path(filesystem):
+    return f"/mnt/bucket-{filesystem['id']}"
+
+
+def run(cmd):
+    """
+    Takes as input a shell command, runs it, streaming output to
+    stdout and stderr as usual. Basically this is os.system(cmd),
+    but it will throw an exception if the exit status is nonzero.
+    """
+    print(f"run('{cmd}')")
+    try:
+        subprocess.check_call(cmd, shell=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Command '{cmd}' failed with error code: {e.returncode}")
+        raise
+
+
+def mount_bucket(filesystem):
+    # write the service account key to a temporary file, being careful about permissions
+    # so it is only readable by us.
+    service_account = filesystem["secret_key"]
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False) as temp:
+            print(temp.name)
+            os.chmod(temp.name, 0o600)  # set file permissions to -rw-------
+            temp.write(json.dumps(service_account))
+            temp.close()
+            # use gcsfuse to mount the GCS bucket
+            bucket = bucket_path(filesystem)
+            run(f"sudo mkdir -p '{bucket}'")
+            run(f"sudo chown user:user '{bucket}'")
+            run(f"gcsfuse --key-file {temp.name} {filesystem['bucket']} {bucket}"
+                )
+    finally:
+        # Remove the service account key from the filesystem
+        if os.path.isfile(temp.name):
+            os.remove(temp.name)
+        pass
+
+
+def start_keydb(filesystem, network):
+    pass
+
+
+def mount_juicefs(filesystem):
     pass
 
 
 def update(storage_json):
-    print('update')
+    print("UPDATE", storage_json)
+    storage = read_storage_json(storage_json)
+    if storage is None:
+        print("no ", storage_json, " so nothing to do")
+        return
+    for filesystem in storage['filesystems']:
+        update_filesystem(filesystem, storage['network'])
+
+
+def update_filesystem(filesystem, network):
+    print('update_filesystem: TODO')
     pass
 
 

@@ -12,7 +12,6 @@ This container does the following:
 
 ```json
 {
-  "image": "sagemathinc/vpn:1.0",
   "filesystems": [
     {
       "id": 1,
