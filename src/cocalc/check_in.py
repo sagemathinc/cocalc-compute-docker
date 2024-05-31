@@ -28,7 +28,7 @@ Also, when vpn change, it should be written as valid json to the file /cocalc/co
 and when storage changes, write it /cocalc/conf/storage.json.
 
 """
-import datetime, json, os, sys, time, requests
+import datetime, json, os, sys, subprocess, time, requests
 import update_hosts
 from requests.auth import HTTPBasicAuth
 
@@ -97,8 +97,11 @@ def check_in():
                 storage = response_data.get('storage', storage)
                 with open('/cocalc/conf/storage.json', 'w') as f:
                     json.dump(storage, f, indent=2)
+                    if isinstance(storage,       dict) and 'filesystems' in storage and len(
+                                  storage['filesystems']) > 0:
+                    ensure_storage_container_is_running(storage['image'])
         else:
-            print(f"Error: Received status code {response.status_code}")
+                print(f"Error: Received status code {response.status_code}")
     except Exception as e:
         print(f"Exception during check-in: {str(e)}")
 
@@ -124,6 +127,31 @@ def update_vpn():
     if os.path.exists('/cocalc/conf/pings.sh'):
         # launch pings in the background to keep us on the vpn from behind our firewall.
         os.system("exec /cocalc/conf/pings.sh &")
+
+
+launched_storage = 0
+
+
+def ensure_storage_container_is_running(image):
+    global launched_storage
+    if time.time() - launched_storage < 60 * 10:
+        # don't try again if we just started trying
+        return
+    s = subprocess.run(
+        ['docker', 'ps', '--filter', 'name=storage', '--format', 'json'],
+        capture_output=True)
+    if s.returncode:
+        raise Error(s.stderr)
+    if s.stdout.strip():
+        # It is running already
+        return
+    launched_storage = time.time()
+    print(
+        "Start storage container (could take a minute), so do it in the background."
+    )
+    cmd = f"exec docker run -d --init --network host --name storage --privileged -v /cocalc/conf:/cocalc/conf --mount type=bind,source=/home/user,target=/home/user,bind-propagation=rshared {image} & "
+    print(cmd)
+    os.system(cmd)
 
 
 if __name__ == '__main__':

@@ -48,7 +48,7 @@ RUN \
 
 # Directories for temporary files, caching, mounting, etc.
 RUN \
-     mkdir /storage /secrets /buckets
+     mkdir /storage /secrets /buckets \
   && chown user:user /storage /secrets /buckets \
   && chmod og-rwx /storage /secrets /buckets
 
