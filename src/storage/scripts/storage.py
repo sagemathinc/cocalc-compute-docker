@@ -6,7 +6,7 @@ TODOS:
    - mount all filesystems in parallel using threading
    - implement configurability and defaults for how things are mounted and formated
      (e.g., compression, metadata caching, file caching)
-   - use of ~/.local feels wrong. move to somewhere else.
+   - automatic updating when configuration changes
 """
 
 import argparse, json, os, signal, subprocess, tempfile, time
@@ -14,8 +14,12 @@ import argparse, json, os, signal, subprocess, tempfile, time
 # We poll filesystem for changes to storage_json this frequently:
 INTERVAL = 5
 
-# Fallback default filename if not given explicitly
-storage_json = 'storage.json'
+STORAGE = '/storage'
+SECRETS = '/secrets'
+BUCKETS = '/buckets'
+
+# Where data about storage configuration is loaded from
+STORAGE_JSON = 'storage.json'
 
 ###
 # Utilities
@@ -69,8 +73,7 @@ def mkdir(path):
 
 
 def gcs_key_path(filesystem):
-    return os.path.join(os.environ['HOME'], '.local', 'var', 'storage',
-                        f"gcs_key-{filesystem['id']}")
+    return os.path.join(SECRETS, f"gcs_key-{filesystem['id']}")
 
 
 def gcs_key(filesystem):
@@ -85,10 +88,9 @@ def gcs_key(filesystem):
 
 
 def mount_all():
-    print("MOUNT ALL", storage_json)
+    print("MOUNT ALL")
     storage = read_storage_json()
     if storage is None:
-        print("no ", storage_json, " so nothing to do")
         return
     for filesystem in storage['filesystems']:
         mount_filesystem(filesystem, storage['network'])
@@ -105,8 +107,7 @@ def mountpoint_fullpath(filesystem):
 
 
 def bucket_fullpath(filesystem):
-    return os.path.join(os.environ['HOME'], '.local', 'mnt',
-                        f"storage-bucket-{filesystem['id']}")
+    return os.path.join(BUCKETS, f"storage-bucket-{filesystem['id']}")
 
 
 def mount_bucket(filesystem):
@@ -127,12 +128,10 @@ def keydb_paths(filesystem, network):
     return {
         # Keydb pid file is located in here
         "run":
-        os.path.join(os.environ['HOME'], '.local', 'var', 'run',
-                     f'keydb-{id}'),
+        os.path.join(STORAGE, 'run', f'keydb-{id}'),
         # Keydb log file is here
         "log":
-        os.path.join(os.environ['HOME'], '.local', 'var', 'log',
-                     f'keydb-{id}'),
+        os.path.join(STORAGE, 'log', f'keydb-{id}'),
         # Where keydb will persist data:
         "data":
         os.path.join(bucket_fullpath(filesystem), 'keydb',
@@ -180,12 +179,8 @@ def juicefs_paths(filesystem):
     id = filesystem['id']
     return {
         # juicefs log file is here
-        "log":
-        os.path.join(os.environ['HOME'], '.local', 'var', 'log',
-                     f'juicefs-{id}'),
-        "cache":
-        os.path.join(os.environ['HOME'], '.local', 'var', 'cache',
-                     f'juicefs-{id}'),
+        "log": os.path.join(STORAGE, 'log', f'juicefs-{id}'),
+        "cache": os.path.join(STORAGE, 'cache', f'juicefs-{id}'),
     }
 
 
@@ -219,10 +214,9 @@ juicefs mount \
 
 
 def update():
-    print("UPDATE", storage_json)
+    print("UPDATE")
     storage = read_storage_json()
     if storage is None:
-        print("no ", storage_json, " so nothing to do")
         return
     for filesystem in storage['filesystems']:
         update_filesystem(filesystem, storage['network'])
@@ -289,9 +283,10 @@ def unmount_filesystem(filesystem, network):
 
 
 def read_storage_json():
-    if not os.path.exists(storage_json):
+    if not os.path.exists(STORAGE_JSON):
+        print("no ", STORAGE_JSON, " so nothing to do")
         return None
-    with open(storage_json) as json_file:
+    with open(STORAGE_JSON) as json_file:
         return json.load(json_file)
 
 
@@ -302,18 +297,43 @@ if __name__ == '__main__':
     )
     parser.add_argument('--storage-json',
                         type=str,
-                        default=storage_json,
+                        default=STORAGE_JSON,
                         help="Path to the storage.json configuration file")
+    parser.add_argument(
+        '--storage',
+        type=str,
+        default=STORAGE,
+        help="Path to storage directory, used for caching and mounting buckets"
+    )
+    parser.add_argument(
+        '--secrets',
+        type=str,
+        default=SECRETS,
+        help="Path to secrets directory, used for storing secrets")
+    parser.add_argument('--buckets',
+                        type=str,
+                        default=BUCKETS,
+                        help="Where buckets are mounted")
+    parser.add_argument(
+        '--interval',
+        type=int,
+        default=INTERVAL,
+        help="storage_json is polled every this many secrets for changes")
 
     args = parser.parse_args()
-    storage_json = args.storage_json
-    last_known_mtime = get_mtime(storage_json)
+    STORAGE_JSON = args.storage_json
+    STORAGE = args.storage
+    SECRETS = args.secrets
+    BUCKETS = args.buckets
+    INTERVAL = args.interval
+
+    last_known_mtime = get_mtime(STORAGE_JSON)
     try:
         mount_all()
         while True:
             try:
-                wait_until_file_changes(storage_json, last_known_mtime)
-                last_known_mtime = get_mtime(storage_json)
+                wait_until_file_changes(STORAGE_JSON, last_known_mtime)
+                last_known_mtime = get_mtime(STORAGE_JSON)
                 update()
             except Exception as e:
                 print(f"Error -- '{cmd}'", e)
