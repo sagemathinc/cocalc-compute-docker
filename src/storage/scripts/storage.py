@@ -303,7 +303,8 @@ if __name__ == '__main__':
         '--storage',
         type=str,
         default=STORAGE,
-        help="Path to storage directory, used for caching and mounting buckets"
+        help=
+        "Path to ephemeral directory used for runtime caching and state.  Especially critical is {STORAGE}/cache, which is where files are cached, and {STORAGE}/log where there are log files."
     )
     parser.add_argument(
         '--secrets',
