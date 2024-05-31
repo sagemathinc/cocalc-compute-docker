@@ -50,13 +50,13 @@ def run(cmd, check=True, env=None):
     stdout and stderr as usual. Basically this is os.system(cmd),
     but it will throw an exception if the exit status is nonzero.
     """
-    print(f"run('{cmd}')")
+    print(f"run: {cmd}")
     if env is None:
         env = os.environ
     else:
         env = {**os.environ, **env}
     try:
-        subprocess.check_call(cmd, shell=True, env=env)
+        subprocess.check_call(cmd, shell=isinstance(cmd, str), env=env)
     except subprocess.CalledProcessError as e:
         print(f"Command '{cmd}' failed with error code: {e.returncode}", e)
         if check:
@@ -224,7 +224,47 @@ def update():
 
 def update_filesystem(filesystem, network):
     print('update_filesystem: TODO')
-    pass
+    update_replication(filesystem, network)
+
+
+def get_replicas(port):
+    s = subprocess.run(['keydb-cli', '-p',
+                        str(port), "INFO", "replication"],
+                       capture_output=True)
+    if s.returncode:
+        raise Error(s.stderr)
+    return [
+        x.split(':')[1] for x in str(s.stdout.decode()).splitlines()
+        if x.startswith('master') and 'host:' in x
+    ]
+
+
+def add_replica(host, port):
+    run(['keydb-cli', '-p', str(port), "replicaof", host, str(port)])
+
+
+def remove_replica(host, port):
+    run(['keydb-cli', '-p', str(port), "replicaof", "remove", host, str(port)])
+
+
+def update_replication(filesystem, network):
+    """
+    Ensure that this keydb node is connected to every other running compute server
+    on the VPN.  We're using a fully connected topology, at least for now, since
+    it maximizes the chances of no data loss, etc.  There are potential issues
+    with speed, though for even a filesystem with 1million+ files, the amount of
+    data is really small.  We will potentially revisit this network topology
+    based on performance testing.
+    """
+    port = filesystem['port']
+    replicas = set(get_replicas(port))
+    peers = set(network['peers'])
+    for host in peers:
+        if host not in replicas:
+            add_replica(host, port)
+    for host in replicas:
+        if host not in peers:
+            remove_replica(host, port)
 
 
 ###
