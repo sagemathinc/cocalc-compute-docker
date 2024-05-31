@@ -97,11 +97,12 @@ def check_in():
                 storage = response_data.get('storage', storage)
                 with open('/cocalc/conf/storage.json', 'w') as f:
                     json.dump(storage, f, indent=2)
-                    if isinstance(storage,       dict) and 'filesystems' in storage and len(
-                                  storage['filesystems']) > 0:
-                    ensure_storage_container_is_running(storage['image'])
+                    if isinstance(storage,
+                                  dict) and 'filesystems' in storage and len(
+                                      storage['filesystems']) > 0:
+                        ensure_storage_container_is_running(storage['image'])
         else:
-                print(f"Error: Received status code {response.status_code}")
+            print(f"Error: Received status code {response.status_code}")
     except Exception as e:
         print(f"Exception during check-in: {str(e)}")
 
@@ -137,9 +138,8 @@ def ensure_storage_container_is_running(image):
     if time.time() - launched_storage < 60 * 10:
         # don't try again if we just started trying
         return
-    s = subprocess.run(
-        ['docker', 'ps', '--filter', 'name=storage', '--format', 'json'],
-        capture_output=True)
+    s = subprocess.run('docker ps --filter name=storage --format json'.split(),
+                       capture_output=True)
     if s.returncode:
         raise Error(s.stderr)
     if s.stdout.strip():
@@ -149,6 +149,9 @@ def ensure_storage_container_is_running(image):
     print(
         "Start storage container (could take a minute), so do it in the background."
     )
+    # Just in case docker container was left from previous startup, remove it, or can't create the one before.
+    # The version could be different and its better to make a new one that start an existing one.
+    os.system("docker rm storage || true")
     cmd = f"exec docker run -d --init --network host --name storage --privileged -v /cocalc/conf:/cocalc/conf --mount type=bind,source=/home/user,target=/home/user,bind-propagation=rshared {image} & "
     print(cmd)
     os.system(cmd)
