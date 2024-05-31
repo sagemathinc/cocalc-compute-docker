@@ -7,15 +7,15 @@ We implement a "Global Filesystem" (i.e., a "globalfs") using
 You might run this container as follows:
 
 ```sh
-docker run \
-  --init   \  # init: otherwise there will be many zombie process after unmounting.
-  --network host \  # so can access vpn (special to cocalc)
-  --name cocalc-storage \ # so can sudo 
-  --privileged \
-  -v /cocalc/conf:/cocalc/conf \ 
-  \ # mount filesystem into home directory and ensure it appears outside this container
-  --mount type=bind,source=/home/user,target=/home/user,bind-propagation=rshared \
-  sagemathinc/storage:x.y 
+# --init: otherwise there will be many zombie process after unmounting.
+# --network host: so can access vpn (special to cocalc)
+# --privileged: so can sudo 
+# -v and bind-prop: mount filesystem into home directory and 
+#    ensure it appears outside this container
+```
+
+```sh
+docker run -d --init --network host --name storage --privileged -v /cocalc/conf:/cocalc/conf --mount type=bind,source=/home/user,target=/home/user,bind-propagation=rshared sagemathinc/storage:1.1
 ```
 
 This container does the following:
