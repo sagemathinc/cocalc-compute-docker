@@ -46,6 +46,12 @@ RUN \
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/* /tmp/*
 
+# Directories for temporary files, caching, mounting, etc.
+RUN \
+     mkdir /storage /secrets /buckets
+  && chown user:user /storage /secrets /buckets \
+  && chmod og-rwx /storage /secrets /buckets
+
 COPY scripts/ /scripts/
 
 USER user
