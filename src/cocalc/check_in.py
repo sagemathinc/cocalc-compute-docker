@@ -172,5 +172,5 @@ if __name__ == '__main__':
             print(f"Waiting {wait_s} seconds...")
             time.sleep(wait_s)
         except Exception as e:
-            print(f"Error -- '{cmd}'")
+            print("Error", e)
             pass

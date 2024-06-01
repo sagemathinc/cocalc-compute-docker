@@ -248,8 +248,13 @@ def update():
         if path not in should_be_mounted:
             v = get_config(path)
             if v is not None:
-                unmount_filesystem(v[0], v[1])
-
+                try:
+                    unmount_filesystem(v[0], v[1])
+                except Exception as e:
+                    print("Error unmounting filesystem", path, e)
+                    # we just pass for now; may try again in the future.
+                    # Unmounting will fail if process has a file open.
+                    pass
 
 def mounted_filesystem_paths():
     s = subprocess.run(['mount', '-t', 'fuse.juicefs'], capture_output=True)
@@ -320,26 +325,27 @@ def unmount_all():
         unmount_filesystem(filesystem, network)
 
 
-def unmount_path(mountpoint):
+def unmount_path(mountpoint, maxtime=15):
     print(f"unmount {mountpoint}")
     try:
         if mountpoint not in os.popen(f"df {mountpoint} 2>/dev/null").read():
             return
     except:
         return
-    while True:
+    for i in range(maxtime):
         try:
             run(f"fusermount -u {mountpoint}")
+            return
         except:
             print("sleeping a second...")
             time.sleep(1)
             continue
-        break
+    raise RuntimeError(f"unable to unmount {mountpoint}")
 
 
 def unmount_filesystem(filesystem, network):
     # unmount juicefs
-    unmount_path(mountpoint_fullpath(filesystem))
+    unmount_path(mountpoint_fullpath(filesystem), 15)
 
     # stop keydb
     paths = keydb_paths(filesystem, network)
@@ -353,7 +359,7 @@ def unmount_filesystem(filesystem, network):
             print(f"Error killing keydb -- '{e}'")
 
     # unmount the bucket
-    unmount_path(bucket_fullpath(filesystem))
+    unmount_path(bucket_fullpath(filesystem), 30)
 
     # remove service account secret
     path = gcs_key_path(filesystem)
