@@ -9,7 +9,7 @@ TODOS:
    - automatic updating when configuration changes
 """
 
-import argparse, json, os, signal, subprocess, tempfile, time
+import argparse, json, os, shutil, signal, subprocess, tempfile, time
 
 # We poll filesystem for changes to storage_json this frequently:
 INTERVAL = 5
@@ -156,14 +156,19 @@ def newest_dump_rdb_path(persist):
     mtime = 0
     newest_dump_rdb = None
     for ip in os.listdir(persist):
-        path = os.path.join(persist, 'data', 'dump.rdb')
+        path = os.path.join(persist, ip, 'data', 'dump.rdb')
         t = get_mtime(path)
-        if t and t > time.time() + 30:
+        if not t:
+            continue
+        # Check if the file is at least 10KB
+        if os.path.getsize(path) < 10240:  # 10KB = 10240 bytes
+            continue
+        if t > time.time() + 30:
             # Paranoid: what is some VM with their clock way off (a time traveler!) writes a dump
             # file with a far future timestamp and causes havoc.  We do aggressively fix the
             # clock on all compute servers, so this would likely get fixed quickly.
             continue
-        if t and t > mtime:
+        if t > mtime:
             newest_dump_rdb = path
             mtime = t
     return newest_dump_rdb
@@ -185,7 +190,8 @@ def start_keydb(filesystem, network):
     print("start_keydb: using newest_dump_rdb = ", newest_dump_rdb)
     dump_rdb = os.path.join(paths['data'], 'dump.rdb')
     if newest_dump_rdb is not None and dump_rdb != newest_dump_rdb:
-        os.copyfile(newest_dump_rdb, dump_rdb)
+        print(f"{newest_dump_rdb} --> {dump_rdb}")
+        shutil.copyfile(newest_dump_rdb, dump_rdb)
 
     keydb_config_file = os.path.join(paths['data'], 'keydb.conf')
     keydb_config_content = f"""
@@ -432,6 +438,12 @@ def read_storage_json():
         return json.load(json_file)
 
 
+def signal_handler(sig, frame):
+    print('SIGTERM received! Cleaning up before exit...')
+    unmount_all()
+    sys.exit(0)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description=
@@ -472,6 +484,8 @@ if __name__ == '__main__':
 
     last_known_mtime = get_mtime(STORAGE_JSON)
     try:
+        # ensure we clean up on exit, in context of docker:
+        signal.signal(signal.SIGTERM, signal_handler)
         mount_all()
         while True:
             try:
