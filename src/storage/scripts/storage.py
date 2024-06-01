@@ -9,7 +9,7 @@ TODOS:
    - automatic updating when configuration changes
 """
 
-import argparse, json, os, shutil, signal, subprocess, tempfile, time
+import argparse, json, os, shutil, signal, subprocess, sys, tempfile, time
 
 # We poll filesystem for changes to storage_json this frequently:
 INTERVAL = 5
@@ -158,6 +158,7 @@ def newest_dump_rdb_path(persist):
     for ip in os.listdir(persist):
         path = os.path.join(persist, ip, 'data', 'dump.rdb')
         t = get_mtime(path)
+        print(t, path)
         if not t:
             continue
         # Check if the file is at least 10KB
@@ -383,10 +384,13 @@ def unmount_all():
         return
     network = storage['network']
     for filesystem in storage['filesystems']:
-        unmount_filesystem(filesystem, network)
+        try:
+            unmount_filesystem(filesystem, network)
+        except Exception as e:
+            print(f"Error unmounting a filesystem -- '{e}'")
 
 
-def unmount_path(mountpoint, maxtime=15):
+def unmount_path(mountpoint, maxtime=3):
     print(f"unmount {mountpoint}")
     try:
         if mountpoint not in os.popen(f"df {mountpoint} 2>/dev/null").read():
@@ -395,20 +399,20 @@ def unmount_path(mountpoint, maxtime=15):
         return
     for i in range(maxtime):
         try:
-            run(f"fusermount -u {mountpoint}")
+            run(f"fusermount -u {mountpoint}", check=True)
             return
         except:
             print("sleeping a second...")
             time.sleep(1)
             continue
-    raise RuntimeError(f"unable to unmount {mountpoint}")
-    # just do this too to avoid some OS/fuse issues.
-    run(f"umount -l {mountpoint}")
+    # always do this at least
+    run(f"umount -l {mountpoint}", check=False)
+    #raise RuntimeError(f"failed to unmount {mountpoint}")
 
 
 def unmount_filesystem(filesystem, network):
     # unmount juicefs
-    unmount_path(mountpoint_fullpath(filesystem), 15)
+    unmount_path(mountpoint_fullpath(filesystem))
 
     # stop keydb
     paths = keydb_paths(filesystem, network)
@@ -416,13 +420,21 @@ def unmount_filesystem(filesystem, network):
     if os.path.exists(pidfile):
         try:
             pid = int(open(pidfile).read())
+            print(f"sending SIGTERM to keydb with pid {pid}")
             os.kill(pid, signal.SIGTERM)
+            try:
+                print(f"Wait for {pid} to terminate...")
+                os.waitpid(pid, 0)
+            except ChildProcessError:
+                # Process is already terminated
+                pass
+            print(f"keydb with pid {pid} has terminated")
             os.unlink(pidfile)
         except Exception as e:
             print(f"Error killing keydb -- '{e}'")
 
-    # unmount the bucket
-    unmount_path(bucket_fullpath(filesystem), 30)
+    # unmount the bucket -- be aggressive because keydb already stopped
+    unmount_path(bucket_fullpath(filesystem), 3)
 
     # remove service account secret
     path = gcs_key_path(filesystem)
