@@ -141,7 +141,7 @@ def ensure_storage_container_is_running(image):
     s = subprocess.run('docker ps --filter name=storage --format json'.split(),
                        capture_output=True)
     if s.returncode:
-        raise Error(s.stderr)
+        raise RuntimeError(s.stderr)
     if s.stdout.strip():
         # It is running already
         return

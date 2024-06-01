@@ -96,7 +96,19 @@ def mount_all():
         mount_filesystem(filesystem, storage['network'])
 
 
+configs = {}
+
+
+def save_config(filesystem, network):
+    configs[mountpoint_fullpath(filesystem)] = [filesystem, network]
+
+
+def get_config(fullmountpath):
+    return configs.get(fullmountpath, None)
+
+
 def mount_filesystem(filesystem, network):
+    save_config(filesystem, network)
     mount_bucket(filesystem)
     start_keydb(filesystem, network)
     mount_juicefs(filesystem)
@@ -218,12 +230,38 @@ def update():
     storage = read_storage_json()
     if storage is None:
         return
+    network = storage['network']
+    should_be_mounted = []
+    currently_mounted = mounted_filesystem_paths()
+    # ensure that all the ones that should be mountd are mounted
+    # and configured properly.
     for filesystem in storage['filesystems']:
-        update_filesystem(filesystem, storage['network'])
+        path = mountpoint_fullpath(filesystem)
+        if path in currently_mounted:
+            update_filesystem(filesystem, network)
+        else:
+            mount_filesystem(filesystem, network)
+        should_be_mounted.append(path)
+    should_be_mounted = set(should_be_mounted)
+
+    for path in currently_mounted:
+        if path not in should_be_mounted:
+            v = get_config(path)
+            if v is not None:
+                unmount_filesystem(v[0], v[1])
+
+
+def mounted_filesystem_paths():
+    s = subprocess.run(['mount', '-t', 'fuse.juicefs'], capture_output=True)
+    if s.returncode:
+        raise RuntimeError(s.stderr)
+    return [x.split()[2] for x in s.stdout.decode().splitlines()]
 
 
 def update_filesystem(filesystem, network):
-    print('update_filesystem: TODO')
+    print('update_filesystem: ', 'id=', filesystem['id'],
+          filesystem['mountpoint'])
+    save_config(filesystem, network)
     update_replication(filesystem, network)
 
 
@@ -232,7 +270,7 @@ def get_replicas(port):
                         str(port), "INFO", "replication"],
                        capture_output=True)
     if s.returncode:
-        raise Error(s.stderr)
+        raise RuntimeError(s.stderr)
     return [
         x.split(':')[1] for x in str(s.stdout.decode()).splitlines()
         if x.startswith('master') and 'host:' in x
@@ -277,8 +315,9 @@ def unmount_all():
     storage = read_storage_json()
     if storage is None:
         return
+    network = storage['network']
     for filesystem in storage['filesystems']:
-        unmount_filesystem(filesystem, storage['network'])
+        unmount_filesystem(filesystem, network)
 
 
 def unmount_path(mountpoint):
@@ -377,7 +416,7 @@ if __name__ == '__main__':
                 last_known_mtime = get_mtime(STORAGE_JSON)
                 update()
             except Exception as e:
-                print(f"Error -- '{cmd}'", e)
+                print("Error", e)
                 pass
     finally:
         #pass
