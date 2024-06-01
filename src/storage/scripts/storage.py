@@ -431,6 +431,12 @@ def read_storage_json():
     with open(STORAGE_JSON) as json_file:
         return json.load(json_file)
 
+def signal_handler(sig, frame):
+    print('SIGTERM received! Cleaning up before exit...')
+    unmount_all()
+    sys.exit(0)
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -470,8 +476,11 @@ if __name__ == '__main__':
     BUCKETS = args.buckets
     INTERVAL = args.interval
 
+
     last_known_mtime = get_mtime(STORAGE_JSON)
     try:
+        # ensure we clean up on exit, in context of docker:
+        signal.signal(signal.SIGTERM, signal_handler)
         mount_all()
         while True:
             try:

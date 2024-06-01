@@ -162,13 +162,14 @@ if __name__ == '__main__':
         period_s = int(sys.argv[1])
     while True:
         try:
+            print("Checking in...")
             t = time.time()
             check_in()
             wait_s = period_s - (time.time() - t)
-            if wait_s <= 0:
-                wait_s = 0
-            elif wait_s >= 60 * 5:
-                wait_s = 60 * 5
+            if wait_s <= 3:
+                wait_s = 3
+            elif wait_s >= period_s:
+                wait_s = period_s
             print(f"Waiting {wait_s} seconds...")
             time.sleep(wait_s)
         except Exception as e:
