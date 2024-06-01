@@ -137,24 +137,56 @@ def mount_bucket(filesystem):
 
 def keydb_paths(filesystem, network):
     id = filesystem['id']
+    persist = os.path.join(bucket_fullpath(filesystem), 'keydb')
     return {
         # Keydb pid file is located in here
-        "run":
-        os.path.join(STORAGE, 'run', f'keydb-{id}'),
+        "run": os.path.join(STORAGE, 'run', f'keydb-{id}'),
         # Keydb log file is here
-        "log":
-        os.path.join(STORAGE, 'log', f'keydb-{id}'),
+        "log": os.path.join(STORAGE, 'log', f'keydb-{id}'),
         # Where keydb will persist data:
-        "data":
-        os.path.join(bucket_fullpath(filesystem), 'keydb',
-                     network['interface'], 'data')
+        "data": os.path.join(persist, network['interface'], 'data'),
+        # Where all keydbs persist their data:
+        "persist": persist
     }
+
+
+def newest_dump_rdb_path(persist):
+    if not os.path.exists(persist):
+        return None
+    mtime = 0
+    newest_dump_rdb = None
+    for ip in os.listdir(persist):
+        path = os.path.join(persist, 'data', 'dump.rdb')
+        t = get_mtime(path)
+        if t and t > time.time() + 30:
+            # Paranoid: what is some VM with their clock way off (a time traveler!) writes a dump
+            # file with a far future timestamp and causes havoc.  We do aggressively fix the
+            # clock on all compute servers, so this would likely get fixed quickly.
+            continue
+        if t and t > mtime:
+            newest_dump_rdb = path
+            mtime = t
+    return newest_dump_rdb
 
 
 def start_keydb(filesystem, network):
     paths = keydb_paths(filesystem, network)
     for key in paths:
         mkdir(paths[key])
+
+    # If there is a dump.rdb file from any other node that
+    # is newer than ours, then we replace ours with it.
+    # This is scary but necessary, e.g., imagine one server starts,
+    # creates a file (say), and is then deprovisioned.  Then another
+    # server starts -- the info about that new file can't be replicated
+    # over, obviously, since the first server is gone.  However, it's
+    # in the dump.rdb file for the first server.
+    newest_dump_rdb = newest_dump_rdb_path(paths['persist'])
+    print("start_keydb: using newest_dump_rdb = ", newest_dump_rdb)
+    dump_rdb = os.path.join(paths['data'], 'dump.rdb')
+    if newest_dump_rdb is not None and dump_rdb != newest_dump_rdb:
+        os.copyfile(newest_dump_rdb, dump_rdb)
+
     keydb_config_file = os.path.join(paths['data'], 'keydb.conf')
     keydb_config_content = f"""
 daemonize yes
@@ -167,6 +199,10 @@ pidfile {os.path.join(paths['run'], 'keydb-server.pid')}
 # **NOTE: aof on gcsfuse doesn't work AND causes replication
 # to slow to a crawl!**
 dir {paths['data']}
+# Save once per minute, when there are at least 100 changes.
+save 60 100
+# Save once per 5 minutes, if there are is at least 1 change.
+save 300 1
 
 # multimaster replication
 multi-master yes
@@ -182,9 +218,27 @@ port {filesystem['port']}
     with open(keydb_config_file, 'w') as file:
         file.write(keydb_config_content)
     run(f"keydb-server {keydb_config_file}")
-    # TODO!  We need to confirm here that keydb has fully started up and
-    # sync'd with any peers!!!!!
-    time.sleep(5)
+
+
+#    wait_until_keydb_replication_is_stable(filesystem['port'])
+
+# def get_keydb_replication_info(port):
+#     s = subprocess.run(['keydb-cli', '-p',
+#                         str(port), "INFO", "replication"],
+#                        capture_output=True)
+#     if s.returncode:
+#         raise RuntimeError(s.stderr)
+#     v = [x for x in str(s.stdout.decode()).splitlines() if ':' in x]
+#     return dict([x.split(':') for x in v])
+
+# def wait_until_keydb_replication_is_stable(port):
+#     while True:
+#         info = get_keydb_replication_info(port)
+#         if info.get('role', '') == 'master':
+#             # no other peers, so nothing to wait for
+#             return
+#         if info.get("master_link_status",'') == 'up' and info.get("master_sync_in_progress","") == '0'
+#         time.sleep(1)
 
 
 def juicefs_paths(filesystem):
@@ -255,6 +309,7 @@ def update():
                     # we just pass for now; may try again in the future.
                     # Unmounting will fail if process has a file open.
                     pass
+
 
 def mounted_filesystem_paths():
     s = subprocess.run(['mount', '-t', 'fuse.juicefs'], capture_output=True)
@@ -341,6 +396,8 @@ def unmount_path(mountpoint, maxtime=15):
             time.sleep(1)
             continue
     raise RuntimeError(f"unable to unmount {mountpoint}")
+    # just do this too to avoid some OS/fuse issues.
+    run(f"umount -l {mountpoint}")
 
 
 def unmount_filesystem(filesystem, network):

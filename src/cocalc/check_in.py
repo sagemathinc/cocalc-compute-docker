@@ -173,4 +173,3 @@ if __name__ == '__main__':
             time.sleep(wait_s)
         except Exception as e:
             print("Error", e)
-            pass
