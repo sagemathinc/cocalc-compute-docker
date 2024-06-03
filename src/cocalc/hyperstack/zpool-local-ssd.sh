@@ -66,12 +66,27 @@ echo "New partition scheme:"
 parted -s $device print
 
 # Add ZFS read cache
-zpool add -f tank cache ${device}1
+# This definitely can fail for a few seconds due to weird timing issues,
+# we retry several times until it works.
+while ! zpool add -f tank cache ${device}1
+do
+    echo "Failed to add read cache. Retrying in 1 second..."
+    sleep 1
+done
 
 # Add ZFS write cache
-zpool add -f tank log ${device}2
+while ! zpool add -f tank log ${device}2
+do
+    echo "Failed to add write cache. Retrying in 1 second..."
+    sleep 1
+done
 
-zpool create -f ${zpool} ${device}3
+while ! zpool create -f ${zpool} ${device}3
+do
+    echo "Failed to create ephemeral pool. Retrying in 1 second..."
+    sleep 1
+done
+
 zfs set compression=lz4 ${zpool}
 zfs set mountpoint=/ephemeral ${zpool}
 # We disable sync for writes because iops and bandwidth increase massively.
