@@ -63,7 +63,8 @@
       { "tag": "1.4", "tested": false },
       { "tag": "1.5.1", "tested": false },
       { "tag": "1.5.2", "tested": false },
-      { "tag": "1.5.3", "tested": false }
+      { "tag": "1.5.3", "tested": false },
+      { "tag": "1.5.4", "tested": false }
     ],
     "description": "Highly scalable distributed file storage built on JuiceFS, Google Cloud Storage and KeyDB."
   },

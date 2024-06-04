@@ -136,7 +136,7 @@ assemble-filesystem:
 STORAGE_TAG = $(shell $(GET_TAG) storage)
 
 # JFS_VERSION from https://github.com/juicedata/juicefs/tags
-JFS_VERSION=1.2.0-beta1
+JFS_VERSION=1.2.0-rc1
 # See https://github.com/GoogleCloudPlatform/gcsfuse/tags
 GCSFUSE_VERSION=2.2.0
 # See https://github.com/Snapchat/KeyDB/releases
