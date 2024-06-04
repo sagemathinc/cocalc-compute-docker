@@ -9,7 +9,7 @@ TODOS:
    - automatic updating when configuration changes
 """
 
-import argparse, json, os, shutil, signal, subprocess, sys, tempfile, time
+import argparse, json, os, random, shutil, signal, subprocess, sys, tempfile, time
 
 # We poll filesystem for changes to storage_json this frequently:
 INTERVAL = 5
@@ -192,7 +192,16 @@ def start_keydb(filesystem, network):
     dump_rdb = os.path.join(paths['data'], 'dump.rdb')
     if newest_dump_rdb is not None and dump_rdb != newest_dump_rdb:
         print(f"{newest_dump_rdb} --> {dump_rdb}")
-        shutil.copyfile(newest_dump_rdb, dump_rdb)
+        for i in range(10):
+            try:
+                shutil.copyfile(newest_dump_rdb, dump_rdb)
+                break
+            except Exception as e:
+                # This can happen as newest_dump_rdb gets moved into place periodically - so just retry.
+                print(
+                    f"Problem copying {newest_dump_rdb} to {dump_rdb} -- '{e}'"
+                )
+                time.sleep(random.random() * 5)
 
     keydb_config_file = os.path.join(paths['data'], 'keydb.conf')
     keydb_config_content = f"""
@@ -269,16 +278,30 @@ def mount_juicefs(filesystem):
     for key in paths:
         mkdir(paths[key])
 
-    run(f"""
-juicefs mount \
-    --background \
-    --log {os.path.join(paths['log'], 'juicefs.log')} \
-    --writeback \
-    --cache-dir {paths['cache']} \
-    redis://localhost:{filesystem['port']} {mountpoint_fullpath(filesystem)}
-""",
-        check=True,
-        env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
+    # The very first time the filesystem starts, multiple compute servers are trying to run this mount_juicefs
+    # function at roughly the same time.  This mount could fail with "not formatted" because the format is
+    # in progress.  Format is very fast, but not instant.
+    for i in range(10):
+        try:
+            run(f"""
+        juicefs mount \
+            --background \
+            --log {os.path.join(paths['log'], 'juicefs.log')} \
+            --writeback \
+            --cache-dir {paths['cache']} \
+            redis://localhost:{filesystem['port']} {mountpoint_fullpath(filesystem)}
+        """,
+                check=True,
+                env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
+            print(
+                f"Successful mounted filesystem at {mountpoint_fullpath(filesystem)}"
+            )
+            break
+        except Exception as e:
+            print(
+                f"Problem mounting filesystem at {mountpoint_fullpath(filesystem)} -- '{e}'"
+            )
+            time.sleep(random.random() * 5)
 
 
 ###
@@ -449,11 +472,11 @@ def read_storage_json():
     with open(STORAGE_JSON) as json_file:
         return json.load(json_file)
 
+
 def signal_handler(sig, frame):
     print('SIGTERM received! Cleaning up before exit...')
     unmount_all()
     sys.exit(0)
-
 
 
 def signal_handler(sig, frame):
@@ -499,7 +522,6 @@ if __name__ == '__main__':
     SECRETS = args.secrets
     BUCKETS = args.buckets
     INTERVAL = args.interval
-
 
     last_known_mtime = get_mtime(STORAGE_JSON)
     try:
