@@ -182,7 +182,7 @@
     "dockerSizeGb": 1,
     "gpu": false,
     "icon": "python",
-    "vidoes": ["https://youtu.be/_y5FEj9o4aY"],
+    "videos": ["https://youtu.be/_y5FEj9o4aY"],
     "url": "https://www.python.org/",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/blob/main/src/python",
     "versions": [
