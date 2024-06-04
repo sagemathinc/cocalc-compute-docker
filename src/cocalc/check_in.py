@@ -75,7 +75,8 @@ def check_in():
         response = requests.post(url,
                                  headers=headers,
                                  data=json.dumps(data),
-                                 auth=HTTPBasicAuth(api_key, ''))
+                                 auth=HTTPBasicAuth(api_key, ''),
+                                 timeout=10)
 
         if response.status_code == 200:
             response_data = response.json()

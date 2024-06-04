@@ -131,7 +131,7 @@ def mount_bucket(filesystem):
     mkdir(bucket)
     # implicit dirs is so we can see the juicedb data, so we can tell
     # if the volume is already formated.
-    run(f"gcsfuse --implicit-dirs --key-file {key_file} {filesystem['bucket']} {bucket}"
+    run(f"gcsfuse --implicit-dirs --ignore-interrupts=true --key-file {key_file} {filesystem['bucket']} {bucket}"
         )
 
 
