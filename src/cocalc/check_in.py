@@ -2,18 +2,18 @@
 """
 - Periodically check in with cocalc saying that the server is alive.
 
-- Response message may contain vpn and storage; if so, we update them.
+- Response message may contain vpn and cloud filesystem; if so, we update them.
 
 
 The check_in function below calls the remote API, similar to doing the following using curl from the command line
 
-  curl -sk -u sk-eTUKbl2lkP9TgvFJ00001n: -d '{"id":"13","vpn_sha1":"fbdad59e0793e11ffa464834c647db93d1f9ec99","storage_sha1":"97d170e1550eee4afc0af065b78cda302a97674c"}' -H 'Content-Type: application/json' https://cocalc.com/api/v2/compute/check-in
+  curl -sk -u sk-eTUKbl2lkP9TgvFJ00001n: -d '{"id":"13","vpn_sha1":"fbdad59e0793e11ffa464834c647db93d1f9ec99","cloud_filesystem_sha1":"97d170e1550eee4afc0af065b78cda302a97674c"}' -H 'Content-Type: application/json' https://cocalc.com/api/v2/compute/check-in
 
 However, instead of using curl, it uses the requests python library.
 
 Here:
    - the api key like 'sk-eTUKbl2lkP9TgvFJ00001n' is in the file '/cocalc/conf/api_key'
-   - storage_sha1 and vpn_sha1 are global variables defined above
+   - cloud_filsystem_sha1 and vpn_sha1 are global variables defined above
    - the api server https://cocalc.com is in the file '/cocalc/conf/api_server'
    - the id is in the file /cocalc/conf/compute_server_id and shold be read from there.
    - the api_key and api_server and id will not change -- they only have to be read from the file once at script startup
@@ -21,11 +21,11 @@ Here:
 The API response is json formatted has optional fields:
    - vpn
    - vpn_sha1
-   - storage
-   - storage_sha1
+   - cloud_filsystem
+   - cloud_filsystem_sha1
 They should be used to update the above global variables whenever the sha1 changes.
 Also, when vpn change, it should be written as valid json to the file /cocalc/conf/vpn.json,
-and when storage changes, write it /cocalc/conf/storage.json.
+and when cloud_filsystem changes, write it /cocalc/conf/cloud-filesystem.json.
 
 """
 import datetime, json, os, sys, subprocess, time, requests
@@ -38,15 +38,15 @@ period_s = 30
 
 vpn_sha1 = ''
 vpn = []
-storage = []
-storage_sha1 = ''
+cloud_filesystem = []
+cloud_filesystem_sha1 = ''
 api_key = ''
 api_server = ''
 server_id = 0
 
 
 def check_in():
-    global vpn_sha1, vpn, storage_sha1, storage, api_key, api_server, server_id
+    global vpn_sha1, vpn, cloud_filesystem_sha1, cloud_filesystem, api_key, api_server, server_id
 
     try:
         # Read API key, server, and id if needed
@@ -62,7 +62,7 @@ def check_in():
         data = {
             "id": server_id,
             "vpn_sha1": vpn_sha1,
-            "storage_sha1": storage_sha1
+            "cloud_filesystem_sha1": cloud_filesystem_sha1
         }
 
         headers = {
@@ -91,17 +91,20 @@ def check_in():
                     json.dump(vpn, f, indent=2)
                 update_vpn()
 
-            # Update storage settings if changed
-            if 'storage_sha1' in response_data and 'storage' in response_data and response_data[
-                    'storage_sha1'] != storage_sha1:
-                storage_sha1 = response_data['storage_sha1']
-                storage = response_data.get('storage', storage)
-                with open('/cocalc/conf/storage.json', 'w') as f:
-                    json.dump(storage, f, indent=2)
-                    if isinstance(storage,
-                                  dict) and 'filesystems' in storage and len(
-                                      storage['filesystems']) > 0:
-                        ensure_storage_container_is_running(storage['image'])
+            # Update cloud_filesystem settings if changed
+            if 'cloud_filesystem_sha1' in response_data and 'cloud_filesystem' in response_data and response_data[
+                    'cloud_filesystem_sha1'] != cloud_filesystem_sha1:
+                cloud_filesystem_sha1 = response_data['cloud_filesystem_sha1']
+                cloud_filesystem = response_data.get('cloud_filesystem',
+                                                     cloud_filesystem)
+                with open('/cocalc/conf/cloud-filesystem.json', 'w') as f:
+                    json.dump(cloud_filesystem, f, indent=2)
+                    if isinstance(
+                            cloud_filesystem, dict
+                    ) and 'filesystems' in cloud_filesystem and len(
+                            cloud_filesystem['filesystems']) > 0:
+                        ensure_cloud_filesystem_container_is_running(
+                            cloud_filesystem['image'])
         else:
             print(f"Error: Received status code {response.status_code}")
     except Exception as e:
@@ -131,29 +134,30 @@ def update_vpn():
         os.system("exec /cocalc/conf/pings.sh &")
 
 
-launched_storage = 0
+launched_cloud_filesystem = 0
 
 
-def ensure_storage_container_is_running(image):
-    global launched_storage
-    if time.time() - launched_storage < 60 * 10:
+def ensure_cloud_filesystem_container_is_running(image):
+    global launched_cloud_filesystem
+    if time.time() - launched_cloud_filesystem < 60 * 10:
         # don't try again if we just started trying
         return
-    s = subprocess.run('docker ps --filter name=storage --format json'.split(),
-                       capture_output=True)
+    s = subprocess.run(
+        'docker ps --filter name=cloud-filesystem --format json'.split(),
+        capture_output=True)
     if s.returncode:
         raise RuntimeError(s.stderr)
     if s.stdout.strip():
         # It is running already
         return
-    launched_storage = time.time()
+    launched_cloud_filesystem = time.time()
     print(
-        "Start storage container (could take a minute), so do it in the background."
+        "Start cloud filesystem container (could take a minute) in the background."
     )
     # Just in case docker container was left from previous startup, remove it, or can't create the one before.
     # The version could be different and its better to make a new one that start an existing one.
-    os.system("docker rm storage || true")
-    cmd = f"exec docker run -d --init --network host --name storage --privileged -v /cocalc/conf:/cocalc/conf --mount type=bind,source=/home/user,target=/home/user,bind-propagation=rshared {image} & "
+    os.system("docker rm cloud-filesystem || true")
+    cmd = f"exec docker run -d --init --network host --name cloud-filesystem --privileged -v /cocalc/conf:/cocalc/conf --mount type=bind,source=/home/user,target=/home/user,bind-propagation=rshared {image} & "
     print(cmd)
     os.system(cmd)
 

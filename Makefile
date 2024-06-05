@@ -132,8 +132,8 @@ push-filesystem:
 assemble-filesystem:
 	./src/scripts/assemble.sh $(DOCKER_USER)/filesystem $(FILESYSTEM_TAG)
 
-## IMAGE: storage
-STORAGE_TAG = $(shell $(GET_TAG) storage)
+## IMAGE: cloud-filesystem
+CLOUD_FILESYSTEM_TAG = $(shell $(GET_TAG) cloud-filesystem)
 
 # JFS_VERSION from https://github.com/juicedata/juicefs/tags
 JFS_VERSION=1.2.0-rc1
@@ -141,14 +141,14 @@ JFS_VERSION=1.2.0-rc1
 GCSFUSE_VERSION=2.2.0
 # See https://github.com/Snapchat/KeyDB/releases
 KEYDB_VERSION=6.3.4
-storage:
-	cd src/storage && docker build  --build-arg ARCH=$(ARCH) --build-arg ARCH1=$(ARCH1) --build-arg ARCH=$(ARCH)  --build-arg JFS_VERSION=$(JFS_VERSION)  --build-arg KEYDB_VERSION=$(KEYDB_VERSION) --build-arg GCSFUSE_VERSION=$(GCSFUSE_VERSION) --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/storage$(ARCH):$(STORAGE_TAG) .
-run-storage:
-	docker run --name run-storage -it --rm $(DOCKER_USER)/storage$(ARCH):$(STORAGE_TAG) bash
-push-storage:
-	docker push $(DOCKER_USER)/storage$(ARCH):$(STORAGE_TAG)
-assemble-storage:
-	./src/scripts/assemble.sh $(DOCKER_USER)/storage $(STORAGE_TAG)
+cloud-filesystem:
+	cd src/cloud-filesystem && docker build  --build-arg ARCH=$(ARCH) --build-arg ARCH1=$(ARCH1) --build-arg ARCH=$(ARCH)  --build-arg JFS_VERSION=$(JFS_VERSION)  --build-arg KEYDB_VERSION=$(KEYDB_VERSION) --build-arg GCSFUSE_VERSION=$(GCSFUSE_VERSION) --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/cloud-filesystem$(ARCH):$(CLOUD_FILESYSTEM_TAG) .
+run-cloud-filesystem:
+	docker run --name run-cloud-filesystem -it --rm $(DOCKER_USER)/cloud-filesystem$(ARCH):$(CLOUD_FILESYSTEM_TAG) bash
+push-cloud-filesystem:
+	docker push $(DOCKER_USER)/cloud-filesystem$(ARCH):$(CLOUD_FILESYSTEM_TAG)
+assemble-cloud-filesystem:
+	./src/scripts/assemble.sh $(DOCKER_USER)/cloud-filesystem $(CLOUD_FILESYSTEM_TAG)
 
 
 VPN_TAG = $(shell $(GET_TAG) vpn)

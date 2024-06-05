@@ -48,9 +48,9 @@ RUN \
 
 # Directories for temporary files, caching, mounting, etc.
 RUN \
-     mkdir /storage /secrets /buckets \
-  && chown user:user /storage /secrets /buckets \
-  && chmod og-rwx /storage /secrets /buckets
+     mkdir -p /var/cloud-filesystem /secrets /buckets \
+  && chown user:user /var/cloud-filesystem /secrets /buckets \
+  && chmod og-rwx /var/cloud-filesystem /secrets /buckets
 
 COPY scripts/ /scripts/
 
@@ -62,4 +62,4 @@ RUN \
   && gcsfuse --version \
   && keydb-server --version
 
-CMD /usr/bin/python3 -u /scripts/storage.py --storage-json=/cocalc/conf/storage.json
+CMD /usr/bin/python3 -u /scripts/cloud_filesystem.py --storage-json=/cocalc/conf/cloud-filesystem.json

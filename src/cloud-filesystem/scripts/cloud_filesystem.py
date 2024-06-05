@@ -11,15 +11,15 @@ TODOS:
 
 import argparse, json, os, random, shutil, signal, subprocess, sys, tempfile, time
 
-# We poll filesystem for changes to storage_json this frequently:
+# We poll filesystem for changes to CLOUD_FILESYSTEM_JSON this frequently:
 INTERVAL = 5
 
-STORAGE = '/storage'
+VAR = '/var/cloud-filesystem'
 SECRETS = '/secrets'
 BUCKETS = '/buckets'
 
-# Where data about storage configuration is loaded from
-STORAGE_JSON = 'storage.json'
+# Where data about cloud filesystem configuration is loaded from
+CLOUD_FILESYSTEM_JSON = 'cloud-filesystem.json'
 
 ###
 # Utilities
@@ -89,11 +89,11 @@ def gcs_key(filesystem):
 
 def mount_all():
     print("MOUNT ALL")
-    storage = read_storage_json()
-    if storage is None:
+    config = read_cloud_filesystem_json()
+    if config is None:
         return
-    for filesystem in storage['filesystems']:
-        mount_filesystem(filesystem, storage['network'])
+    for filesystem in config['filesystems']:
+        mount_filesystem(filesystem, config['network'])
 
 
 configs = {}
@@ -311,15 +311,15 @@ def mount_juicefs(filesystem):
 
 def update():
     print("UPDATE")
-    storage = read_storage_json()
-    if storage is None:
+    config = read_cloud_filesystem_json()
+    if config is None:
         return
-    network = storage['network']
+    network = config['network']
     should_be_mounted = []
     currently_mounted = mounted_filesystem_paths()
     # ensure that all the ones that should be mountd are mounted
     # and configured properly.
-    for filesystem in storage['filesystems']:
+    for filesystem in config['filesystems']:
         path = mountpoint_fullpath(filesystem)
         if path in currently_mounted:
             update_filesystem(filesystem, network)
@@ -402,11 +402,11 @@ def update_replication(filesystem, network):
 
 def unmount_all():
     print("UNMOUNT ALL")
-    storage = read_storage_json()
-    if storage is None:
+    config = read_cloud_filesystem_json()
+    if config is None:
         return
-    network = storage['network']
-    for filesystem in storage['filesystems']:
+    network = config['network']
+    for filesystem in config['filesystems']:
         try:
             unmount_filesystem(filesystem, network)
         except Exception as e:
@@ -465,11 +465,11 @@ def unmount_filesystem(filesystem, network):
         os.unlink(path)
 
 
-def read_storage_json():
-    if not os.path.exists(STORAGE_JSON):
-        print("no ", STORAGE_JSON, " so nothing to do")
+def read_cloud_filesystem_json():
+    if not os.path.exists(CLOUD_FILESYSTEM_JSON):
+        print("no ", CLOUD_FILESYSTEM_JSON, " so nothing to do")
         return None
-    with open(STORAGE_JSON) as json_file:
+    with open(CLOUD_FILESYSTEM_JSON) as json_file:
         return json.load(json_file)
 
 
@@ -488,50 +488,59 @@ def signal_handler(sig, frame):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description=
-        "Monitor and update CoCalc networked storage based on contents of storage.json file"
+        f"Monitor and update CoCalc's Cloud Filesystem based on the contents of '{CLOUD_FILESYSTEM_JSON}'"
     )
-    parser.add_argument('--storage-json',
-                        type=str,
-                        default=STORAGE_JSON,
-                        help="Path to the storage.json configuration file")
+
     parser.add_argument(
-        '--storage',
+        '--cloud-filesystem-json',
         type=str,
-        default=STORAGE,
+        default=CLOUD_FILESYSTEM_JSON,
         help=
-        "Path to ephemeral directory used for runtime caching and state.  Especially critical is {STORAGE}/cache, which is where files are cached, and {STORAGE}/log where there are log files."
+        f"Path to the cloud-filesystem.json configuration file (default: '{CLOUD_FILESYSTEM_JSON}')"
+    )
+
+    parser.add_argument(
+        '--var',
+        type=str,
+        default=VAR,
+        help=
+        f"Path to ephemeral directory used for runtime caching and state.  Especially critical is '{VAR}/cache', which is where files are cached, and '{VAR}/log' where there are log files.  Must be writable by user (uid=2001)."
     )
     parser.add_argument(
         '--secrets',
         type=str,
         default=SECRETS,
         help="Path to secrets directory, used for storing secrets")
-    parser.add_argument('--buckets',
-                        type=str,
-                        default=BUCKETS,
-                        help="Where buckets are mounted")
+    parser.add_argument(
+        '--buckets',
+        type=str,
+        default=BUCKETS,
+        help=f"Where cloud storage buckets are mounted (default: '{BUCKETS}')")
     parser.add_argument(
         '--interval',
         type=int,
         default=INTERVAL,
-        help="storage_json is polled every this many secrets for changes")
+        help=
+        f"{CLOUD_FILESYSTEM_JSON} is polled every this many seconds for changes (default: {INTERVAL}s)"
+    )
 
     args = parser.parse_args()
-    STORAGE_JSON = args.storage_json
-    STORAGE = args.storage
+    CLOUD_FILESYSTEM_JSON = args.cloud_filesystem_json
+    VAR = args.var
     SECRETS = args.secrets
     BUCKETS = args.buckets
     INTERVAL = args.interval
 
-    last_known_mtime = get_mtime(STORAGE_JSON)
+    last_known_mtime = get_mtime(CLOUD_FILESYSTEM_JSON)
     try:
         # ensure we clean up on exit, in context of docker:
         signal.signal(signal.SIGTERM, signal_handler)
         mount_all()
         while True:
             try:
-                wait_until_file_changes(STORAGE_JSON, last_known_mtime)
-                last_known_mtime = get_mtime(STORAGE_JSON)
+                wait_until_file_changes(CLOUD_FILESYSTEM_JSON,
+                                        last_known_mtime)
+                last_known_mtime = get_mtime(CLOUD_FILESYSTEM_JSON)
                 update()
             except Exception as e:
                 print("Error", e)
