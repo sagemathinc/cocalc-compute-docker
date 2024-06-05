@@ -61,6 +61,10 @@ RUN echo 'using Pkg; Pkg.add("Plots");' | julia
 RUN echo 'using Pkg; Pkg.add("Flux");' | julia
 RUN echo 'using Pkg; Pkg.add("Makie");' | julia
 
+# A test that things are not broken
+RUN echo 'using Pluto; using Plots; using Flux; using Makie' | julia
 
+# Test jupyter kernel is installed
+RUN jupyter kernelspec list |grep julia
 
 WORKDIR /home/user
