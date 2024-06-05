@@ -361,7 +361,7 @@
   "julia": {
     "label": "Julia",
     "package": "sagemathinc/julia",
-    "minDiskSizeGb": 15,
+    "minDiskSizeGb": 20,
     "dockerSizeGb": 6,
     "gpu": false,
     "icon": "julia",
