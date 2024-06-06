@@ -140,9 +140,9 @@ def keydb_paths(filesystem, network):
     persist = os.path.join(bucket_fullpath(filesystem), 'keydb')
     return {
         # Keydb pid file is located in here
-        "run": os.path.join(STORAGE, 'run', f'keydb-{id}'),
+        "run": os.path.join(VAR, 'run', f'keydb-{id}'),
         # Keydb log file is here
-        "log": os.path.join(STORAGE, 'log', f'keydb-{id}'),
+        "log": os.path.join(VAR, 'log', f'keydb-{id}'),
         # Where keydb will persist data:
         "data": os.path.join(persist, network['interface'], 'data'),
         # Where all keydbs persist their data:
@@ -261,8 +261,8 @@ def juicefs_paths(filesystem):
     id = filesystem['id']
     return {
         # juicefs log file is here
-        "log": os.path.join(STORAGE, 'log', f'juicefs-{id}'),
-        "cache": os.path.join(STORAGE, 'cache', f'juicefs-{id}'),
+        "log": os.path.join(VAR, 'log', f'juicefs-{id}'),
+        "cache": os.path.join(VAR, 'cache', f'juicefs-{id}'),
     }
 
 
@@ -496,9 +496,9 @@ if __name__ == '__main__':
         type=str,
         default=CLOUD_FILESYSTEM_JSON,
         help=
-        
+
         f"Path to the cloud-filesystem.json configuration file (default: '{CLOUD_FILESYSTEM_JSON}')"
-    
+
     )
 
     parser.add_argument(
