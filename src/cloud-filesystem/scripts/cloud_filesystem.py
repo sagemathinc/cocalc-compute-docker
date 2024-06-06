@@ -496,7 +496,9 @@ if __name__ == '__main__':
         type=str,
         default=CLOUD_FILESYSTEM_JSON,
         help=
+        
         f"Path to the cloud-filesystem.json configuration file (default: '{CLOUD_FILESYSTEM_JSON}')"
+    
     )
 
     parser.add_argument(

@@ -62,4 +62,4 @@ RUN \
   && gcsfuse --version \
   && keydb-server --version
 
-CMD /usr/bin/python3 -u /scripts/cloud_filesystem.py --storage-json=/cocalc/conf/cloud-filesystem.json
+CMD /usr/bin/python3 -u /scripts/cloud_filesystem.py --cloud-filesystem-json=/cocalc/conf/cloud-filesystem.json
