@@ -267,7 +267,16 @@ def juicefs_paths(filesystem):
         "cache": os.path.join(VAR, 'cache', f'juicefs-{id}'),
     }
 
+
 VOLUME = 'juicefs'
+
+
+def get_trash_days_option(filesystem):
+    trash_days = filesystem.get('trash_days', 0)
+    if not isinstance(trash_days, int) or trash_days < 0:
+        trash_days = 0
+    return f" --trash-days={trash_days} "
+
 
 def get_format_options(filesystem):
     b = filesystem.get('block_size', 4)
@@ -279,7 +288,7 @@ def get_format_options(filesystem):
     if compression != 'lz4' and compression != 'zstd' and compression != 'none':
         compression = 'none'
 
-    options = f"redis://localhost:{filesystem['port']} {VOLUME} --block-size={block_size} --compress {compression} --storage gs --bucket gs://{filesystem['bucket']}"
+    options = f"redis://localhost:{filesystem['port']} {VOLUME} --block-size={block_size} {get_trash_days_option(filesystem)} --compress {compression} --storage gs --bucket gs://{filesystem['bucket']}"
 
     return options
 
@@ -302,6 +311,10 @@ def mount_juicefs(filesystem):
     paths = juicefs_paths(filesystem)
     for key in paths:
         mkdir(paths[key])
+
+    run(f"juicefs config redis://localhost:{filesystem['port']} --yes --force {get_trash_days_option(filesystem)}",
+        check=False,
+        env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
 
     # The very first time the filesystem starts, multiple compute servers are trying to run this mount_juicefs
     # function at roughly the same time.  This mount could fail with "not formatted" because the format is
