@@ -267,6 +267,7 @@ def juicefs_paths(filesystem):
         "cache": os.path.join(VAR, 'cache', f'juicefs-{id}'),
     }
 
+VOLUME = 'juicefs'
 
 def get_format_options(filesystem):
     b = filesystem.get('block_size', 4)
@@ -278,7 +279,7 @@ def get_format_options(filesystem):
     if compression != 'lz4' and compression != 'zstd' and compression != 'none':
         compression = 'none'
 
-    options = f"redis://localhost:{filesystem['port']} {volume} --block-size={block_size} --compress {compression} --storage gs --bucket gs://{filesystem['bucket']}"
+    options = f"redis://localhost:{filesystem['port']} {VOLUME} --block-size={block_size} --compress {compression} --storage gs --bucket gs://{filesystem['bucket']}"
 
     return options
 
@@ -293,8 +294,7 @@ def get_mount_options(filesystem):
 
 def mount_juicefs(filesystem):
     key_file = gcs_key(filesystem)
-    volume = "storage"
-    if not os.path.exists(os.path.join(bucket_fullpath(filesystem), volume)):
+    if not os.path.exists(os.path.join(bucket_fullpath(filesystem), VOLUME)):
         run(f"juicefs format {get_format_options(filesystem)}",
             check=False,
             env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
