@@ -4,7 +4,7 @@
 TODOS:
    - figure out exactly when keydb has successfully startd and sync'd up
    - mount all filesystems in parallel using threading
-   - implement configurability and defaults for how things are mounted and formated
+   - implement configurability and defaults for how things are mounted and formatted
      (e.g., compression, metadata caching, file caching)
    - automatic updating when configuration changes
 """
@@ -130,7 +130,7 @@ def mount_bucket(filesystem):
     bucket = bucket_fullpath(filesystem)
     mkdir(bucket)
     # implicit dirs is so we can see the juicedb data, so we can tell
-    # if the volume is already formated.
+    # if the volume is already formatted.
     run(f"gcsfuse --implicit-dirs --ignore-interrupts=true --key-file {key_file} {filesystem['bucket']} {bucket}"
         )
 
@@ -228,6 +228,8 @@ active-replica yes
 protected-mode no
 bind 127.0.0.1 {network['interface']}
 port {filesystem['port']}
+
+{filesystem.get('keydb_options', '')}
 """
     for peer in network['peers']:
         keydb_config_content += f"replicaof {peer} {filesystem['port']}\n"
@@ -266,11 +268,34 @@ def juicefs_paths(filesystem):
     }
 
 
+def get_format_options(filesystem):
+    b = filesystem.get('block_size', 4)
+    if not isinstance(b, int) or b < 1 or b > 64:
+        b = 4
+    block_size = 1024 * b
+
+    compression = filesystem.get('compression', 'none')
+    if compression != 'lz4' and compression != 'zstd' and compression != 'none':
+        compression = 'none'
+
+    options = f"redis://localhost:{filesystem['port']} {volume} --block-size={block_size} --compress {compression} --storage gs --bucket gs://{filesystem['bucket']}"
+
+    return options
+
+
+def get_mount_options(filesystem):
+    options = filesystem.get('mount_options', '')
+    paths = juicefs_paths(filesystem)
+    if '--cache-dir' not in options:
+        options += f" --cache-dir {paths['cache']} "
+    return options
+
+
 def mount_juicefs(filesystem):
     key_file = gcs_key(filesystem)
     volume = "storage"
     if not os.path.exists(os.path.join(bucket_fullpath(filesystem), volume)):
-        run(f"juicefs format redis://localhost:{filesystem['port']} {volume} --storage gs --bucket gs://{filesystem['bucket']}",
+        run(f"juicefs format {get_format_options(filesystem)}",
             check=False,
             env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
 
@@ -286,9 +311,7 @@ def mount_juicefs(filesystem):
             run(f"""
         juicefs mount \
             --background \
-            --log {os.path.join(paths['log'], 'juicefs.log')} \
-            --writeback \
-            --cache-dir {paths['cache']} \
+            --log {os.path.join(paths['log'], 'juicefs.log')} {get_mount_options(filesystem)} \
             redis://localhost:{filesystem['port']} {mountpoint_fullpath(filesystem)}
         """,
                 check=True,
@@ -496,9 +519,7 @@ if __name__ == '__main__':
         type=str,
         default=CLOUD_FILESYSTEM_JSON,
         help=
-
         f"Path to the cloud-filesystem.json configuration file (default: '{CLOUD_FILESYSTEM_JSON}')"
-
     )
 
     parser.add_argument(
