@@ -22,6 +22,11 @@ export PROJECT_ID=`cat /cocalc/conf/project_id`
 # The numerical id of the compute server
 export COMPUTE_SERVER_ID=`cat /cocalc/conf/compute_server_id`
 
+# Disable Jupyter Pool -- it may be buggy/broken or just not necessary with
+# compute servers, which are much faster.
+# See https://github.com/sagemathinc/cocalc/issues/7529
+export COCALC_JUPYTER_POOL_SIZE=0
+
 # Directories that are excluded from sync, i.e., fast local data directories
 export EXCLUDE_FROM_SYNC=`cat /cocalc/conf/exclude_from_sync`
 

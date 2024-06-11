@@ -29,12 +29,16 @@ and when cloud_filsystem changes, write it /cocalc/conf/cloud-filesystem.json.
 
 """
 import datetime, json, os, sys, subprocess, time, requests
+import argparse
 import update_hosts
 from requests.auth import HTTPBasicAuth
 
 # by default, ping server every 30s. This parameter should
 # be passed in as a command line arg.
-period_s = 30
+DEFAULT_PERIOD = 30
+
+# Check for watch path this often.
+POLL_INTERVAL_S = 0.5
 
 vpn_sha1 = ''
 vpn = []
@@ -162,9 +166,7 @@ def ensure_cloud_filesystem_container_is_running(image):
     os.system(cmd)
 
 
-if __name__ == '__main__':
-    if len(sys.argv) == 2:
-        period_s = int(sys.argv[1])
+def main(period_s=DEFAULT_PERIOD, watch_path=''):
     while True:
         try:
             print("Checking in...")
@@ -176,6 +178,42 @@ if __name__ == '__main__':
             elif wait_s >= period_s:
                 wait_s = period_s
             print(f"Waiting {wait_s} seconds...")
-            time.sleep(wait_s)
+
+            if not watch_path:
+                time.sleep(wait_s)
+            else:
+                # wait wait_s or until watch_path exists.
+                elapsed = 0
+                while elapsed < wait_s:
+                    time.sleep(POLL_INTERVAL_S)
+                    elapsed += POLL_INTERVAL_S
+                    if watch_path and os.path.exists(watch_path):
+                        print(f"'{watch_path}' exists, so checking in")
+                        os.remove(watch_path)
+                        break
+
         except Exception as e:
             print("Error", e)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Periodically check in with cocalc.')
+    parser.add_argument('period',
+                        type=int,
+                        nargs='?',
+                        default=DEFAULT_PERIOD,
+                        help='Check-in period in seconds')
+    parser.add_argument(
+        'watch_path',
+        type=str,
+        nargs='?',
+        default='',
+        help=
+        'Path to a file to watch for creation. Delete file and check-in immediately if the file is created. This makes it possible to cause an immediate check-in, e.g., when mounting a filesystem or updating ssh keys or the vpn.'
+    )
+    args = parser.parse_args()
+
+    period_s = args.period
+    watch_path = args.watch_path
+    main(period_s, watch_path)
