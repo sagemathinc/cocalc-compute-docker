@@ -122,7 +122,12 @@ def bucket_fullpath(filesystem):
     return os.path.join(BUCKETS, f"storage-bucket-{filesystem['id']}")
 
 
-def mount_bucket(filesystem):
+# Try to mount the bucket for up to the given amount of time.
+# It can initially fail since right when we create the rolebinding
+# the permissions can take a while to spread through google cloud
+# and actually work.  Since we sometimes create the role binding
+# right before mounting, this is particular important to retry.
+def mount_bucket(filesystem, max_time=60):
     # write the service account key to a temporary file, being careful about permissions
     # so it is only readable by us.
     key_file = gcs_key(filesystem)
@@ -131,8 +136,15 @@ def mount_bucket(filesystem):
     mkdir(bucket)
     # implicit dirs is so we can see the juicedb data, so we can tell
     # if the volume is already formatted.
-    run(f"gcsfuse --implicit-dirs --ignore-interrupts=true --key-file {key_file} {filesystem['bucket']} {bucket}"
-        )
+    start = time.time()
+    while True:
+        try:
+            run(f"gcsfuse --implicit-dirs --ignore-interrupts=true --key-file {key_file} {filesystem['bucket']} {bucket}"
+                )
+        except e as Exception:
+            if time.time() - start >= max_time:
+                raise e
+            time.sleep(1)
 
 
 def keydb_paths(filesystem, network):
@@ -571,7 +583,11 @@ if __name__ == '__main__':
     try:
         # ensure we clean up on exit, in context of docker:
         signal.signal(signal.SIGTERM, signal_handler)
-        mount_all()
+        try:
+            mount_all()
+        except Exception as e:
+            print("Error", e)
+            pass
         while True:
             try:
                 wait_until_file_changes(CLOUD_FILESYSTEM_JSON,
