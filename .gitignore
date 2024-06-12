@@ -5,3 +5,5 @@ current_commit_noagpl
 *.sage-chat
 node_modules/
 dist/
+src/cloud-filesystem/scripts/package-lock.json
+src/cloud-filesystem/scripts/package.json

@@ -42,7 +42,16 @@ RUN \
   && make install \
   && strip /usr/local/bin/keydb* \
   && rm -rf /tmp/KeyDB \
-  && apt-get remove -y build-essential nasm autotools-dev autoconf libjemalloc-dev tcl tcl-dev uuid-dev libcurl4-openssl-dev libssl-dev \
+  && apt-get remove -y build-essential nasm autotools-dev autoconf libjemalloc-dev tcl tcl-dev uuid-dev libcurl4-openssl-dev libssl-dev
+  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+  && rm -rf /var/lib/apt/lists/* /tmp/*
+
+# Python dependencies for scripts -- install via pip requires installing pip (300MB+), then remove it
+RUN \
+     apt-get update \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip \
+  && pip install gzip google-cloud-storage \
+  && apt-get remove -y python3-pip \
   && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/* /tmp/*
 
