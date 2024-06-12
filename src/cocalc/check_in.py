@@ -161,7 +161,8 @@ def ensure_cloud_filesystem_container_is_running(image):
     # Just in case docker container was left from previous startup, remove it, or can't create the one before.
     # The version could be different and its better to make a new one that start an existing one.
     os.system("docker rm cloud-filesystem || true")
-    cmd = f"exec docker run -d --init --network host --name cloud-filesystem --privileged -v /cocalc/conf:/cocalc/conf --mount type=bind,source=/home/user,target=/home/user,bind-propagation=rshared {image} & "
+    # We bind mount in /cocalc so nodejs is usable, and also the config is in /cocalc/conf.
+    cmd = f"exec docker run -d --init --network host --name cloud-filesystem --privileged -v /cocalc:/cocalc --mount type=bind,source=/home/user,target=/home/user,bind-propagation=rshared {image} & "
     print(cmd)
     os.system(cmd)
 
