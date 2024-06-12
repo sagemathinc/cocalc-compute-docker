@@ -89,7 +89,7 @@ def wait_until_file_changes(path, last_known_mtime):
         last_known_mtime = mtime
 
 
-def run(cmd, check=True, env=None):
+def run(cmd, check=True, env=None, cwd=None):
     """
     Takes as input a shell command, runs it, streaming output to
     stdout and stderr as usual. Basically this is os.system(cmd),
@@ -101,7 +101,10 @@ def run(cmd, check=True, env=None):
     else:
         env = {**os.environ, **env}
     try:
-        subprocess.check_call(cmd, shell=isinstance(cmd, str), env=env)
+        subprocess.check_call(cmd,
+                              shell=isinstance(cmd, str),
+                              env=env,
+                              cwd=cwd)
     except subprocess.CalledProcessError as e:
         log(f"Command '{cmd}' failed with error code: {e.returncode}", e)
         if check:
@@ -110,6 +113,16 @@ def run(cmd, check=True, env=None):
 
 def mkdir(path):
     os.makedirs(path, exist_ok=True)
+
+
+# Upload source to gs://bucket-name/.../a.gz.
+def upload_gzstd(source, target, key_file):
+    run(
+        ["node", "/scripts/upload-gzstd.js",
+         os.path.abspath(source), target],
+        cwd='/scripts',  # important so it can install dep the first time called
+        check=True,
+        env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
 
 
 ###
