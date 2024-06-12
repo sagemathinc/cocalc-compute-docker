@@ -13,6 +13,9 @@ This is very important for writing redis dump files periodically to buckets that
 might have a very non-STANDARD default storage class.  The compression saves a lot
 of space, and since we write the dump file once per minute we save a huge amount
 of money on early deletion fees.
+
+NOTE: you have to run this script with the current path somewhere it can install
+the @google-cloud/storage library, if necessary.
 */
 
 const fs = require("fs/promises");

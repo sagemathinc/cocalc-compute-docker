@@ -53,6 +53,8 @@ RUN \
   && chmod og-rwx /var/cloud-filesystem /secrets /buckets
 
 COPY scripts/ /scripts/
+# So upload-gzstd.js can create node_modules in /scripts/
+RUN chown user:user -R /scripts
 
 USER user
 
