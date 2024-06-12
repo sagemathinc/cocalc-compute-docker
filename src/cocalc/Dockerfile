@@ -90,6 +90,7 @@ COPY check_in.py /cocalc/
 COPY supervisor /cocalc/supervisor
 COPY hyperstack /cocalc/hyperstack
 COPY apps /cocalc/apps
+COPY bin /cocalc/bin
 
 # These directories in the cocalc install aren't used but are big.
 RUN cd /cocalc/src/packages \

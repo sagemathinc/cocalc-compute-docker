@@ -28,4 +28,9 @@ fi
 # the path to the socket.
 sudo cp /cocalc/supervisor/supervisord.conf /etc/supervisor/
 
+# Link any scripts from /cocalc/bin to /usr/local/bin:
+if [ -d /cocalc/bin ]; then
+  sudo ln -sf /cocalc/bin/* /usr/local/bin/
+fi
+
 /usr/bin/supervisord --nodaemon -c /cocalc/supervisor/supervisord.conf
