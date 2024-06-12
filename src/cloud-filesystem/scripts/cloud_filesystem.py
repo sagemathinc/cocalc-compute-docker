@@ -305,27 +305,6 @@ port {filesystem['port']}
     run(f"keydb-server {keydb_config_file}")
 
 
-#    wait_until_keydb_replication_is_stable(filesystem['port'])
-
-# def get_keydb_replication_info(port):
-#     s = subprocess.run(['keydb-cli', '-p',
-#                         str(port), "INFO", "replication"],
-#                        capture_output=True)
-#     if s.returncode:
-#         raise RuntimeError(s.stderr)
-#     v = [x for x in str(s.stdout.decode()).splitlines() if ':' in x]
-#     return dict([x.split(':') for x in v])
-
-# def wait_until_keydb_replication_is_stable(port):
-#     while True:
-#         info = get_keydb_replication_info(port)
-#         if info.get('role', '') == 'master':
-#             # no other peers, so nothing to wait for
-#             return
-#         if info.get("master_link_status",'') == 'up' and info.get("master_sync_in_progress","") == '0'
-#         time.sleep(1)
-
-
 def juicefs_paths(filesystem):
     id = filesystem['id']
     return {
