@@ -309,6 +309,10 @@ def update_keydb_dump(filesystem):
     last_keydb_time[filesystem['id']] = t_keydb
 
 
+# do not change
+APPENDONLY = 'appendonly.aof'
+
+
 def start_keydb(filesystem, network):
     paths = keydb_paths(filesystem)
 
@@ -321,20 +325,29 @@ def start_keydb(filesystem, network):
     # in the dump.rdb file for the first server.
     dump_rdb_gz = paths['dump.rdb.gz']
     if os.path.exists(dump_rdb_gz):
-        log("start_keydb: using dump_rdb_gz = ", dump_rdb_gz)
-        dump_rdb = os.path.join(paths['data'], 'dump.rdb')
-        log(f"{dump_rdb_gz} --> {dump_rdb}")
-        for i in range(10):
-            try:
-                shutil.copyfile(dump_rdb_gz, dump_rdb + '.gz')
-                break
-            except Exception as e:
-                # This can happen as dump_rdb_gz gets updated periodically - so just retry.
-                log(f"Problem copying {dump_rdb_gz} to {dump_rdb} -- '{e}'")
-                time.sleep(random.random() * 5)
-        if os.path.exists(dump_rdb):
-            shutil.move(dump_rdb, dump_rdb + '.backup')
-        run(["gunzip", dump_rdb + '.gz'])
+        append_only_file = os.path.join(paths['data'], APPENDONLY)
+        append_only = get_mtime(append_only_file)
+        if append_only is None or append_only < get_mtime(dump_rdb_gz):
+            log("start_keydb: using dump_rdb_gz = ", dump_rdb_gz)
+            dump_rdb = os.path.join(paths['data'], 'dump.rdb')
+            log(f"{dump_rdb_gz} --> {dump_rdb}")
+            for i in range(10):
+                try:
+                    shutil.copyfile(dump_rdb_gz, dump_rdb + '.gz')
+                    break
+                except Exception as e:
+                    # This can happen as dump_rdb_gz gets updated periodically - so just retry.
+                    log(f"Problem copying {dump_rdb_gz} to {dump_rdb} -- '{e}'"
+                        )
+                    time.sleep(random.random() * 5)
+            if os.path.exists(dump_rdb):
+                shutil.move(dump_rdb, dump_rdb + '.backup')
+            run(["gunzip", dump_rdb + '.gz'])
+            if append_only is not None:
+                os.remove(append_only_file)
+        else:
+            log("start_keydb: dump_rdb_gz exists but appendonly is newer so using append only"
+                )
     else:
         log("start_keydb: starting from whatever is local, if anything")
 
@@ -355,6 +368,7 @@ save 60 1
 # the server is weirdly killed and the rdb doesn't get a chance to write
 # out data.
 appendonly yes
+appendfilename "{APPENDONLY}"
 
 # multimaster replication
 multi-master yes
