@@ -218,48 +218,28 @@ def mount_bucket(filesystem, max_time=15):
 
 def keydb_paths(filesystem, network):
     id = filesystem['id']
-    persist = os.path.join(bucket_fullpath(filesystem), 'keydb')
-    return {
+    paths = {
         # Keydb pid file is located in here
-        "run": os.path.join(VAR, 'run', f'keydb-{id}'),
+        "run":
+        os.path.join(VAR, 'run', f'keydb-{id}'),
         # Keydb log file is here
-        "log": os.path.join(VAR, 'log', f'keydb-{id}'),
+        "log":
+        os.path.join(VAR, 'log', f'keydb-{id}'),
+        'dump.rdb':
+        os.path.join(VAR, 'data', 'dump.rdb'),
         # Where keydb will persist data:
-        "data": os.path.join(persist, network['interface'], 'data'),
-        # Where all keydbs persist their data:
-        "persist": persist
+        "data":
+        os.path.join(VAR, 'data'),
+        'dump.rdb.gz':
+        os.path.join(bucket_fullpath(filesystem), 'keydb', 'dump.rdb.gz'),
     }
-
-
-def newest_dump_rdb_path(persist):
-    if not os.path.exists(persist):
-        return None
-    mtime = 0
-    newest_dump_rdb = None
-    for ip in os.listdir(persist):
-        path = os.path.join(persist, ip, 'data', 'dump.rdb')
-        t = get_mtime(path)
-        log(t, path)
-        if not t:
-            continue
-        # Check if the file is at least 10KB
-        if os.path.getsize(path) < 10240:  # 10KB = 10240 bytes
-            continue
-        if t > time.time() + 30:
-            # Paranoid: what is some VM with their clock way off (a time traveler!) writes a dump
-            # file with a far future timestamp and causes havoc.  We do aggressively fix the
-            # clock on all compute servers, so this would likely get fixed quickly.
-            continue
-        if t > mtime:
-            newest_dump_rdb = path
-            mtime = t
-    return newest_dump_rdb
+    for key in ['run', 'log', 'data']:
+        mkdir(paths[key])
+    return paths
 
 
 def start_keydb(filesystem, network):
     paths = keydb_paths(filesystem, network)
-    for key in paths:
-        mkdir(paths[key])
 
     # If there is a dump.rdb file from any other node that
     # is newer than ours, then we replace ours with it.
@@ -268,20 +248,22 @@ def start_keydb(filesystem, network):
     # server starts -- the info about that new file can't be replicated
     # over, obviously, since the first server is gone.  However, it's
     # in the dump.rdb file for the first server.
-    newest_dump_rdb = newest_dump_rdb_path(paths['persist'])
-    log("start_keydb: using newest_dump_rdb = ", newest_dump_rdb)
+    dump_rdb_gz = paths['dump.rdb.gz']
+    log("start_keydb: using dump_rdb_gz = ", dump_rdb_gz)
     dump_rdb = os.path.join(paths['data'], 'dump.rdb')
-    if newest_dump_rdb is not None and dump_rdb != newest_dump_rdb:
-        log(f"{newest_dump_rdb} --> {dump_rdb}")
+    if os.path.exists(dump_rdb_gz):
+        log(f"{dump_rdb_gz} --> {dump_rdb}")
         for i in range(10):
             try:
-                shutil.copyfile(newest_dump_rdb, dump_rdb)
+                shutil.copyfile(dump_rdb_gz, dump_rdb + '.gz')
                 break
             except Exception as e:
-                # This can happen as newest_dump_rdb gets moved into place periodically - so just retry.
-                log(f"Problem copying {newest_dump_rdb} to {dump_rdb} -- '{e}'"
-                    )
+                # This can happen as dump_rdb_gz gets updated periodically - so just retry.
+                log(f"Problem copying {dump_rdb_gz} to {dump_rdb} -- '{e}'")
                 time.sleep(random.random() * 5)
+        if os.path.exists(dump_rdb):
+            shutil.move(dump_rdb, dump_rdb + '.backup')
+        run(["gunzip", dump_rdb + '.gz'])
 
     keydb_config_file = os.path.join(paths['data'], 'keydb.conf')
     keydb_config_content = f"""
@@ -292,13 +274,9 @@ logfile {os.path.join(paths['log'], 'keydb-server.log')}
 pidfile {os.path.join(paths['run'], 'keydb-server.pid')}
 
 # data
-# **NOTE: aof on gcsfuse doesn't work AND causes replication
-# to slow to a crawl!**
 dir {paths['data']}
-# Save once per minute, when there are at least 100 changes.
-save 60 100
-# Save once per 5 minutes, if there are is at least 1 change.
-save 300 1
+# Save once per minute, when there is at least 1 change (so some point in saving).
+save 60 1
 
 # multimaster replication
 multi-master yes
