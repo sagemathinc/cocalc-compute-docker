@@ -320,9 +320,9 @@ def start_keydb(filesystem, network):
     # over, obviously, since the first server is gone.  However, it's
     # in the dump.rdb file for the first server.
     dump_rdb_gz = paths['dump.rdb.gz']
-    log("start_keydb: using dump_rdb_gz = ", dump_rdb_gz)
-    dump_rdb = os.path.join(paths['data'], 'dump.rdb')
     if os.path.exists(dump_rdb_gz):
+        log("start_keydb: using dump_rdb_gz = ", dump_rdb_gz)
+        dump_rdb = os.path.join(paths['data'], 'dump.rdb')
         log(f"{dump_rdb_gz} --> {dump_rdb}")
         for i in range(10):
             try:
@@ -335,6 +335,8 @@ def start_keydb(filesystem, network):
         if os.path.exists(dump_rdb):
             shutil.move(dump_rdb, dump_rdb + '.backup')
         run(["gunzip", dump_rdb + '.gz'])
+    else:
+        log("start_keydb: starting from whatever is local, if anything")
 
     keydb_config_file = os.path.join(paths['data'], 'keydb.conf')
     keydb_config_content = f"""
@@ -502,7 +504,14 @@ def update_keydb_dumps():
     config = read_cloud_filesystem_json()
     if config is None:
         return
+    mounted = set(mounted_filesystem_paths())
     for filesystem in config['filesystems']:
+        path = mountpoint_fullpath(filesystem)
+        if path not in mounted:
+            # IMPORTANT: never do update_keydb_dump for an unmounted
+            # filesystem (except right when unmounted) or we might
+            # save bad or blank state, deleting all metadata
+            continue
         try:
             update_keydb_dump(filesystem)
         except Exception as e:
