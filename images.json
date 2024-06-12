@@ -8,7 +8,7 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cocalc",
     "versions": [
       {
-        "version": "1.16.4",
+        "version": "1.16.6",
         "tag": "latest",
         "tested": true
       },
@@ -62,7 +62,8 @@
       { "tag": "1.5", "tested": false },
       { "tag": "1.6", "tested": false },
       { "tag": "1.7", "tested": false },
-      { "tag": "1.8", "tested": false }
+      { "tag": "1.8", "tested": false },
+      { "tag": "1.9", "tested": false }
     ],
     "description": "Highly scalable distributed POSIX Cloud File System built using JuiceFS, Google Cloud Storage and KeyDB."
   },
