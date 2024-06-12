@@ -1,15 +1,55 @@
 #!/usr/bin/env python3
 """
 
-TODOS:
+IDEAS: which may or may not be good
    - figure out exactly when keydb has successfully startd and sync'd up
    - mount all filesystems in parallel using threading
    - implement configurability and defaults for how things are mounted and formatted
      (e.g., compression, metadata caching, file caching)
    - automatic updating when configuration changes
+
+How I work on this code in 10 easy steps:
+
+1. I start a compute server running somewhere
+
+2. I get a terminal on that compute server and type in HOME:
+     git clone git@github.com:sagemathinc/cocalc-compute-docker.git
+
+3. I edit this file:
+     open cocalc-compute-docker/src/cloud-filesystem/scripts/cloud_filesystem.py
+
+4. On that same compute server, I have some cloud filesystems defined.
+
+5. I copy this file to the cloud-filesystem container using this script:
+
+(compute-server-38) ~$ more docker_cp
+set -ev
+docker cp cocalc-compute-docker/src/cloud-filesystem/scripts/cloud_filesystem.py cloud-filesystem:/scripts/
+
+6. Then restart the container:
+    docker stop cloud-filesystem
+    docker start cloud-filesystem
+
+7. Observer:  "docker logs -f --tail=100 cloud-filesystem"
+
+8. Sometimes get a shell in cloud-filesystem and poke around
+or try commands directly:
+    docker exec -it cloud-filesystem
+
+9. When done and ready to deploy, commit, push, pull, etc.,
+then append a new version in images.json to the "cloud-filesystem"
+config, and on an x86 and arm build host, do
+    make cloud-filesystem && make push-cloud-filesystem
+and on the x86 host do
+    make assemble-cloud-filesystem
+
+10. Point to the new images.json by editing the site settings of
+your cocalc server, e.g., make "Compute Servers: Images Spec URL"
+point to something like
+https://raw.githubusercontent.com/sagemathinc/cocalc-compute-docker/34cf5fd19b3f037064f3929c389a9b44b22d205f/images.json
 """
 
-import argparse, json, os, random, shutil, signal, subprocess, sys, tempfile, time
+import argparse, datetime, json, os, random, shutil, signal, subprocess, sys, tempfile, time
 
 # We poll filesystem for changes to CLOUD_FILESYSTEM_JSON this frequently:
 INTERVAL = 5
@@ -24,6 +64,11 @@ CLOUD_FILESYSTEM_JSON = 'cloud-filesystem.json'
 ###
 # Utilities
 ###
+
+
+def log(*args):
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S: ")
+    print(timestamp, *args)
 
 
 def get_mtime(path):
@@ -50,7 +95,7 @@ def run(cmd, check=True, env=None):
     stdout and stderr as usual. Basically this is os.system(cmd),
     but it will throw an exception if the exit status is nonzero.
     """
-    print(f"run: {cmd}")
+    log(f"run: {cmd}")
     if env is None:
         env = os.environ
     else:
@@ -58,7 +103,7 @@ def run(cmd, check=True, env=None):
     try:
         subprocess.check_call(cmd, shell=isinstance(cmd, str), env=env)
     except subprocess.CalledProcessError as e:
-        print(f"Command '{cmd}' failed with error code: {e.returncode}", e)
+        log(f"Command '{cmd}' failed with error code: {e.returncode}", e)
         if check:
             raise
 
@@ -88,7 +133,7 @@ def gcs_key(filesystem):
 
 
 def mount_all():
-    print("MOUNT ALL")
+    log("MOUNT ALL")
     config = read_cloud_filesystem_json()
     if config is None:
         return
@@ -127,8 +172,13 @@ def bucket_fullpath(filesystem):
 # the permissions can take a while to spread through google cloud
 # and actually work.  Since we sometimes create the role binding
 # right before mounting, this is particular important to retry.
-def mount_bucket(filesystem, max_time=60):
-    # write the service account key to a temporary file, being careful about permissions
+# Note that officially it can take 7+ minutes for the role binding
+# to actually start working
+#   https://cloud.google.com/iam/docs/access-change-propagation),
+# and if this fails, then it'll get retried in the next update loop.
+def mount_bucket(filesystem, max_time=15):
+    # write the service account key to a temporary file,
+    # being careful about permissions
     # so it is only readable by us.
     key_file = gcs_key(filesystem)
     # use gcsfuse to mount the GCS bucket
@@ -137,14 +187,20 @@ def mount_bucket(filesystem, max_time=60):
     # implicit dirs is so we can see the juicedb data, so we can tell
     # if the volume is already formatted.
     start = time.time()
+    delay = 1
     while True:
+        if filesystem['bucket'] in os.popen(f"df {bucket} 2>/dev/null").read():
+            # The bucket is already mounted
+            return
         try:
-            run(f"gcsfuse --implicit-dirs --ignore-interrupts=true --key-file {key_file} {filesystem['bucket']} {bucket}"
-                )
-        except e as Exception:
-            if time.time() - start >= max_time:
+            run(f"gcsfuse --implicit-dirs --ignore-interrupts=true --key-file {key_file} {filesystem['bucket']} {bucket}",
+                check=True)
+        except Exception as e:
+            elapsed = time.time() - start
+            if elapsed >= max_time:
                 raise e
-            time.sleep(1)
+            delay = min(max_time - elapsed, min(delay * 1.2, 5))
+            time.sleep(delay)
 
 
 def keydb_paths(filesystem, network):
@@ -170,7 +226,7 @@ def newest_dump_rdb_path(persist):
     for ip in os.listdir(persist):
         path = os.path.join(persist, ip, 'data', 'dump.rdb')
         t = get_mtime(path)
-        print(t, path)
+        log(t, path)
         if not t:
             continue
         # Check if the file is at least 10KB
@@ -200,19 +256,18 @@ def start_keydb(filesystem, network):
     # over, obviously, since the first server is gone.  However, it's
     # in the dump.rdb file for the first server.
     newest_dump_rdb = newest_dump_rdb_path(paths['persist'])
-    print("start_keydb: using newest_dump_rdb = ", newest_dump_rdb)
+    log("start_keydb: using newest_dump_rdb = ", newest_dump_rdb)
     dump_rdb = os.path.join(paths['data'], 'dump.rdb')
     if newest_dump_rdb is not None and dump_rdb != newest_dump_rdb:
-        print(f"{newest_dump_rdb} --> {dump_rdb}")
+        log(f"{newest_dump_rdb} --> {dump_rdb}")
         for i in range(10):
             try:
                 shutil.copyfile(newest_dump_rdb, dump_rdb)
                 break
             except Exception as e:
                 # This can happen as newest_dump_rdb gets moved into place periodically - so just retry.
-                print(
-                    f"Problem copying {newest_dump_rdb} to {dump_rdb} -- '{e}'"
-                )
+                log(f"Problem copying {newest_dump_rdb} to {dump_rdb} -- '{e}'"
+                    )
                 time.sleep(random.random() * 5)
 
     keydb_config_file = os.path.join(paths['data'], 'keydb.conf')
@@ -341,14 +396,12 @@ def mount_juicefs(filesystem):
         """,
                 check=True,
                 env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
-            print(
-                f"Successful mounted filesystem at {mountpoint_fullpath(filesystem)}"
-            )
+            log(f"Successful mounted filesystem at {mountpoint_fullpath(filesystem)}"
+                )
             break
         except Exception as e:
-            print(
-                f"Problem mounting filesystem at {mountpoint_fullpath(filesystem)} -- '{e}'"
-            )
+            log(f"Problem mounting filesystem at {mountpoint_fullpath(filesystem)} -- '{e}'"
+                )
             time.sleep(random.random() * 5)
 
 
@@ -358,7 +411,7 @@ def mount_juicefs(filesystem):
 
 
 def update():
-    print("UPDATE")
+    log("UPDATE")
     config = read_cloud_filesystem_json()
     if config is None:
         return
@@ -367,12 +420,17 @@ def update():
     currently_mounted = mounted_filesystem_paths()
     # ensure that all the ones that should be mountd are mounted
     # and configured properly.
+    error = None
     for filesystem in config['filesystems']:
-        path = mountpoint_fullpath(filesystem)
-        if path in currently_mounted:
-            update_filesystem(filesystem, network)
-        else:
-            mount_filesystem(filesystem, network)
+        try:
+            path = mountpoint_fullpath(filesystem)
+            if path in currently_mounted:
+                update_filesystem(filesystem, network)
+            else:
+                mount_filesystem(filesystem, network)
+        except Exception as e:
+            log("WARNING: failed to mount/update ", e)
+            error = e
         should_be_mounted.append(path)
     should_be_mounted = set(should_be_mounted)
 
@@ -383,10 +441,14 @@ def update():
                 try:
                     unmount_filesystem(v[0], v[1])
                 except Exception as e:
-                    print("Error unmounting filesystem", path, e)
-                    # we just pass for now; may try again in the future.
+                    log("Error unmounting filesystem", path, e)
+                    # we just try the next one for now; may try again in the future.
                     # Unmounting will fail if process has a file open.
-                    pass
+    if error is not None:
+        # something went seriously wrong with a MOUNT attempt.
+        # throwing this is important, so that we retry update again
+        # soon, rather than waiting for the filesystems state to change.
+        raise error
 
 
 def mounted_filesystem_paths():
@@ -397,8 +459,8 @@ def mounted_filesystem_paths():
 
 
 def update_filesystem(filesystem, network):
-    print('update_filesystem: ', 'id=', filesystem['id'],
-          filesystem['mountpoint'])
+    log('update_filesystem: ', 'id=', filesystem['id'],
+        filesystem['mountpoint'])
     save_config(filesystem, network)
     update_replication(filesystem, network)
 
@@ -449,7 +511,7 @@ def update_replication(filesystem, network):
 
 
 def unmount_all():
-    print("UNMOUNT ALL")
+    log("UNMOUNT ALL")
     config = read_cloud_filesystem_json()
     if config is None:
         return
@@ -458,11 +520,11 @@ def unmount_all():
         try:
             unmount_filesystem(filesystem, network)
         except Exception as e:
-            print(f"Error unmounting a filesystem -- '{e}'")
+            log(f"Error unmounting a filesystem -- '{e}'")
 
 
 def unmount_path(mountpoint, maxtime=3):
-    print(f"unmount {mountpoint}")
+    log(f"unmount {mountpoint}")
     try:
         if mountpoint not in os.popen(f"df {mountpoint} 2>/dev/null").read():
             return
@@ -473,7 +535,7 @@ def unmount_path(mountpoint, maxtime=3):
             run(f"fusermount -u {mountpoint}", check=True)
             return
         except:
-            print("sleeping a second...")
+            log("sleeping a second...")
             time.sleep(1)
             continue
     # always do this at least
@@ -491,18 +553,18 @@ def unmount_filesystem(filesystem, network):
     if os.path.exists(pidfile):
         try:
             pid = int(open(pidfile).read())
-            print(f"sending SIGTERM to keydb with pid {pid}")
+            log(f"sending SIGTERM to keydb with pid {pid}")
             os.kill(pid, signal.SIGTERM)
             try:
-                print(f"Wait for {pid} to terminate...")
+                log(f"Wait for {pid} to terminate...")
                 os.waitpid(pid, 0)
             except ChildProcessError:
                 # Process is already terminated
                 pass
-            print(f"keydb with pid {pid} has terminated")
+            log(f"keydb with pid {pid} has terminated")
             os.unlink(pidfile)
         except Exception as e:
-            print(f"Error killing keydb -- '{e}'")
+            log(f"Error killing keydb -- '{e}'")
 
     # unmount the bucket -- be aggressive because keydb already stopped
     unmount_path(bucket_fullpath(filesystem), 3)
@@ -515,20 +577,20 @@ def unmount_filesystem(filesystem, network):
 
 def read_cloud_filesystem_json():
     if not os.path.exists(CLOUD_FILESYSTEM_JSON):
-        print("no ", CLOUD_FILESYSTEM_JSON, " so nothing to do")
+        log("no ", CLOUD_FILESYSTEM_JSON, " so nothing to do")
         return None
     with open(CLOUD_FILESYSTEM_JSON) as json_file:
         return json.load(json_file)
 
 
 def signal_handler(sig, frame):
-    print('SIGTERM received! Cleaning up before exit...')
+    log('SIGTERM received! Cleaning up before exit...')
     unmount_all()
     sys.exit(0)
 
 
 def signal_handler(sig, frame):
-    print('SIGTERM received! Cleaning up before exit...')
+    log('SIGTERM received! Cleaning up before exit...')
     unmount_all()
     sys.exit(0)
 
@@ -586,16 +648,23 @@ if __name__ == '__main__':
         try:
             mount_all()
         except Exception as e:
-            print("Error", e)
+            log("Error", e)
             pass
+        success = True
         while True:
             try:
-                wait_until_file_changes(CLOUD_FILESYSTEM_JSON,
-                                        last_known_mtime)
+                if success:
+                    wait_until_file_changes(CLOUD_FILESYSTEM_JSON,
+                                            last_known_mtime)
+                else:
+                    log("failed last time, so will retry mount in 15 seconds")
+                    time.sleep(15)
                 last_known_mtime = get_mtime(CLOUD_FILESYSTEM_JSON)
                 update()
+                success = True
             except Exception as e:
-                print("Error", e)
+                success = False
+                log("Error", e)
                 pass
     finally:
         #pass
