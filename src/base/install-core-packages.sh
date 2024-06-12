@@ -24,7 +24,10 @@ apt-get install -y \
        python-is-python3 \
        tmux \
        htop \
-       supervisor
+       supervisor \
+       rsync \
+       iputils-ping \
+       netutils
 
 # I want a simple unified experience for our users, where they can just do "pip install"
 # in one global simple environment.  This is new in Ubuntu 22.04.  We may change later,

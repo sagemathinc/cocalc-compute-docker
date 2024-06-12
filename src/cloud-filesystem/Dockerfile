@@ -1,8 +1,15 @@
+# It is VERY important that this docker container not get completely out of control in
+# size.  I'm trying to keep it well below 500MB. The reason is because it is pulled the first
+# time you mount a filesystem, and we don't want that to take too long (or use too much space).
+
 ARG ARCH=
 ARG BASE_TAG=
-FROM sagemathinc/base${ARCH}:${BASE_TAG}
+FROM sagemathinc/base${ARCH}:${BASE_TAG} AS base
 
 USER root
+
+# We do NOT need Docker for cloud-filesystem, but it was nice to use all the other things from sagemathinc/base
+RUN apt-get remove -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
 # Install JuiceFS Go binary -- https://juicefs.com/docs/community/getting-started/installation/
 # We do things more manually so we explicitly update version instead of it randomly
@@ -43,17 +50,26 @@ RUN \
   && strip /usr/local/bin/keydb* \
   && rm -rf /tmp/KeyDB \
   && apt-get remove -y build-essential nasm autotools-dev autoconf libjemalloc-dev tcl tcl-dev uuid-dev libcurl4-openssl-dev libssl-dev
-  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-  && rm -rf /var/lib/apt/lists/* /tmp/*
 
 # Python dependencies for scripts -- install via pip requires installing pip (300MB+), then remove it
 RUN \
      apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y python3-pip \
-  && pip install gzip google-cloud-storage \
-  && apt-get remove -y python3-pip \
-  && apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
+  && pip install google-cloud-storage \
+  && apt-get remove -y python3-pip
+
+# More cleanup
+RUN \
+     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
   && rm -rf /var/lib/apt/lists/* /tmp/*
+
+# Now use multisage build to squash all the images into one, so the
+# result is much smaller (otherwise nothing we deleted above is really gone):
+FROM ubuntu:24.04
+USER root
+
+COPY --from=base / /
+
 
 # Directories for temporary files, caching, mounting, etc.
 RUN \
