@@ -49,7 +49,8 @@ point to something like
 https://raw.githubusercontent.com/sagemathinc/cocalc-compute-docker/34cf5fd19b3f037064f3929c389a9b44b22d205f/images.json
 """
 
-import argparse, datetime, json, os, random, shutil, signal, subprocess, sys, tempfile, time
+import argparse, datetime, gzip, json, os, random, shutil, signal, subprocess, sys, tempfile, time
+from google.cloud import storage 
 
 # We poll filesystem for changes to CLOUD_FILESYSTEM_JSON this frequently:
 INTERVAL = 5
@@ -115,14 +116,39 @@ def mkdir(path):
     os.makedirs(path, exist_ok=True)
 
 
-# Upload source to gs://bucket-name/.../a.gz.
 def upload_gzstd(source, target, key_file):
-    run(
-        ["node", "/scripts/upload-gzstd.js",
-         os.path.abspath(source), target],
-        cwd='/scripts',  # important so it can install dep the first time called
-        check=True,
-        env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
+    log("upload_gzstd: ", source, " --> ", target)
+    # Client initialization with service account JSON key file
+    client = storage.Client.from_service_account_json(key_file)
+
+    # Extract the bucket name and destination filename from the target URL
+    assert target.startswith("gs://"), "Target must start with gs://"
+    bucket_name, dest_filename = target[5:].split("/", 1)
+
+    # Ensure the destination filename ends with '.gz'
+    if not dest_filename.endswith('.gz'):
+        dest_filename += '.gz'
+
+    # Access bucket and blob objects
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(dest_filename)
+
+    # Compress file content and upload
+    with open(source, 'rb') as f_in:
+        with gzip.open(source + '.gz', 'wb', compresslevel=1) as f_out:
+            f_out.writelines(f_in)
+
+    # Upload the compressed file
+    with open(source + '.gz', 'rb') as f_gz:
+        blob.upload_from_file(f_gz,
+                              content_type='application/gzip',
+                              predefined_acl='private')
+
+    # Optionally, remove the temporary gzip file
+    os.remove(source + '.gz')
+
+    log(f"Uploaded {source} as {dest_filename} to gs://{bucket_name}/{dest_filename}"
+        )
 
 
 ###
@@ -216,8 +242,10 @@ def mount_bucket(filesystem, max_time=15):
             time.sleep(delay)
 
 
-def keydb_paths(filesystem, network):
+def keydb_paths(filesystem):
     id = filesystem['id']
+    data = os.path.join(VAR, 'data', f'keydb-{id}')
+    bucket = filesystem['bucket']
     paths = {
         # Keydb pid file is located in here
         "run":
@@ -226,20 +254,48 @@ def keydb_paths(filesystem, network):
         "log":
         os.path.join(VAR, 'log', f'keydb-{id}'),
         'dump.rdb':
-        os.path.join(VAR, 'data', 'dump.rdb'),
+        os.path.join(data, 'dump.rdb'),
         # Where keydb will persist data:
         "data":
-        os.path.join(VAR, 'data'),
+        data,
         'dump.rdb.gz':
         os.path.join(bucket_fullpath(filesystem), 'keydb', 'dump.rdb.gz'),
+        'bucket_dump_rdb_gz':
+        f'gs://{bucket}/keydb/dump.rdb.gz'
     }
     for key in ['run', 'log', 'data']:
         mkdir(paths[key])
     return paths
 
 
+def update_keydb_dump(filesystem):
+    paths = keydb_paths(filesystem)
+    t_keydb_gz = get_mtime(paths['dump.rdb.gz'])
+    t_keydb = get_mtime(paths['dump.rdb'])
+    log(f"update_keydb_dump: gettings times of {paths['dump.rdb.gz']} and {paths['dump.rdb']}"
+        )
+    if t_keydb_gz is None:
+        if t_keydb is None:
+            log("update_keydb_dump: skipping because neither file exists")
+            return
+        # will do it since t_keydb is defined by t_keydb_gz is not
+    else:
+        # Now t_keydb_gz is defined.
+        if t_keydb is None:
+            log(f"update_keydb_dump: skipping because no {paths['dump.rdb']} yet"
+                )
+            return
+    # Both exists
+    if t_keydb <= t_keydb_gz:
+        log("update_keydb_dump: our dump is up to date")
+        return
+    log("update_keydb_dump: ours is newer, so backup")
+    upload_gzstd(paths['dump.rdb'], paths['bucket_dump_rdb_gz'],
+                 gcs_key(filesystem))
+
+
 def start_keydb(filesystem, network):
-    paths = keydb_paths(filesystem, network)
+    paths = keydb_paths(filesystem)
 
     # If there is a dump.rdb file from any other node that
     # is newer than ours, then we replace ours with it.
@@ -409,7 +465,7 @@ def update():
             v = get_config(path)
             if v is not None:
                 try:
-                    unmount_filesystem(v[0], v[1])
+                    unmount_filesystem(v[0])
                 except Exception as e:
                     log("Error unmounting filesystem", path, e)
                     # we just try the next one for now; may try again in the future.
@@ -488,7 +544,7 @@ def unmount_all():
     network = config['network']
     for filesystem in config['filesystems']:
         try:
-            unmount_filesystem(filesystem, network)
+            unmount_filesystem(filesystem)
         except Exception as e:
             log(f"Error unmounting a filesystem -- '{e}'")
 
@@ -513,12 +569,12 @@ def unmount_path(mountpoint, maxtime=3):
     #raise RuntimeError(f"failed to unmount {mountpoint}")
 
 
-def unmount_filesystem(filesystem, network):
+def unmount_filesystem(filesystem):
     # unmount juicefs
     unmount_path(mountpoint_fullpath(filesystem))
 
     # stop keydb
-    paths = keydb_paths(filesystem, network)
+    paths = keydb_paths(filesystem)
     pidfile = os.path.join(paths['run'], 'keydb-server.pid')
     if os.path.exists(pidfile):
         try:
@@ -535,6 +591,9 @@ def unmount_filesystem(filesystem, network):
             os.unlink(pidfile)
         except Exception as e:
             log(f"Error killing keydb -- '{e}'")
+
+    # copy over keydb dump to bucket -- there should be a new dump since it just ended
+    update_keydb_dump(filesystem)
 
     # unmount the bucket -- be aggressive because keydb already stopped
     unmount_path(bucket_fullpath(filesystem), 3)

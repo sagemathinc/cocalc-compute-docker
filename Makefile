@@ -142,10 +142,8 @@ GCSFUSE_VERSION=2.2.0
 # See https://github.com/Snapchat/KeyDB/releases
 KEYDB_VERSION=6.3.4
 
-# NOTE: we delete 'scripts/node_modules' since we don't want that artifact in our
-# container, as it is platform dependent -- it gets installed at runtime
 cloud-filesystem:
-	cd src/cloud-filesystem && rm -rf scripts/node_modules && docker build  --build-arg ARCH=$(ARCH) --build-arg ARCH1=$(ARCH1) --build-arg ARCH=$(ARCH)  --build-arg JFS_VERSION=$(JFS_VERSION)  --build-arg KEYDB_VERSION=$(KEYDB_VERSION) --build-arg GCSFUSE_VERSION=$(GCSFUSE_VERSION) --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/cloud-filesystem$(ARCH):$(CLOUD_FILESYSTEM_TAG) .
+	cd src/cloud-filesystem && docker build  --build-arg ARCH=$(ARCH) --build-arg ARCH1=$(ARCH1) --build-arg ARCH=$(ARCH)  --build-arg JFS_VERSION=$(JFS_VERSION)  --build-arg KEYDB_VERSION=$(KEYDB_VERSION) --build-arg GCSFUSE_VERSION=$(GCSFUSE_VERSION) --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/cloud-filesystem$(ARCH):$(CLOUD_FILESYSTEM_TAG) .
 run-cloud-filesystem:
 	docker run --name run-cloud-filesystem -it --rm $(DOCKER_USER)/cloud-filesystem$(ARCH):$(CLOUD_FILESYSTEM_TAG) bash
 push-cloud-filesystem:
