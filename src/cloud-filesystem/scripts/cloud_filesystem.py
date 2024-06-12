@@ -50,10 +50,11 @@ https://raw.githubusercontent.com/sagemathinc/cocalc-compute-docker/34cf5fd19b3f
 """
 
 import argparse, datetime, gzip, json, os, random, shutil, signal, subprocess, sys, tempfile, time
-from google.cloud import storage 
+from google.cloud import storage
 
-# We poll filesystem for changes to CLOUD_FILESYSTEM_JSON this frequently:
-INTERVAL = 5
+# We poll filesystem for changes to CLOUD_FILESYSTEM_JSON at most
+# this frequently in seconds.
+INTERVAL_S = 5
 
 VAR = '/var/cloud-filesystem'
 SECRETS = '/secrets'
@@ -78,7 +79,9 @@ def get_mtime(path):
 
 def wait_until_file_changes(path, last_known_mtime):
     while True:
-        time.sleep(INTERVAL)
+        t = time.time()
+        update_keydb_dumps()
+        time.sleep(INTERVAL_S - (time.time() - t))
         if not os.path.exists(path):
             # File doesn't exist, continue until file is created
             last_known_mtime = None
@@ -268,30 +271,42 @@ def keydb_paths(filesystem):
     return paths
 
 
+# last timestamp of keydb we changed, mapping from id to time
+last_keydb_time = {}
+
+
 def update_keydb_dump(filesystem):
     paths = keydb_paths(filesystem)
-    t_keydb_gz = get_mtime(paths['dump.rdb.gz'])
+    if not os.path.exists(paths['dump.rdb']):
+        return
     t_keydb = get_mtime(paths['dump.rdb'])
-    log(f"update_keydb_dump: gettings times of {paths['dump.rdb.gz']} and {paths['dump.rdb']}"
-        )
+    if last_keydb_time.get(filesystem['id'], 0) == t_keydb:
+        # file is unchanged
+        return
+    log(f"update_keydb_dump: handling change")
+
+    # Important - we do not want to touch the actual bucket unless necessary,
+    # since it costs money.  Hence the last_keydb_time cache above.
+    t_keydb_gz = get_mtime(paths['dump.rdb.gz'])
+    if t_keydb is None:
+        t_keydb = 0
     if t_keydb_gz is None:
-        if t_keydb is None:
-            log("update_keydb_dump: skipping because neither file exists")
-            return
-        # will do it since t_keydb is defined by t_keydb_gz is not
-    else:
-        # Now t_keydb_gz is defined.
-        if t_keydb is None:
-            log(f"update_keydb_dump: skipping because no {paths['dump.rdb']} yet"
-                )
-            return
-    # Both exists
-    if t_keydb <= t_keydb_gz:
-        log("update_keydb_dump: our dump is up to date")
+        t_keydb_gz = 0
+    if t_keydb_gz >= time.time() + 10 * 60:
+        # TODO: much better than this would be if we can just get the
+        # actual object creation time via the google cloud storage api,
+        # and then instead of depending on client clocks, we depend only
+        # on GCS's clock.
+        log(f"update_keydb_dump: weirdly {paths['dump.rdb.gz']} is 10 minutes in future, so a clock is way off, we copy anyways!"
+            )
+    elif t_keydb <= t_keydb_gz:
+        log("update_keydb_dump: our dump is older than latest, so nothing to do"
+            )
         return
     log("update_keydb_dump: ours is newer, so backup")
     upload_gzstd(paths['dump.rdb'], paths['bucket_dump_rdb_gz'],
                  gcs_key(filesystem))
+    last_keydb_time[filesystem['id']] = t_keydb
 
 
 def start_keydb(filesystem, network):
@@ -333,6 +348,11 @@ pidfile {os.path.join(paths['run'], 'keydb-server.pid')}
 dir {paths['data']}
 # Save once per minute, when there is at least 1 change (so some point in saving).
 save 60 1
+
+# Enable append only persistence -- this is just to deal with cases when
+# the server is weirdly killed and the rdb doesn't get a chance to write
+# out data.
+appendonly yes
 
 # multimaster replication
 multi-master yes
@@ -477,6 +497,18 @@ def update():
         raise error
 
 
+# Do this as often as possible, and at least once per minute.
+def update_keydb_dumps():
+    config = read_cloud_filesystem_json()
+    if config is None:
+        return
+    for filesystem in config['filesystems']:
+        try:
+            update_keydb_dump(filesystem)
+        except Exception as e:
+            log("WARNING: failed to update_keydb_dump", e)
+
+
 def mounted_filesystem_paths():
     s = subprocess.run(['mount', '-t', 'fuse.juicefs'], capture_output=True)
     if s.returncode:
@@ -489,6 +521,7 @@ def update_filesystem(filesystem, network):
         filesystem['mountpoint'])
     save_config(filesystem, network)
     update_replication(filesystem, network)
+    update_keydb_dump(filesystem)
 
 
 def get_replicas(port):
@@ -658,9 +691,9 @@ if __name__ == '__main__':
     parser.add_argument(
         '--interval',
         type=int,
-        default=INTERVAL,
+        default=INTERVAL_S,
         help=
-        f"{CLOUD_FILESYSTEM_JSON} is polled every this many seconds for changes (default: {INTERVAL}s)"
+        f"{CLOUD_FILESYSTEM_JSON} is polled every this many seconds for changes (default: {INTERVAL_S}s)"
     )
 
     args = parser.parse_args()
@@ -668,7 +701,7 @@ if __name__ == '__main__':
     VAR = args.var
     SECRETS = args.secrets
     BUCKETS = args.buckets
-    INTERVAL = args.interval
+    INTERVAL_S = args.interval
 
     last_known_mtime = get_mtime(CLOUD_FILESYSTEM_JSON)
     try:
