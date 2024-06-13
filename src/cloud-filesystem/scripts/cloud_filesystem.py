@@ -73,8 +73,8 @@ def log(*args):
     print(timestamp, *args)
 
 
-def get_mtime(path):
-    return None if not os.path.exists(path) else os.path.getmtime(path)
+def get_mtime(path, zero=None):
+    return zero if not os.path.exists(path) else os.path.getmtime(path)
 
 
 def wait_until_file_changes(path, last_known_mtime):
@@ -309,9 +309,6 @@ def update_keydb_dump(filesystem):
     last_keydb_time[filesystem['id']] = t_keydb
 
 
-# do not change
-APPENDONLY = 'appendonly.aof'
-
 
 def start_keydb(filesystem, network):
     paths = keydb_paths(filesystem)
@@ -325,11 +322,16 @@ def start_keydb(filesystem, network):
     # in the dump.rdb file for the first server.
     dump_rdb_gz = paths['dump.rdb.gz']
     if os.path.exists(dump_rdb_gz):
-        append_only_file = os.path.join(paths['data'], APPENDONLY)
-        append_only = get_mtime(append_only_file)
-        if append_only is None or append_only < get_mtime(dump_rdb_gz):
-            log("start_keydb: using dump_rdb_gz = ", dump_rdb_gz)
-            dump_rdb = os.path.join(paths['data'], 'dump.rdb')
+        # We use the dump_rdb_gz exactly if it is newer than the dump.rdb file.
+        dump_rdb = os.path.join(paths['data'], 'dump.rdb')
+        t_dump_rdb = get_mtime(dump_rdb, 0)
+        t_dump_rdb_gz = get_mtime(dump_rdb_gz)
+
+        log("t_dump_rdb=", t_dump_rdb,
+            "t_dump_rdb_gz=", t_dump_rdb_gz)
+        if t_dump_rdb < t_dump_rdb_gz:
+            log("start_keydb: using dump_rdb_gz = ", dump_rdb_gz,
+                " since it is newer")
             log(f"{dump_rdb_gz} --> {dump_rdb}")
             for i in range(10):
                 try:
@@ -343,11 +345,6 @@ def start_keydb(filesystem, network):
             if os.path.exists(dump_rdb):
                 shutil.move(dump_rdb, dump_rdb + '.backup')
             run(["gunzip", dump_rdb + '.gz'])
-            if append_only is not None:
-                os.remove(append_only_file)
-        else:
-            log("start_keydb: dump_rdb_gz exists but appendonly is newer so using append only"
-                )
     else:
         log("start_keydb: starting from whatever is local, if anything")
 
@@ -364,11 +361,13 @@ dir {paths['data']}
 # Save once per minute, when there is at least 1 change (so some point in saving).
 save 60 1
 
-# Enable append only persistence -- this is just to deal with cases when
-# the server is weirdly killed and the rdb doesn't get a chance to write
-# out data.
-appendonly yes
-appendfilename "{APPENDONLY}"
+# Enabling appendonly constantly broke things.  I don't understand why, but
+# I think things don't work if the file is missing -- i.e., you can't just
+# delete it to reset to a different state from another node.  So it's not
+# sufficient for us.  Instead we have to accept the potential of slight
+# data loss.   Note that the rdb file always gets saved every 60s from the
+# above configuration.
+appendonly no
 
 # multimaster replication
 multi-master yes
@@ -441,15 +440,15 @@ def mount_juicefs(filesystem):
     for key in paths:
         mkdir(paths[key])
 
-    run(f"juicefs config redis://localhost:{filesystem['port']} --yes --force {get_trash_days_option(filesystem)}",
-        check=False,
-        env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
 
     # The very first time the filesystem starts, multiple compute servers are trying to run this mount_juicefs
     # function at roughly the same time.  This mount could fail with "not formatted" because the format is
     # in progress.  Format is very fast, but not instant.
     for i in range(10):
         try:
+            run(f"juicefs config redis://localhost:{filesystem['port']} --yes --force {get_trash_days_option(filesystem)}",
+                check=False,
+                env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
             run(f"""
         juicefs mount \
             --background \
