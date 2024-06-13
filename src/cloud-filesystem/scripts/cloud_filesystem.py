@@ -80,7 +80,7 @@ def get_mtime(path, zero=None):
 def wait_until_file_changes(path, last_known_mtime):
     while True:
         t = time.time()
-        update_keydb_dumps()
+        update_keydbs()
         time.sleep(INTERVAL_S - (time.time() - t))
         if not os.path.exists(path):
             # File doesn't exist, continue until file is created
@@ -117,6 +117,16 @@ def run(cmd, check=True, env=None, cwd=None):
 
 def mkdir(path):
     os.makedirs(path, exist_ok=True)
+
+
+def is_process_running(pid):
+    try:
+        # Signal 0 in a kill command is a null signal, it does not affect the process
+        os.kill(pid, 0)
+    except OSError:
+        return False  # Process is definitely not alive
+    else:
+        return True  # Process responded, hence it's alive
 
 
 def upload_gzstd(source, target, key_file):
@@ -309,7 +319,6 @@ def update_keydb_dump(filesystem):
     last_keydb_time[filesystem['id']] = t_keydb
 
 
-
 def start_keydb(filesystem, network):
     paths = keydb_paths(filesystem)
 
@@ -327,8 +336,7 @@ def start_keydb(filesystem, network):
         t_dump_rdb = get_mtime(dump_rdb, 0)
         t_dump_rdb_gz = get_mtime(dump_rdb_gz)
 
-        log("t_dump_rdb=", t_dump_rdb,
-            "t_dump_rdb_gz=", t_dump_rdb_gz)
+        log("t_dump_rdb=", t_dump_rdb, "t_dump_rdb_gz=", t_dump_rdb_gz)
         if t_dump_rdb < t_dump_rdb_gz:
             log("start_keydb: using dump_rdb_gz = ", dump_rdb_gz,
                 " since it is newer")
@@ -387,6 +395,41 @@ port {filesystem['port']}
     run(f"keydb-server {keydb_config_file}")
 
 
+def ensure_keydb_running(filesystem, network):
+    paths = keydb_paths(filesystem)
+    pidfile = os.path.join(paths['run'], 'keydb-server.pid')
+    if os.path.exists(pidfile):
+        try:
+            pid = int(open(pidfile).read())
+            if is_process_running(pid):
+                # it is fine
+                return
+        except:
+            pass
+    start_keydb(filesystem, network)
+
+
+def stop_keydb(filesystem):
+    paths = keydb_paths(filesystem)
+    pidfile = os.path.join(paths['run'], 'keydb-server.pid')
+    if not os.path.exists(pidfile):
+        return
+    try:
+        pid = int(open(pidfile).read())
+        log(f"sending SIGTERM to keydb with pid {pid}")
+        os.kill(pid, signal.SIGTERM)
+        try:
+            log(f"Wait for {pid} to terminate...")
+            os.waitpid(pid, 0)
+        except ChildProcessError:
+            # Process is already terminated
+            pass
+        log(f"keydb with pid {pid} has terminated")
+        os.unlink(pidfile)
+    except Exception as e:
+        log(f"Error killing keydb -- '{e}'")
+
+
 def juicefs_paths(filesystem):
     id = filesystem['id']
     return {
@@ -439,7 +482,6 @@ def mount_juicefs(filesystem):
     paths = juicefs_paths(filesystem)
     for key in paths:
         mkdir(paths[key])
-
 
     # The very first time the filesystem starts, multiple compute servers are trying to run this mount_juicefs
     # function at roughly the same time.  This mount could fail with "not formatted" because the format is
@@ -512,11 +554,19 @@ def update():
         raise error
 
 
-# Do this as often as possible, and at least once per minute.
-def update_keydb_dumps():
+# This should get done periodically, probably every 5s-20s, and
+# at least once per minute.  It:
+#   - copies keydb.rdb files to the bucket
+#   - starts keydb if it crashes for some reason; keydb in multimaster mode
+#     is not as robust as juicefs.  E.g., I observed a crash
+#     " Internal error in RDB reading offset 800240, function at rdb.c:420 -> Invalid LZF compressed string . Terminating server after rdb file reading failure."
+#     when stress testing with lots of nodes at once.  While down the filesystem
+#     paused. Starting that same keydb again and things resumed fine.
+def update_keydbs():
     config = read_cloud_filesystem_json()
     if config is None:
         return
+    network = config['network']
     mounted = set(mounted_filesystem_paths())
     for filesystem in config['filesystems']:
         path = mountpoint_fullpath(filesystem)
@@ -529,6 +579,7 @@ def update_keydb_dumps():
             update_keydb_dump(filesystem)
         except Exception as e:
             log("WARNING: failed to update_keydb_dump", e)
+        ensure_keydb_running(filesystem, network)
 
 
 def mounted_filesystem_paths():
@@ -629,23 +680,7 @@ def unmount_filesystem(filesystem):
     unmount_path(mountpoint_fullpath(filesystem))
 
     # stop keydb
-    paths = keydb_paths(filesystem)
-    pidfile = os.path.join(paths['run'], 'keydb-server.pid')
-    if os.path.exists(pidfile):
-        try:
-            pid = int(open(pidfile).read())
-            log(f"sending SIGTERM to keydb with pid {pid}")
-            os.kill(pid, signal.SIGTERM)
-            try:
-                log(f"Wait for {pid} to terminate...")
-                os.waitpid(pid, 0)
-            except ChildProcessError:
-                # Process is already terminated
-                pass
-            log(f"keydb with pid {pid} has terminated")
-            os.unlink(pidfile)
-        except Exception as e:
-            log(f"Error killing keydb -- '{e}'")
+    stop_keydb(filesystem)
 
     # copy over keydb dump to bucket -- there should be a new dump since it just ended
     update_keydb_dump(filesystem)
