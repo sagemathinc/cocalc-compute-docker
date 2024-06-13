@@ -521,7 +521,7 @@ def update():
     network = config['network']
     should_be_mounted = []
     currently_mounted = mounted_filesystem_paths()
-    # ensure that all the ones that should be mountd are mounted
+    # ensure that all the ones that should be mounted are mounted
     # and configured properly.
     error = None
     for filesystem in config['filesystems']:
@@ -534,6 +534,11 @@ def update():
         except Exception as e:
             log("WARNING: failed to mount/update ", e)
             error = e
+            try:
+                log("Something is wrong: attempt to ensure keydb running")
+                ensure_keydb_running(filesystem, network)
+            except Exception as e:
+                log("WARNING: that failed too ", e)
         should_be_mounted.append(path)
     should_be_mounted = set(should_be_mounted)
 
@@ -776,8 +781,9 @@ if __name__ == '__main__':
                     wait_until_file_changes(CLOUD_FILESYSTEM_JSON,
                                             last_known_mtime)
                 else:
-                    log("failed last time, so will retry mount in 15 seconds")
-                    time.sleep(15)
+                    log(f"failed last time, so will retry mount in {INTERVAL_S} seconds"
+                        )
+                    time.sleep(INTERVAL_S)
                 last_known_mtime = get_mtime(CLOUD_FILESYSTEM_JSON)
                 update()
                 success = True

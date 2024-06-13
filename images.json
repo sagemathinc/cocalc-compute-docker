@@ -65,7 +65,8 @@
       { "tag": "1.8", "tested": false },
       { "tag": "1.9", "tested": false },
       { "tag": "1.10", "tested": false },
-      { "tag": "1.11", "tested": false }
+      { "tag": "1.11", "tested": false },
+      { "tag": "1.12", "tested": false }
     ],
     "description": "Highly scalable distributed POSIX Cloud File System built using JuiceFS, Google Cloud Storage and KeyDB."
   },
