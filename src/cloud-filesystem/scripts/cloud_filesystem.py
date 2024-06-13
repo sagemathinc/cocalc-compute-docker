@@ -605,12 +605,20 @@ def mounted_filesystem_paths():
     return [x.split()[2] for x in s.stdout.decode().splitlines()]
 
 
+def update_juicefs_config(filesystem):
+    key_file = gcs_key(filesystem)
+    run(f"juicefs config redis://localhost:{filesystem['port']} --yes --force {get_trash_days_option(filesystem)}",
+        check=False,
+        env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
+
+
 def update_filesystem(filesystem, network):
     log('update_filesystem: ', 'id=', filesystem['id'],
         filesystem['mountpoint'])
     save_config(filesystem, network)
     update_replication(filesystem, network)
     update_keydb_dump(filesystem)
+    update_juicefs_config(filesystem)
 
 
 def get_replicas(port):
