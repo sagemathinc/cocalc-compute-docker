@@ -474,7 +474,9 @@ def get_mount_options(filesystem):
 
 def mount_juicefs(filesystem):
     key_file = gcs_key(filesystem)
-    if not os.path.exists(os.path.join(bucket_fullpath(filesystem), VOLUME)):
+    first_time = not os.path.exists(
+        os.path.join(bucket_fullpath(filesystem), VOLUME))
+    if first_time:
         run(f"juicefs format {get_format_options(filesystem)}",
             check=False,
             env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
@@ -486,26 +488,35 @@ def mount_juicefs(filesystem):
     # The very first time the filesystem starts, multiple compute servers are trying to run this mount_juicefs
     # function at roughly the same time.  This mount could fail with "not formatted" because the format is
     # in progress.  Format is very fast, but not instant.
-    for i in range(10):
+    mountpoint = mountpoint_fullpath(filesystem)
+    error = None
+    for i in range(10 if first_time else 1):
         try:
             run(f"juicefs config redis://localhost:{filesystem['port']} --yes --force {get_trash_days_option(filesystem)}",
                 check=False,
                 env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
+            mount_options = get_mount_options(filesystem)
             run(f"""
         juicefs mount \
             --background \
-            --log {os.path.join(paths['log'], 'juicefs.log')} {get_mount_options(filesystem)} \
-            redis://localhost:{filesystem['port']} {mountpoint_fullpath(filesystem)}
+            --log {os.path.join(paths['log'], 'juicefs.log')} {mount_options} \
+            redis://localhost:{filesystem['port']} {mountpoint}
         """,
                 check=True,
                 env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
-            log(f"Successful mounted filesystem at {mountpoint_fullpath(filesystem)}"
-                )
-            break
+            log(f"Successful mounted filesystem at {mountpoint}")
+            if 'allow_other' in mount_options:
+                # These permissions are only important when the allow_other option
+                # is set, and even then, they are just cosmetic for our purposes.
+                run(["sudo", "chown", "user:user", mountpoint], check=False)
+                run(["sudo", "chmod", "og-rwx", mountpoint], check=False)
+            return
         except Exception as e:
-            log(f"Problem mounting filesystem at {mountpoint_fullpath(filesystem)} -- '{e}'"
-                )
+            error = e
+            log(f"Problem mounting filesystem at {mountpoint} -- '{e}'")
             time.sleep(random.random() * 5)
+    if error is not None:
+        raise error
 
 
 ###
@@ -681,8 +692,9 @@ def unmount_path(mountpoint, maxtime=3):
 
 
 def unmount_filesystem(filesystem):
+    mountpoint = mountpoint_fullpath(filesystem)
     # unmount juicefs
-    unmount_path(mountpoint_fullpath(filesystem))
+    unmount_path(mountpoint)
 
     # stop keydb
     stop_keydb(filesystem)
@@ -697,6 +709,14 @@ def unmount_filesystem(filesystem):
     path = gcs_key_path(filesystem)
     if os.path.exists(path):
         os.unlink(path)
+
+    # try to remove the directory if it happens to be empty
+    # but no problem if this fails
+    if os.path.exists(mountpoint):
+        try:
+            os.rmdir(mountpoint)
+        except Exception as e:
+            log(f"Could not remove {mountpoint} -- '{e}'")
 
 
 def read_cloud_filesystem_json():
