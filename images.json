@@ -8,12 +8,12 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cocalc",
     "versions": [
       {
-        "version": "1.16.6",
+        "version": "1.16.8",
         "tag": "latest",
         "tested": true
       },
       {
-        "version": "1.16.5",
+        "version": "1.16.7",
         "tag": "test",
         "tested": false
       }
