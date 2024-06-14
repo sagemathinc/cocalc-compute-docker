@@ -56,6 +56,10 @@ from google.cloud import storage
 # this frequently in seconds.
 INTERVAL_S = 5
 
+# Delete locally cached files if filesystem is in the "not automount"
+# state or deleted for this many minutes.
+FREE_NOT_MOUNTED_M = 60
+
 VAR = '/var/cloud-filesystem'
 SECRETS = '/secrets'
 BUCKETS = '/buckets'
@@ -255,27 +259,26 @@ def mount_bucket(filesystem, max_time=15):
             time.sleep(delay)
 
 
-def keydb_paths(filesystem):
+def local_keydb_paths(filesystem):
     id = filesystem['id']
     data = os.path.join(VAR, 'data', f'keydb-{id}')
-    bucket = filesystem['bucket']
-    paths = {
+    return {
         # Keydb pid file is located in here
-        "run":
-        os.path.join(VAR, 'run', f'keydb-{id}'),
+        "run": os.path.join(VAR, 'run', f'keydb-{id}'),
         # Keydb log file is here
-        "log":
-        os.path.join(VAR, 'log', f'keydb-{id}'),
-        'dump.rdb':
-        os.path.join(data, 'dump.rdb'),
+        "log": os.path.join(VAR, 'log', f'keydb-{id}'),
+        'dump.rdb': os.path.join(data, 'dump.rdb'),
         # Where keydb will persist data:
-        "data":
-        data,
-        'dump.rdb.gz':
-        os.path.join(bucket_fullpath(filesystem), 'keydb', 'dump.rdb.gz'),
-        'bucket_dump_rdb_gz':
-        f'gs://{bucket}/keydb/dump.rdb.gz'
+        "data": data
     }
+
+
+def keydb_paths(filesystem):
+    paths = local_keydb_paths(filesystem)
+    bucket = filesystem['bucket']
+    paths['dump.rdb.gz'] = os.path.join(bucket_fullpath(filesystem), 'keydb',
+                                        'dump.rdb.gz')
+    paths['bucket_dump_rdb_gz'] = f'gs://{bucket}/keydb/dump.rdb.gz'
     for key in ['run', 'log', 'data']:
         mkdir(paths[key])
     return paths
@@ -353,8 +356,10 @@ last_keydb_time = {}
 
 def update_keydb_dump(filesystem):
     if not has_state_changed_since_calling_save_filesystem_state(filesystem):
-        log("update_keydb_dump", filesystem['id'], 'no state change')
+        # do not clutter the logs
+        #    log("update_keydb_dump", filesystem['id'], 'no state change')
         return
+    log("update_keydb_dump", filesystem['id'], 'filesystem state change')
     paths = keydb_paths(filesystem)
     if not os.path.exists(paths['dump.rdb']):
         log("update_keydb_dump", filesystem['id'], 'no dump.rdb')
@@ -526,6 +531,8 @@ def juicefs_paths(filesystem):
     return {
         # juicefs log file is here
         "log": os.path.join(VAR, 'log', f'juicefs-{id}'),
+        # IMPORTANT: In update_not_mounted_filesystems we assume
+        # this location and name for the cache directories!!!
         "cache": os.path.join(VAR, 'cache', f'juicefs-{id}'),
     }
 
@@ -621,12 +628,18 @@ def update():
     if config is None:
         return
     network = config['network']
+    filesystems = config['filesystems']
+    update_mounted_filesystems(filesystems, network)
+    update_caches([filesystem['id'] for filesystem in filesystems])
+
+
+def update_mounted_filesystems(filesystems, network):
     should_be_mounted = []
     currently_mounted = mounted_filesystem_paths()
     # ensure that all the ones that should be mounted are mounted
     # and configured properly.
     error = None
-    for filesystem in config['filesystems']:
+    for filesystem in filesystems:
         try:
             path = mountpoint_fullpath(filesystem)
             if path in currently_mounted:
@@ -638,6 +651,9 @@ def update():
             error = e
             try:
                 log("Something is wrong: attempt to ensure keydb running")
+                # it can terminate in theory in hopefully very rare edge cases --
+                # we start it again, potentially using
+                # state from another server over the network.  self healing.
                 ensure_keydb_running(filesystem, network)
             except Exception as e:
                 log("WARNING: that failed too ", e)
@@ -659,6 +675,58 @@ def update():
         # throwing this is important, so that we retry update again
         # soon, rather than waiting for the filesystems state to change.
         raise error
+
+
+def update_caches(filesystem_ids):
+    # for cache location, see juicefs_paths
+    cache = os.path.join(VAR, 'cache')
+    for path in os.listdir(cache):
+        if path.startswith('juicefs-'):
+            try:
+                id = int(path.split('-')[1])
+                if id not in filesystem_ids:
+                    update_filesystem_cache({'id': id})
+            except Exception as e:
+                log(f"update_caches: WARNING -- id={id}", e)
+
+
+def update_filesystem_cache(filesystem):
+    """
+    Right now -- nothing for mounted
+    For non-mounted filesystem, if it hasn't been mounted
+    for FREE_NOT_MOUNTED_M minutes, we delete any local cache
+    files.  Why:
+      - Otherwise, the cache could use a lot of space, and the filesystem
+        might be deleted or never used again.  A user could in theory
+        clear the cache, but that's tedious.
+      - We don't immediately delete the cache, because the user might just
+        be unmounting the filesystem to make some configuration changes.
+      - We could complicate the algorithm and data structures a lot and
+        better take into account if the filesystem was deleted, etc.
+
+    For now, we do not delete the rdb data file, since it is small and
+    could be useful for disaster recovery.
+    """
+    log("update_filesystem_cache: ", filesystem['id'])
+    cache = juicefs_paths(filesystem)['cache']
+    if not os.path.exists(cache):
+        log("update_filesystem_cache: cache dir does not exist", cache)
+        return
+    # For unmounted we check the time of last rbd file, and if it
+    # longer than FREE_NOT_MOUNTED_M, we delete the cache
+    paths = local_keydb_paths(filesystem)
+    dump_rdb = paths['dump.rdb']
+    last_active = get_mtime(dump_rdb, 0)
+    if time.time() - last_active < FREE_NOT_MOUNTED_M * 60:
+        log("update_filesystem_cache: active so don't mess with it",
+            filesystem['id'])
+        return
+    log(f"update_filesystem_cache: not active, so deleting", filesystem['id'])
+    try:
+        shutil.rmtree(cache)
+    except Exception as e:
+        log(f"update_filesystem_cache: WARNING -- problem clearing cache for filesystem {filesystem['id']} -- '{e}'"
+            )
 
 
 # This should get done periodically, probably every 5s-20s, and
