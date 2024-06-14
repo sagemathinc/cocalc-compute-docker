@@ -281,18 +281,95 @@ def keydb_paths(filesystem):
     return paths
 
 
+def get_stats_path(filesystem):
+    return os.path.join(mountpoint_fullpath(filesystem), '.stats')
+
+
+# We normally only upload the keydb state file to cloud storage
+# when something has changed in the filesystem state, as evidenced
+# by one of these metrics changing.  This avoids constantly uploading
+# the keydb dump.rdb over a thousand times a day for no reason.
+# Of course, we always save dump.rdb on exit.
+
+STATE_KEYS = set([
+    'juicefs_object_request_data_bytes_GET',
+    'juicefs_object_request_data_bytes_PUT', 'juicefs_meta_ops_total_Link',
+    'juicefs_meta_ops_total_Mknod', 'juicefs_meta_ops_total_Rename',
+    'juicefs_meta_ops_total_SetAttr', 'juicefs_meta_ops_total_SetXattr',
+    'juicefs_meta_ops_total_Unlink', 'juicefs_meta_ops_total_Write',
+    'juicefs_fuse_ops_total_write', 'juicefs_fuse_ops_total_create'
+])
+
+
+def get_filesystem_state(filesystem):
+    path = get_stats_path(filesystem)
+    if not os.path.exists(path):
+        return None
+    state = {}
+    for x in open(path).readlines():
+        v = x.split()
+        if len(v) >= 2 and v[0] in STATE_KEYS:
+            state[v[0]] = v[1]
+    return state
+
+
+filesystem_state = {}
+last_filesystem_state = {}
+
+
+def clear_state(filesystem):
+    global filesystem_state, last_filesystem_state
+    del filesystem_state[filesystem['id']]
+    del last_filesystem_state[filesystem['id']]
+
+
+def has_state_changed_since_calling_save_filesystem_state(filesystem):
+    global filesystem_state, last_filesystem_state
+    try:
+        state = get_filesystem_state(filesystem)
+        if state is None:
+            # e.g., when the filesystem is not mounted, always assume this
+            return True
+    except Exception as e:
+        log(f"WARNING -- can't get filesystem state {e}")
+        return True
+    id = filesystem['id']
+    # save the new state we just got for if save_filesystem_state is called
+    last_filesystem_state[id] = state
+    # we compare with filesystem_state.get(id, {}), which
+    # is the last state where save_filesystem_state was called.
+    return state != filesystem_state.get(id, {})
+
+
+def save_filesystem_state(filesystem):
+    global filesystem_state, last_filesystem_state
+    id = filesystem['id']
+    filesystem_state[id] = last_filesystem_state.get(id, {})
+
+
 # last timestamp of keydb we changed, mapping from id to time
 last_keydb_time = {}
 
 
 def update_keydb_dump(filesystem):
+    if not has_state_changed_since_calling_save_filesystem_state(filesystem):
+        log("update_keydb_dump", filesystem['id'], 'no state change')
+        return
     paths = keydb_paths(filesystem)
     if not os.path.exists(paths['dump.rdb']):
+        log("update_keydb_dump", filesystem['id'], 'no dump.rdb')
         return
     t_keydb = get_mtime(paths['dump.rdb'])
     if last_keydb_time.get(filesystem['id'], 0) == t_keydb:
+        log("update_keydb_dump", filesystem['id'], 'dump.rdb is unchanged')
         # file is unchanged
         return
+
+    # once has_state_changed returns true, it keeps returning true
+    # until we call save_filesystem_state, which sets the last state
+    # we used for the decision to be the new state.
+    save_filesystem_state(filesystem)
+
     log(f"update_keydb_dump: handling change")
 
     # Important - we do not want to touch the actual bucket unless necessary,
@@ -367,6 +444,8 @@ pidfile {os.path.join(paths['run'], 'keydb-server.pid')}
 # data
 dir {paths['data']}
 # Save once per minute, when there is at least 1 change (so some point in saving).
+# Because of timestamps (?) there is always at least 1 change, so this
+# does save every minute no matter what.
 save 60 1
 
 # Enabling appendonly constantly broke things.  I don't understand why, but
@@ -415,6 +494,7 @@ def stop_keydb(filesystem):
     if not os.path.exists(pidfile):
         return
     try:
+        t = get_mtime(paths['dump.rdb'])
         pid = int(open(pidfile).read())
         log(f"sending SIGTERM to keydb with pid {pid}")
         os.kill(pid, signal.SIGTERM)
@@ -426,6 +506,17 @@ def stop_keydb(filesystem):
             pass
         log(f"keydb with pid {pid} has terminated")
         os.unlink(pidfile)
+        if os.path.exists(paths['dump.rdb']):
+            # wait up to 10 seconds for the timestamp to change
+            # due to saving. I think it always saves out the file,
+            # but somehow does it in a forked process, which we don't
+            # detect above?!  This is very important so we don't drop
+            # the last few changes to the filesystem!
+            w = time.time()
+            while time.time() - w <= 10 and get_mtime(paths['dump.rdb']) == t:
+                log(f"stop_keydb: waiting for {paths['dump.rdb']} to update")
+                time.sleep(0.5)
+
     except Exception as e:
         log(f"Error killing keydb -- '{e}'")
 
@@ -708,6 +799,7 @@ def unmount_filesystem(filesystem):
     stop_keydb(filesystem)
 
     # copy over keydb dump to bucket -- there should be a new dump since it just ended
+    clear_state(filesystem)
     update_keydb_dump(filesystem)
 
     # unmount the bucket -- be aggressive because keydb already stopped
