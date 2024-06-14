@@ -1,0 +1,3 @@
+set -ev
+cd
+docker cp ~/smi/cocalc-compute-docker/src/cloud-filesystem/scripts/cloud_filesystem.py cloud-filesystem:/scripts/
