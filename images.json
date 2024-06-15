@@ -55,7 +55,7 @@
     "icon": "disk-round",
     "url": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cloud-filesystem",
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cloud-filesystem",
-    "versions": [{ "tag": "1.12.3", "tested": false }],
+    "versions": [{ "tag": "1.12.4", "tested": false }],
     "description": "Highly scalable distributed POSIX Cloud File System built using JuiceFS, Google Cloud Storage and KeyDB."
   },
   "vpn": {
