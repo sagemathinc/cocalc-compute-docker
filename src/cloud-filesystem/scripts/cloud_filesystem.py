@@ -85,7 +85,7 @@ def wait_until_file_changes(path, last_known_mtime):
     while True:
         t = time.time()
         update_keydbs()
-        time.sleep(INTERVAL_S - (time.time() - t))
+        time.sleep(max(0.1, INTERVAL_S - (time.time() - t)))
         if not os.path.exists(path):
             # File doesn't exist, continue until file is created
             last_known_mtime = None
@@ -255,7 +255,7 @@ def mount_bucket(filesystem, max_time=15):
             elapsed = time.time() - start
             if elapsed >= max_time:
                 raise e
-            delay = min(max_time - elapsed, min(delay * 1.2, 5))
+            delay = max(0.1, min(max_time - elapsed, min(delay * 1.2, 5)))
             time.sleep(delay)
 
 
@@ -292,16 +292,16 @@ def get_stats_path(filesystem):
 
 
 METRICS = {
-    'juicefs_object_request_data_bytes_PUT':
-    'bytes_put',
-    'juicefs_object_request_data_bytes_GET':
-    'bytes_get',
+    'juicefs_object_request_data_bytes_PUT': 'bytes_put',
+    'juicefs_object_request_data_bytes_GET': 'bytes_get',
     'juicefs_object_request_durations_histogram_seconds_PUT_total':
     'objects_put',
     'juicefs_object_request_durations_histogram_seconds_GET_total':
     'objects_get',
     'juicefs_object_request_durations_histogram_seconds_DELETE_total':
-    'objects_delete'
+    'objects_delete',
+    'juicefs_used_space': 'bytes_used',
+    'juicefs_uptime': 'process_uptime'
 }
 
 
@@ -309,14 +309,40 @@ def get_filesystem_metrics(filesystem):
     path = get_stats_path(filesystem)
     if not os.path.exists(path):
         return None
-    metrics = {}
+    metrics = {'cloud_filesystem_id': filesystem['id']}
     for x in open(path).readlines():
         v = x.split()
         if len(v) >= 2:
             key = METRICS.get(v[0], None)
-            if key is not None:
+            if key == 'process_uptime':
+                metrics[key] = float(v[1])
+            elif key is not None:
                 metrics[key] = int(v[1])
     return metrics
+
+
+import requests
+from requests.auth import HTTPBasicAuth
+
+API_KEY = open('/cocalc/conf/api_key').read().strip()
+API_SERVER = open('/cocalc/conf/api_server').read().strip()
+COMPUTE_SERVER_ID = int(open('/cocalc/conf/compute_server_id').read().strip())
+
+
+def submit_metrics(filesystem):
+    metrics = get_filesystem_metrics(filesystem)
+    url = f"{API_SERVER}/api/v2/internal/compute/cloud-filesystem/set-metrics"
+    headers = {"Content-Type": "application/json"}
+    auth = HTTPBasicAuth(API_KEY, '')
+    data = dict(metrics)
+    data['compute_server_id'] = COMPUTE_SERVER_ID
+    response = requests.post(url,
+                             json=data,
+                             headers=headers,
+                             auth=auth,
+                             verify=False)
+    print(response.status_code)
+    print(response.json())
 
 
 # State tracking for purposes of uploading dump.rdb file only when necessary.
@@ -434,6 +460,14 @@ def update_keydb_dump(filesystem):
     upload_gzstd(paths['dump.rdb'], paths['bucket_dump_rdb_gz'],
                  gcs_key(filesystem))
     last_keydb_time[filesystem['id']] = t_keydb
+
+    log("update_keydb_dump: submitting metrics to cocalc server")
+    try:
+        submit_metrics(filesystem)
+    except Exception as e:
+        log(
+            f"WARNING: issue submitting metrics for filesystem {filesystem['id']}",
+            e)
 
 
 def start_keydb(filesystem, network):
