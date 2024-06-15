@@ -65,7 +65,7 @@ SECRETS = '/secrets'
 BUCKETS = '/buckets'
 
 # Where data about cloud filesystem configuration is loaded from
-CLOUD_FILESYSTEM_JSON = 'cloud-filesystem.json'
+CLOUD_FILESYSTEM_JSON = '/cocalc/conf/cloud-filesystem.json'
 
 ###
 # Utilities
@@ -284,10 +284,42 @@ def keydb_paths(filesystem):
     return paths
 
 
+## Metrics
+
+
 def get_stats_path(filesystem):
     return os.path.join(mountpoint_fullpath(filesystem), '.stats')
 
 
+METRICS = {
+    'juicefs_object_request_data_bytes_PUT':
+    'bytes_put',
+    'juicefs_object_request_data_bytes_GET':
+    'bytes_get',
+    'juicefs_object_request_durations_histogram_seconds_PUT_total':
+    'objects_put',
+    'juicefs_object_request_durations_histogram_seconds_GET_total':
+    'objects_get',
+    'juicefs_object_request_durations_histogram_seconds_DELETE_total':
+    'objects_delete'
+}
+
+
+def get_filesystem_metrics(filesystem):
+    path = get_stats_path(filesystem)
+    if not os.path.exists(path):
+        return None
+    metrics = {}
+    for x in open(path).readlines():
+        v = x.split()
+        if len(v) >= 2:
+            key = METRICS.get(v[0], None)
+            if key is not None:
+                metrics[key] = int(v[1])
+    return metrics
+
+
+# State tracking for purposes of uploading dump.rdb file only when necessary.
 # We normally only upload the keydb state file to cloud storage
 # when something has changed in the filesystem state, as evidenced
 # by one of these metrics changing.  This avoids constantly uploading
@@ -295,6 +327,7 @@ def get_stats_path(filesystem):
 # Of course, we always save dump.rdb on exit.
 
 STATE_KEYS = set([
+    'juicefs_object_request_durations_histogram_seconds_DELETE_total',
     'juicefs_object_request_data_bytes_GET',
     'juicefs_object_request_data_bytes_PUT', 'juicefs_meta_ops_total_Link',
     'juicefs_meta_ops_total_Mknod', 'juicefs_meta_ops_total_Rename',
@@ -359,14 +392,15 @@ def update_keydb_dump(filesystem):
         # do not clutter the logs
         #    log("update_keydb_dump", filesystem['id'], 'no state change')
         return
-    log("update_keydb_dump", filesystem['id'], 'filesystem state change')
     paths = keydb_paths(filesystem)
     if not os.path.exists(paths['dump.rdb']):
-        log("update_keydb_dump", filesystem['id'], 'no dump.rdb')
+        log("update_keydb_dump", filesystem['id'],
+            'filesystem state change - no dump.rdb')
         return
     t_keydb = get_mtime(paths['dump.rdb'])
     if last_keydb_time.get(filesystem['id'], 0) == t_keydb:
-        log("update_keydb_dump", filesystem['id'], 'dump.rdb is unchanged')
+        log("update_keydb_dump", filesystem['id'],
+            'filesystem state change - but dump.rdb is unchanged')
         # file is unchanged
         return
 
@@ -375,7 +409,8 @@ def update_keydb_dump(filesystem):
     # we used for the decision to be the new state.
     save_filesystem_state(filesystem)
 
-    log(f"update_keydb_dump: handling change")
+    log(f"update_keydb_dump: filesystem state change - compressing and uploading dump.rdb"
+        )
 
     # Important - we do not want to touch the actual bucket unless necessary,
     # since it costs money.  Hence the last_keydb_time cache above.
