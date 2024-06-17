@@ -595,6 +595,35 @@ def stop_keydb(filesystem):
         log(f"Error killing keydb -- '{e}'")
 
 
+def stop_extra_keydbs(filesystems):
+    """
+    If there are any keydb servers running that should not be running,
+    stop them.
+
+    When pushing/testing really hard constantly mounting/unmounting,
+    etc. I noticed sometimes I got things into a state where there were
+    keydb's running when they should have been stopped.  Given how
+    synchronous this code is and that there delays, this seems like it
+    could reasonably happen.  This function just checks the process table
+    for all running keydb's, and if any shouldn't be running according
+    to filesystems, it kills them.
+
+    We just send each SIGTERM and that's it.
+    """
+    ports = set([filesystem['port'] for filesystem in filesystems])
+    for line in os.popen(
+            "pgrep -f 'keydb-server 127.0.0.1:' --list-full").readlines():
+        pid = int(line.split(' ')[0])
+        port = int(line.split(':')[-1])
+        if port not in ports:
+            try:
+                log(f"stop_extra_keydbs -- SIGTERM to {pid} serving on port {port}"
+                    )
+                os.kill(pid, signal.SIGTERM)
+            except:
+                pass
+
+
 def juicefs_paths(filesystem):
     id = filesystem['id']
     return {
@@ -806,13 +835,16 @@ def update_filesystem_cache(filesystem):
 #     " Internal error in RDB reading offset 800240, function at rdb.c:420 -> Invalid LZF compressed string . Terminating server after rdb file reading failure."
 #     when stress testing with lots of nodes at once.  While down the filesystem
 #     paused. Starting that same keydb again and things resumed fine.
+#    - stops any "rogue" keydb's if somehow they got setup to run, but should not be.
 def update_keydbs():
     config = read_cloud_filesystem_json()
     if config is None:
         return
     network = config['network']
     mounted = set(mounted_filesystem_paths())
-    for filesystem in config['filesystems']:
+    filesystems = config['filesystems']
+    # Start or saving any that should be running.
+    for filesystem in filesystems:
         path = mountpoint_fullpath(filesystem)
         if path not in mounted:
             # IMPORTANT: never do update_keydb_dump for an unmounted
@@ -824,6 +856,8 @@ def update_keydbs():
         except Exception as e:
             log("WARNING: failed to update_keydb_dump", e)
         ensure_keydb_running(filesystem, network)
+    # Stop any that should not be running
+    stop_extra_keydbs(filesystems)
 
 
 def mounted_filesystem_paths():
