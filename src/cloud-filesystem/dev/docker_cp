@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
 set -ev
+
+SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
 cd
-docker cp ~/smi/cocalc-compute-docker/src/cloud-filesystem/scripts/cloud_filesystem.py cloud-filesystem:/scripts/
+echo $SCRIPT_DIR
+docker cp "${SCRIPT_DIR}/../scripts/cloud_filesystem.py" cloud-filesystem:/scripts/
