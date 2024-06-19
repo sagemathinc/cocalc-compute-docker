@@ -42,7 +42,7 @@ def filesystem(path):
 
 
 def is_juicefs(path):
-    (exit_code, _, _) = run(['df', '--type', 'fuse.juicefs', path],
+    (exit_code, _, _) = run(['df', '--type', JUICEFS_FSTYPE, path],
                             check=False)
     return exit_code == 0
 
@@ -54,38 +54,36 @@ def rmr(args):
 def stats(args):
     (fstype, mountpoint) = filesystem(args.path)
     if fstype == JUICEFS_FSTYPE:
-        system(["juicefs", "stats", mountpoint])
+        juicefs(['stats', mountpoint])
     else:
         raise RuntimeError(
             "stats are only available right now for CloudFS paths")
         # system(["dstat", mountpoint])
 
 
-def sync(args):
-    print(f"sync {args.source} to {args.dest}")
+def juicefs(args, **kwds):
     v = [
         'docker', 'exec', '-it', '-w',
-        os.path.abspath(os.curdir), 'cloud-filesystem', 'juicefs', 'sync',
-        '--threads',
-        str(JUICEFS_THREADS)
-    ]
+        os.path.abspath(os.curdir), 'cloud-filesystem', 'juicefs'
+    ] + args
+    system(v, **kwds)
+
+
+def sync(args):
+    print(f"sync {args.source} to {args.dest}")
+    v = ['sync', '--threads', str(JUICEFS_THREADS)]
     if (args.delete):
         v.append("--delete-dst")
     v.append(args.source)
     v.append(args.dest)
-    system(v)
+    juicefs(v)
 
 
 def warmup(paths):
     for path in paths:
         print(f"warmup '{path}'")
         if is_juicefs(path):
-            system([
-                'docker', 'exec', '-it', '-w',
-                os.path.abspath(os.curdir), 'cloud-filesystem', 'juicefs',
-                'warmup', '--threads',
-                str(JUICEFS_THREADS), path
-            ])
+            juicefs(['warmup', '--threads', str(JUICEFS_THREADS), path])
         else:
             print(
                 f"warmup currently only implemented for Cloud Filesystems - excluding '{path}'"
@@ -98,14 +96,14 @@ def main():
     subparsers = parser.add_subparsers(dest='command')
 
     # rmr subcommand
-#     rmr_parser = subparsers.add_parser('rmr',
-#                                        help='Remove directories recursively.')
-#     rmr_parser.add_argument(
-#         'paths',
-#         nargs='+',
-#         help=
-#         'Paths to remove. This is more efficient than "rm -rf" for CloudFS directories.'
-#     )
+    #     rmr_parser = subparsers.add_parser('rmr',
+    #                                        help='Remove directories recursively.')
+    #     rmr_parser.add_argument(
+    #         'paths',
+    #         nargs='+',
+    #         help=
+    #         'Paths to remove. This is more efficient than "rm -rf" for CloudFS directories.'
+    #     )
 
     # stats subcommand
     stats_parser = subparsers.add_parser(
