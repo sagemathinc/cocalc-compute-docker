@@ -136,17 +136,17 @@ def main():
                                      description='CoCalc command line utility')
     subparsers = parser.add_subparsers(dest='command')
 
-    cloudfs_parser = subparsers.add_parser('fs', help='Filesystem commands')
-    cloudfs_subparsers = cloudfs_parser.add_subparsers(dest='fs_command')
+    fs_parser = subparsers.add_parser('fs', help='Filesystem commands')
+    fs_subparsers = fs_parser.add_subparsers(dest='fs_command')
 
     # compact subcommand
-    compact_parser = cloudfs_subparsers.add_parser(
+    compact_parser = fs_subparsers.add_parser(
         'compact',
         help='Clean up non-contiguous slices to improve read performance (CloudFS only) ')
     compact_parser.add_argument('path', help='Filesystem path to compact')
 
     # fsck subcommand
-    fsck_parser = cloudfs_subparsers.add_parser(
+    fsck_parser = fs_subparsers.add_parser(
         'fsck', help='Check filesystem consistency (CloudFS only)')
     fsck_parser.add_argument(
         'path', help='Path to a cloud filesystem or files/directories in one')
@@ -161,7 +161,7 @@ def main():
                              help='Sync directory stats')
 
     # gc subcommand
-    gc_parser = cloudfs_subparsers.add_parser(
+    gc_parser = fs_subparsers.add_parser(
         'gc', help='Garbage collect filesystem objects (CloudFS only) ')
     gc_parser.add_argument('path', help='Path to a cloud filesystem')
     gc_parser.add_argument('--compact',
@@ -172,12 +172,12 @@ def main():
                            help='Delete leaked objects')
 
     # stats subcommand
-    stats_parser = cloudfs_subparsers.add_parser(
+    stats_parser = fs_subparsers.add_parser(
         'stats', help='Show performance statistics (CloudFS only) ')
     stats_parser.add_argument('path', help='Path for gathering statistics')
 
     # sync subcommand
-    sync_parser = cloudfs_subparsers.add_parser(
+    sync_parser = fs_subparsers.add_parser(
         'sync', help='Efficiently sync files (similar to rsync)')
     sync_parser.add_argument('source', help='Source path')
     sync_parser.add_argument('dest', help='Destination path')
@@ -186,7 +186,7 @@ def main():
                              help='Delete extraneous files')
 
     # warmup subcommand
-    warmup_parser = cloudfs_subparsers.add_parser('warmup',
+    warmup_parser = fs_subparsers.add_parser('warmup',
                                                   help='Filesystem warmup (CloudFS only) ')
     warmup_parser.add_argument('paths', nargs='+', help='Paths to warm up')
 
@@ -194,17 +194,17 @@ def main():
     args = parser.parse_args()
 
     if args.command == 'fs':
-        if args.cloudfs_command == 'compact':
+        if args.fs_command == 'compact':
             compact(args)
-        elif args.cloudfs_command == 'fsck':
+        elif args.fs_command == 'fsck':
             fsck(args)
-        elif args.cloudfs_command == 'gc':
+        elif args.fs_command == 'gc':
             gc(args)
-        elif args.cloudfs_command == 'stats':
+        elif args.fs_command == 'stats':
             stats(args)
-        elif args.cloudfs_command == 'sync':
+        elif args.fs_command == 'sync':
             sync(args)
-        elif args.cloudfs_command == 'warmup':
+        elif args.fs_command == 'warmup':
             warmup(args.paths)
     else:
         parser.print_help()
