@@ -1,0 +1,1 @@
+make COCALC_TAG=latest cocalc && make COCALC_TAG=latest push-cocalc

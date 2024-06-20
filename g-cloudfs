@@ -1,0 +1,1 @@
+make cloud-filesystem && make push-cloud-filesystem
