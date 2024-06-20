@@ -61,6 +61,47 @@ def stats(args):
         # system(["dstat", mountpoint])
 
 
+def juicefs_fsck(args):
+    path = os.path.abspath(args.path)
+    v = [
+        'docker', 'exec', '-it', '-w', '/scripts', 'cloud-filesystem',
+        'python3', '-c',
+        f"from cloud_filesystem import fsck; fsck('{path}',repair={args.repair},recursive={args.recursive},sync_dir_stat={args.sync_dir_stat})"
+    ]
+    system(v, check=False)
+
+
+def fsck(args):
+    if is_juicefs(args.path):
+        juicefs_fsck(args)
+    else:
+        raise RuntimeError("fsck only implemented for Cloud Filesystems")
+
+
+def compact(args):
+    if is_juicefs(args.path):
+        juicefs(['compact', args.path])
+    else:
+        raise RuntimeError("compact only implemented for Cloud Filesystems")
+
+
+def juicefs_gc(args):
+    path = os.path.abspath(args.path)
+    v = [
+        'docker', 'exec', '-it', '-w', '/scripts', 'cloud-filesystem',
+        'python3', '-c',
+        f"from cloud_filesystem import gc; gc('{path}',compact={args.compact},delete={args.delete})"
+    ]
+    system(v, check=False)
+
+
+def gc(args):
+    if is_juicefs(args.path):
+        juicefs_gc(args)
+    else:
+        raise RuntimeError("gc only implemented for Cloud Filesystems")
+
+
 def juicefs(args, **kwds):
     v = [
         'docker', 'exec', '-it', '-w',
@@ -95,56 +136,78 @@ def main():
                                      description='CoCalc command line utility')
     subparsers = parser.add_subparsers(dest='command')
 
-    # rmr subcommand
-    #     rmr_parser = subparsers.add_parser('rmr',
-    #                                        help='Remove directories recursively.')
-    #     rmr_parser.add_argument(
-    #         'paths',
-    #         nargs='+',
-    #         help=
-    #         'Paths to remove. This is more efficient than "rm -rf" for CloudFS directories.'
-    #     )
+    cloudfs_parser = subparsers.add_parser('fs', help='Filesystem commands')
+    cloudfs_subparsers = cloudfs_parser.add_subparsers(dest='fs_command')
+
+    # compact subcommand
+    compact_parser = cloudfs_subparsers.add_parser(
+        'compact',
+        help='Clean up non-contiguous slices to improve read performance (CloudFS only) ')
+    compact_parser.add_argument('path', help='Filesystem path to compact')
+
+    # fsck subcommand
+    fsck_parser = cloudfs_subparsers.add_parser(
+        'fsck', help='Check filesystem consistency (CloudFS only)')
+    fsck_parser.add_argument(
+        'path', help='Path to a cloud filesystem or files/directories in one')
+    fsck_parser.add_argument('--repair',
+                             action='store_true',
+                             help="Repair broken paths")
+    fsck_parser.add_argument('--recursive',
+                             action='store_true',
+                             help='Check directories recursively')
+    fsck_parser.add_argument('--sync-dir-stat',
+                             action='store_true',
+                             help='Sync directory stats')
+
+    # gc subcommand
+    gc_parser = cloudfs_subparsers.add_parser(
+        'gc', help='Garbage collect filesystem objects (CloudFS only) ')
+    gc_parser.add_argument('path', help='Path to a cloud filesystem')
+    gc_parser.add_argument('--compact',
+                           action='store_true',
+                           help="Compact slices")
+    gc_parser.add_argument('--delete',
+                           action='store_true',
+                           help='Delete leaked objects')
 
     # stats subcommand
-    stats_parser = subparsers.add_parser(
-        'stats', help='Show realtime performance statistics of a filesystem.')
-    stats_parser.add_argument(
-        'path',
-        help=
-        'Filesystem path.  Statistics will be shown for the filesystem containing this path.  For CloudFS this includes information about objects being uploaded/downloaded to cloud storage.'
-    )
+    stats_parser = cloudfs_subparsers.add_parser(
+        'stats', help='Show performance statistics (CloudFS only) ')
+    stats_parser.add_argument('path', help='Path for gathering statistics')
 
     # sync subcommand
-    sync_parser = subparsers.add_parser(
-        'sync',
-        help=
-        'Efficiently sync files from a source directory to a dest directory (similar to rsync).  This is the most efficient way to copy files to/from/between CloudFS directories, but can be used anywhere.'
-    )
+    sync_parser = cloudfs_subparsers.add_parser(
+        'sync', help='Efficiently sync files (similar to rsync)')
     sync_parser.add_argument('source', help='Source path')
     sync_parser.add_argument('dest', help='Destination path')
     sync_parser.add_argument('--delete',
                              action='store_true',
-                             help='Delete extraneous files from dest dirs')
+                             help='Delete extraneous files')
 
     # warmup subcommand
-    warmup_parser = subparsers.add_parser(
-        'warmup',
-        help=
-        'Perform filesystem warmup for network mounted paths.  For CloudFS, this downloads all the chunks for the given path to local cache (the cache uses up to 90%% of your disk) for much faster subsequent access.  Currently only implemented for CloudFS.'
-    )
-    warmup_parser.add_argument('paths', nargs='+', help='Paths to warmup')
+    warmup_parser = cloudfs_subparsers.add_parser('warmup',
+                                                  help='Filesystem warmup (CloudFS only) ')
+    warmup_parser.add_argument('paths', nargs='+', help='Paths to warm up')
 
     # Parse the arguments
     args = parser.parse_args()
 
-    if args.command == 'warmup':
-        warmup(args.paths)
-    elif args.command == 'sync':
-        sync(args)
-    elif args.command == 'rmr':
-        rmr(args)
-    elif args.command == 'stats':
-        stats(args)
+    if args.command == 'fs':
+        if args.cloudfs_command == 'compact':
+            compact(args)
+        elif args.cloudfs_command == 'fsck':
+            fsck(args)
+        elif args.cloudfs_command == 'gc':
+            gc(args)
+        elif args.cloudfs_command == 'stats':
+            stats(args)
+        elif args.cloudfs_command == 'sync':
+            sync(args)
+        elif args.cloudfs_command == 'warmup':
+            warmup(args.paths)
+    else:
+        parser.print_help()
 
 
 if __name__ == '__main__':

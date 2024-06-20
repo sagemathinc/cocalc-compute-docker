@@ -97,13 +97,31 @@ def wait_until_file_changes(path, last_known_mtime):
         last_known_mtime = mtime
 
 
+def system(s, check=True, env=None):
+    if isinstance(s, str):
+        v = shlex.split(s)
+    else:
+        v = s
+    if env is None:
+        env = os.environ
+    else:
+        env = {**os.environ, **env}
+    process = subprocess.Popen(v, env=env)
+    exit_code = process.wait()
+    if exit_code and check:
+        sys.exit(exit_code)
+
+
 def run(cmd, check=True, env=None, cwd=None):
     """
     Takes as input a shell command, runs it, streaming output to
     stdout and stderr as usual. Basically this is os.system(cmd),
     but it will throw an exception if the exit status is nonzero.
     """
-    log(f"run: {cmd}")
+    if isinstance(cmd, str):
+        log(f"run: {cmd}")
+    else:
+        log(f"run: {' '.join(cmd)}")
     if env is None:
         env = os.environ
     else:
@@ -645,6 +663,10 @@ def get_trash_days_option(filesystem):
     return f" --trash-days={trash_days} "
 
 
+def get_redis_url(filesystem):
+    return f"redis://localhost:{filesystem['port']}"
+
+
 def get_format_options(filesystem):
     b = filesystem.get('block_size', 4)
     if not isinstance(b, int) or b < 1 or b > 64:
@@ -655,7 +677,7 @@ def get_format_options(filesystem):
     if compression != 'lz4' and compression != 'zstd' and compression != 'none':
         compression = 'none'
 
-    options = f"redis://localhost:{filesystem['port']} {VOLUME} --block-size={block_size} {get_trash_days_option(filesystem)} --compress {compression} --storage gs --bucket gs://{filesystem['bucket']}"
+    options = f"{get_redis_url(filesystem)} {VOLUME} --block-size={block_size} {get_trash_days_option(filesystem)} --compress {compression} --storage gs --bucket gs://{filesystem['bucket']}"
 
     return options
 
@@ -688,7 +710,7 @@ def mount_juicefs(filesystem):
     error = None
     for i in range(10 if first_time else 1):
         try:
-            run(f"juicefs config redis://localhost:{filesystem['port']} --yes --force {get_trash_days_option(filesystem)}",
+            run(f"juicefs config {get_redis_url(filesystem)} --yes --force {get_trash_days_option(filesystem)}",
                 check=False,
                 env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
             mount_options = get_mount_options(filesystem)
@@ -696,7 +718,7 @@ def mount_juicefs(filesystem):
         juicefs mount \
             --background \
             --log {os.path.join(paths['log'], 'juicefs.log')} {mount_options} \
-            redis://localhost:{filesystem['port']} {mountpoint}
+            {get_redis_url(filesystem)} {mountpoint}
         """,
                 check=True,
                 env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
@@ -869,7 +891,7 @@ def mounted_filesystem_paths():
 
 def update_juicefs_config(filesystem):
     key_file = gcs_key(filesystem)
-    run(f"juicefs config redis://localhost:{filesystem['port']} --yes --force {get_trash_days_option(filesystem)}",
+    run(f"juicefs config {get_redis_url(filesystem)} --yes --force {get_trash_days_option(filesystem)}",
         check=False,
         env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
 
@@ -1008,6 +1030,63 @@ def signal_handler(sig, frame):
     log('SIGTERM received! Cleaning up before exit...')
     unmount_all()
     sys.exit(0)
+
+
+###
+# Maintenance
+###
+
+
+def filesystem_with_path(path):
+    """
+    Find the filesystem that has this path in it.
+    """
+    if not os.path.exists(path):
+        raise ValueError(f"path '{path}' does not exist")
+    abspath = os.path.abspath(path)
+    config = read_cloud_filesystem_json()
+    filesystems = config['filesystems']
+    for filesystem in filesystems:
+        if abspath.startswith(mountpoint_fullpath(filesystem)):
+            return filesystem
+    raise ValueError(f"unable to find filesystem whose mount contains {path}")
+
+
+def fsck(path, repair=False, recursive=False, sync_dir_stat=False):
+    filesystem = filesystem_with_path(path)
+    mountpoint = mountpoint_fullpath(filesystem)
+    abspath = os.path.abspath(path)
+    if mountpoint == abspath:
+        juicefs_abspath = '/'
+    else:
+        juicefs_abspath = abspath[len(mountpoint):]
+
+    key_file = gcs_key(filesystem)
+
+    cmd = ["juicefs", "fsck", get_redis_url(filesystem)]
+    if juicefs_abspath != '/' or repair or recursive:
+        cmd.append("--path")
+        cmd.append(juicefs_abspath)
+    if repair:
+        cmd.append("--repair")
+    if recursive:
+        cmd.append("--recursive")
+    if sync_dir_stat:
+        cmd.append("--sync-dir-stat")
+    log(' '.join(cmd))
+    system(cmd, check=False, env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
+
+
+def gc(path, compact=False, delete=False):
+    filesystem = filesystem_with_path(path)
+    key_file = gcs_key(filesystem)
+    cmd = ["juicefs", "gc", get_redis_url(filesystem)]
+    if compact:
+        cmd.append("--compact")
+    if delete:
+        cmd.append("--delete")
+    log(' '.join(cmd))
+    system(cmd, check=False, env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
 
 
 if __name__ == '__main__':
