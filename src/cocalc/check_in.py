@@ -143,7 +143,7 @@ launched_cloud_filesystem = 0
 
 def ensure_cloud_filesystem_container_is_running(image):
     global launched_cloud_filesystem
-    if time.time() - launched_cloud_filesystem < 60 * 10:
+    if time.time() - launched_cloud_filesystem < 60 * 5:
         # don't try again if we just started trying
         return
     s = subprocess.run(

@@ -36,13 +36,18 @@ RUN \
 
 # Install keydb.
 ARG KEYDB_VERSION=
-# We build keydb from source, since their official binaries assume systemd.
-# I also reported this upstream: https://github.com/Snapchat/KeyDB/issues/834
+# We build keydb from source, since (1) their official binaries assume systemd,
+# and (2) I need to support use of min-slaves-to-write with multi-master replication,
+# which I added in my fork:
+#    https://github.com/sagemathinc/KeyDB/commit/2ea0d2b8685777b1a6dd44d1057a8300bb431a73
+# I reported (1) upstream: https://github.com/Snapchat/KeyDB/issues/834
+# but I'll probably develop more on a fork. We'll see.  Fortunately, KeyDB
+# is a very stable and mature project.
 RUN \
      apt-get update \
   && DEBIAN_FRONTEND=noninteractive \
   && apt-get install -y build-essential nasm autotools-dev autoconf libjemalloc-dev tcl tcl-dev uuid-dev libcurl4-openssl-dev libssl-dev \
-  && git clone --branch v${KEYDB_VERSION} --depth 1 https://github.com/Snapchat/KeyDB.git /tmp/KeyDB \
+  && git clone --depth 1 https://github.com/sagemathinc/KeyDB /tmp/KeyDB \
   && cd /tmp/KeyDB \
   && git submodule init && git submodule update \
   && make -j4 USE_SYSTEMD=no BUILD_TLS=no ENABLE_FLASH=no \
