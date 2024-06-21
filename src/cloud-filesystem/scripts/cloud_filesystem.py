@@ -67,6 +67,8 @@ BUCKETS = '/buckets'
 # Where data about cloud filesystem configuration is loaded from
 CLOUD_FILESYSTEM_JSON = '/cocalc/conf/cloud-filesystem.json'
 
+MAX_REPLICA_LAG_S = 3
+
 ###
 # Utilities
 ###
@@ -548,6 +550,15 @@ save 60 1
 # above configuration.
 appendonly no
 
+# See https://juicefs.com/docs/community/databases_for_metadata#redis
+maxmemory-policy noeviction
+
+# We only allow writes when a quorum of replicas are available and
+# fully working.  This prevents split brain, which can lead to filesystem
+# inconsistencies/corruption.
+min-replicas-to-write {get_quorum(network) - 1}
+min-replicas-max-lag {MAX_REPLICA_LAG_S}
+
 # multimaster replication
 multi-master yes
 active-replica yes
@@ -566,18 +577,22 @@ port {filesystem['port']}
     run(f"keydb-server {keydb_config_file}")
 
 
-def ensure_keydb_running(filesystem, network):
+def is_keydb_running(filesystem):
     paths = keydb_paths(filesystem)
     pidfile = os.path.join(paths['run'], 'keydb-server.pid')
     if os.path.exists(pidfile):
         try:
             pid = int(open(pidfile).read())
             if is_process_running(pid):
-                # it is fine
-                return
+                return True
         except:
             pass
-    start_keydb(filesystem, network)
+    return False
+
+
+def ensure_keydb_running(filesystem, network):
+    if not is_keydb_running(filesystem):
+        start_keydb(filesystem, network)
 
 
 def stop_keydb(filesystem):
@@ -760,6 +775,10 @@ def update_mounted_filesystems(filesystems, network):
     # and configured properly.
     error = None
     for filesystem in filesystems:
+        if is_keydb_running(filesystem):
+            # ensure replication for any running keydb always properly setup, since otherwise
+            # that could block mounting below.
+            update_replication(filesystem, network)
         try:
             path = mountpoint_fullpath(filesystem)
             if path in currently_mounted:
@@ -917,6 +936,14 @@ def get_replicas(port):
     ]
 
 
+def get_quorum(network):
+    num_nodes = 1 + len(network['peers'])
+    # this is a quorum - we need 1 less than this slaves working to
+    # have a quorum, since we count ourselves.
+    quorum = int(num_nodes / 2) + 1
+    return quorum
+
+
 def add_replica(host, port):
     run(['keydb-cli', '-p', str(port), "replicaof", host, str(port)])
 
@@ -927,13 +954,17 @@ def remove_replica(host, port):
 
 def update_replication(filesystem, network):
     """
-    Ensure that this keydb node is connected to every other running compute server
-    on the VPN.  We're using a fully connected topology, at least for now, since
-    it maximizes the chances of no data loss, etc.  There are potential issues
-    with speed, though for even a filesystem with 1million+ files, the amount of
-    data is really small.  We will potentially revisit this network topology
-    based on performance testing.
+    Ensure that this keydb node is aware of every other running compute server
+    on the VPN.  We're using a fully connected topology.  There are potential issues
+    with speed, though for even a filesystem with 1 million+ files, the amount of
+    data is really small.
+
+    IMPORTANT: We have to do this when the network changes, even if the filesystem
+    is not mounted!  Otherwise, we could get in a race condition where the filesystem
+    can't mount because it's waiting on keydb to become writable, which is waiting
+    on the wrong number of quorum members.
     """
+    # First update the replicas that should be in our cluster
     port = filesystem['port']
     replicas = set(get_replicas(port))
     peers = set(network['peers'])
@@ -943,6 +974,13 @@ def update_replication(filesystem, network):
     for host in replicas:
         if host not in peers:
             remove_replica(host, port)
+    # Also update the quorum size so that writes stop if we are not part
+    # of a quorum of replicas.  NOTE: This functionality uses my fork of keydb!
+    run([
+        'keydb-cli', '-p',
+        str(port), 'CONFIG', 'SET', 'min-replicas-to-write',
+        str(get_quorum(network) - 1)
+    ])
 
 
 ###
