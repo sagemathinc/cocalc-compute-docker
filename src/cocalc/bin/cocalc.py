@@ -42,6 +42,8 @@ def filesystem(path):
 
 
 def is_juicefs(path):
+    if not os.path.isdir(path):
+        path = os.path.dirname(path)
     (exit_code, _, _) = run(['df', '--type', JUICEFS_FSTYPE, path],
                             check=False)
     return exit_code == 0
