@@ -69,7 +69,7 @@ RUN \
 # More cleanup
 RUN \
      apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
-  && rm -rf /var/lib/apt/lists/* /tmp/*
+  && rm -rf /var/lib/apt/lists/* /tmp/* /root/.cache
 
 # Now use multisage build to squash all the images into one, so the
 # result is much smaller (otherwise nothing we deleted above is really gone):
