@@ -123,6 +123,7 @@ def run(cmd, check=True, env=None, cwd=None):
     if isinstance(cmd, str):
         log(f"run: {cmd}")
     else:
+        cmd = [str(x) for x in cmd]
         log(f"run: {' '.join(cmd)}")
     if env is None:
         env = os.environ
@@ -269,7 +270,10 @@ def mount_bucket(filesystem, max_time=15):
             # The bucket is already mounted
             return
         try:
-            run(f"gcsfuse --implicit-dirs --ignore-interrupts=true --key-file {key_file} {filesystem['bucket']} {bucket}",
+            run([
+                "gcsfuse", "--implicit-dirs", "--ignore-interrupts=true",
+                "--key-file", key_file, filesystem['bucket'], bucket
+            ],
                 check=True)
         except Exception as e:
             elapsed = time.time() - start
@@ -574,7 +578,7 @@ port {filesystem['port']}
         keydb_config_content += f"replicaof {peer} {filesystem['port']}\n"
     with open(keydb_config_file, 'w') as file:
         file.write(keydb_config_content)
-    run(f"keydb-server {keydb_config_file}")
+    run(["keydb-server", keydb_config_file])
 
 
 def is_keydb_running(filesystem):
@@ -675,7 +679,7 @@ def get_trash_days_option(filesystem):
     trash_days = filesystem.get('trash_days', 0)
     if not isinstance(trash_days, int) or trash_days < 0:
         trash_days = 0
-    return f" --trash-days={trash_days} "
+    return ['--trash-days', trash_days]
 
 
 def get_redis_url(filesystem):
@@ -692,16 +696,26 @@ def get_format_options(filesystem):
     if compression != 'lz4' and compression != 'zstd' and compression != 'none':
         compression = 'none'
 
-    options = f"{get_redis_url(filesystem)} {VOLUME} --block-size={block_size} {get_trash_days_option(filesystem)} --compress {compression} --storage gs --bucket gs://{filesystem['bucket']}"
+    options = [get_redis_url(filesystem), VOLUME, "--block-size", block_size
+               ] + get_trash_days_option(filesystem) + [
+                   '--compress', compression, '--storage', 'gs', '--bucket',
+                   f"gs://{filesystem['bucket']}"
+               ]
 
     return options
 
 
 def get_mount_options(filesystem):
-    options = filesystem.get('mount_options', '')
+    options = filesystem.get('mount_options', '').split()
     paths = juicefs_paths(filesystem)
     if '--cache-dir' not in options:
-        options += f" --cache-dir {paths['cache']} "
+        options.append('--cache-dir')
+        options.append(paths['cache'])
+    if '--client-id' not in options:
+        # it could be very bad if the user specifies client-id, but user specified mount options are clearly labeled as
+        # dangerous, and I want the option for testing/dev to customize anything.
+        options.append('--client-id')
+        options.append(filesystem['client_id'])
     return options
 
 
@@ -710,7 +724,7 @@ def mount_juicefs(filesystem):
     first_time = not os.path.exists(
         os.path.join(bucket_fullpath(filesystem), VOLUME))
     if first_time:
-        run(f"juicefs format {get_format_options(filesystem)}",
+        run(["juicefs", "format"] + get_format_options(filesystem),
             check=False,
             env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
 
@@ -725,16 +739,18 @@ def mount_juicefs(filesystem):
     error = None
     for i in range(10 if first_time else 1):
         try:
-            run(f"juicefs config {get_redis_url(filesystem)} --yes --force {get_trash_days_option(filesystem)}",
+            run([
+                "juicefs", "config",
+                get_redis_url(filesystem), "--yes", "--force"
+            ] + get_trash_days_option(filesystem),
                 check=False,
                 env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
-            mount_options = get_mount_options(filesystem)
-            run(f"""
-        juicefs mount \
-            --background \
-            --log {os.path.join(paths['log'], 'juicefs.log')} {mount_options} \
-            {get_redis_url(filesystem)} {mountpoint}
-        """,
+
+            run([
+                "juicefs", "mount", "--background", "--log",
+                os.path.join(paths['log'], 'juicefs.log')
+            ] + get_mount_options(filesystem) +
+                [get_redis_url(filesystem), mountpoint],
                 check=True,
                 env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
             log(f"Successful mounted filesystem at {mountpoint}")
@@ -910,7 +926,9 @@ def mounted_filesystem_paths():
 
 def update_juicefs_config(filesystem):
     key_file = gcs_key(filesystem)
-    run(f"juicefs config {get_redis_url(filesystem)} --yes --force {get_trash_days_option(filesystem)}",
+    run(["juicefs", "config",
+         get_redis_url(filesystem), "--yes", "--force"] +
+        get_trash_days_option(filesystem),
         check=False,
         env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
 
@@ -925,8 +943,7 @@ def update_filesystem(filesystem, network):
 
 
 def get_replicas(port):
-    s = subprocess.run(['keydb-cli', '-p',
-                        str(port), "INFO", "replication"],
+    s = subprocess.run(['keydb-cli', '-p', port, "INFO", "replication"],
                        capture_output=True)
     if s.returncode:
         raise RuntimeError(s.stderr)
@@ -945,11 +962,11 @@ def get_quorum(network):
 
 
 def add_replica(host, port):
-    run(['keydb-cli', '-p', str(port), "replicaof", host, str(port)])
+    run(['keydb-cli', '-p', port, "replicaof", host, port])
 
 
 def remove_replica(host, port):
-    run(['keydb-cli', '-p', str(port), "replicaof", "remove", host, str(port)])
+    run(['keydb-cli', '-p', port, "replicaof", "remove", host, port])
 
 
 def update_replication(filesystem, network):
@@ -977,9 +994,8 @@ def update_replication(filesystem, network):
     # Also update the quorum size so that writes stop if we are not part
     # of a quorum of replicas.  NOTE: This functionality uses my fork of keydb!
     run([
-        'keydb-cli', '-p',
-        str(port), 'CONFIG', 'SET', 'min-replicas-to-write',
-        str(get_quorum(network) - 1)
+        'keydb-cli', '-p', port, 'CONFIG', 'SET', 'min-replicas-to-write',
+        get_quorum(network) - 1
     ])
 
 
@@ -1010,14 +1026,14 @@ def unmount_path(mountpoint, maxtime=3):
         return
     for i in range(maxtime):
         try:
-            run(f"fusermount -u {mountpoint}", check=True)
+            run(["fusermount", "-u", mountpoint], check=True)
             return
         except:
             log("sleeping a second...")
             time.sleep(1)
             continue
     # always do this at least
-    run(f"umount -l {mountpoint}", check=False)
+    run(["umount", "-l", mountpoint], check=False)
     #raise RuntimeError(f"failed to unmount {mountpoint}")
 
 

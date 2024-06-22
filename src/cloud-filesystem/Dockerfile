@@ -11,21 +11,10 @@ USER root
 # We do NOT need Docker for cloud-filesystem, but it was nice to use all the other things from sagemathinc/base
 RUN apt-get remove -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-# Install JuiceFS Go binary -- https://juicefs.com/docs/community/getting-started/installation/
-# We do things more manually so we explicitly update version instead of it randomly
-# updating whenever we build the image.
-ARG JFS_VERSION=
-ARG ARCH1
-RUN \
-     cd /tmp/ \
-  && mkdir juice \
-  && curl -sSL "https://github.com/juicedata/juicefs/releases/download/v${JFS_VERSION}/juicefs-${JFS_VERSION}-linux-${ARCH1}.tar.gz" > a.tar.gz \
-  && tar xvf a.tar.gz \
-  && install juicefs /usr/local/bin \
-  && rm -rfv /tmp/juicefs /tmp/a.tar.gz
 
 # Install gcsfuse from official repo following https://cloud.google.com/storage/docs/gcsfuse-install seems broken.
 # We directly install from Github Releases instead.
+ARG ARCH1=
 ARG GCSFUSE_VERSION=
 RUN \
      cd /tmp/ \
@@ -34,8 +23,22 @@ RUN \
   && dpkg -i a.deb \
   && rm /tmp/a.deb
 
+
+# Build JuiceFS from source from our fork of JuiceFS.  Our fork adds a --client-id option, which
+# is critical to prevent distributed filesystem corruption due to using async replication with keydb.
+RUN \
+     apt-get update \
+  && DEBIAN_FRONTEND=noninteractive \
+  && apt-get install -y build-essential golang \
+  && git clone --depth 1 https://github.com/sagemathinc/juicefs /tmp/juicefs \
+  && cd /tmp/juicefs \
+  && make -j4 \
+  && cp juicefs /usr/local/bin \
+  && rm -rf /tmp/juicefs \
+  && rm -rf $HOME/go \
+  && apt-get remove -y golang
+
 # Install keydb.
-ARG KEYDB_VERSION=
 # We build keydb from source, since (1) their official binaries assume systemd,
 # and (2) I need to support use of min-slaves-to-write with multi-master replication,
 # which I added in my fork:
@@ -54,7 +57,7 @@ RUN \
   && make install \
   && strip /usr/local/bin/keydb* \
   && rm -rf /tmp/KeyDB \
-  && apt-get remove -y build-essential nasm autotools-dev autoconf libjemalloc-dev tcl tcl-dev uuid-dev libcurl4-openssl-dev libssl-dev
+  && apt-get remove -y dpkg-dev build-essential nasm autotools-dev autoconf libjemalloc-dev tcl tcl-dev uuid-dev libcurl4-openssl-dev libssl-dev
 
 # Python dependencies for scripts -- install via pip requires installing pip (300MB+), then remove it
 RUN \
