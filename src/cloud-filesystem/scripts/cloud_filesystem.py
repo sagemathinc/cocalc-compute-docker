@@ -568,9 +568,8 @@ multi-master yes
 active-replica yes
 
 repl-diskless-sync yes
-repl-diskless-sync-delay 10
-repl-timeout 90
-repl-backlog-size 500mb
+repl-diskless-sync-delay 5
+repl-backlog-size 10mb
 
 # no password: we do security by only binding on private encrypted VPN network
 protected-mode no
