@@ -737,7 +737,7 @@ def mount_juicefs(filesystem):
     # in progress.  Format is very fast, but not instant.
     mountpoint = mountpoint_fullpath(filesystem)
     error = None
-    for i in range(10 if first_time else 1):
+    for i in range(10 if first_time else 5):
         try:
             mount_options = get_mount_options(filesystem)
             run([
