@@ -560,12 +560,17 @@ maxmemory-policy noeviction
 # We only allow writes when a quorum of replicas are available and
 # fully working.  This prevents split brain, which can lead to filesystem
 # inconsistencies/corruption.
-min-replicas-to-write {get_quorum(network) - 1}
+min-replicas-to-write {get_quorum(filesystem, network) - 1}
 min-replicas-max-lag {MAX_REPLICA_LAG_S}
 
 # multimaster replication
 multi-master yes
 active-replica yes
+
+repl-diskless-sync yes
+repl-diskless-sync-delay 10
+repl-timeout 90
+repl-backlog-size 500mb
 
 # no password: we do security by only binding on private encrypted VPN network
 protected-mode no
@@ -823,6 +828,7 @@ def update_mounted_filesystems(filesystems, network):
                 try:
                     unmount_filesystem(v[0])
                 except Exception as e:
+                    print(e)
                     log("Error unmounting filesystem", path, e)
                     # we just try the next one for now; may try again in the future.
                     # Unmounting will fail if process has a file open.
@@ -955,7 +961,10 @@ def get_replicas(port):
     ]
 
 
-def get_quorum(network):
+def get_quorum(filesystem, network):
+    if filesystem.get('disable_quorum', False):
+        # quorum requirement is disabled
+        return 1
     num_nodes = 1 + len(network['peers'])
     # this is a quorum - we need 1 less than this slaves working to
     # have a quorum, since we count ourselves.
@@ -997,7 +1006,7 @@ def update_replication(filesystem, network):
     # of a quorum of replicas.  NOTE: This functionality uses my fork of keydb!
     run([
         'keydb-cli', '-p', port, 'CONFIG', 'SET', 'min-replicas-to-write',
-        get_quorum(network) - 1
+        get_quorum(filesystem, network) - 1
     ])
 
 
