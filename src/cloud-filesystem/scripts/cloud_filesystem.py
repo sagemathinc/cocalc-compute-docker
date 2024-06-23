@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 """
 
-IDEAS: which may or may not be good
-   - figure out exactly when keydb has successfully startd and sync'd up
-   - mount all filesystems in parallel using threading
-   - implement configurability and defaults for how things are mounted and formatted
-     (e.g., compression, metadata caching, file caching)
-   - automatic updating when configuration changes
 
 How I work on this code in 10 easy steps:
 
@@ -47,6 +41,27 @@ and on the x86 host do
 your cocalc server, e.g., make "Compute Servers: Images Spec URL"
 point to something like
 https://raw.githubusercontent.com/sagemathinc/cocalc-compute-docker/34cf5fd19b3f037064f3929c389a9b44b22d205f/images.json
+
+
+---
+
+CAP Theorem NOTES:
+
+CAP says that you must make a tradeoff between consistency and availability, as we all know.
+For async replication, keydb and juicefs provide nothing beyond "last write wins", and that's
+the only real option in total generality.  This means that we must put an upper bound on
+how long a network partition is allowed, since during a network partition, completely arbitrary
+loss of any newly created data is possible. If two clients write to the same file, then
+when the partition ends, only one gets that data; also, we write backup rbd files to the bucket
+periodically, and in case of a network partition that file would be written back and forth
+by the two partitions, with one completely destroying all data of the other side. That would matter
+if everything were turned off and back on and the backup is used.
+
+We thus absolutely must use a mechanism to detect whether or not the current client has a
+quorum of replicas, and only allow writes (and backups of the rbd file) if it does.
+
+For this filesystem we put bound on how much data loss is possible.   Because of this requirement,
+it is critical to NOT write when there is a network partitions.
 """
 
 import argparse, datetime, gzip, json, os, random, shutil, signal, subprocess, sys, tempfile, time
@@ -67,7 +82,13 @@ BUCKETS = '/buckets'
 # Where data about cloud filesystem configuration is loaded from
 CLOUD_FILESYSTEM_JSON = '/cocalc/conf/cloud-filesystem.json'
 
-MAX_REPLICA_LAG_S = 3
+# Try to keep the potential data loss window in case things go very wrong
+# to close to this parameter.
+MAX_DATA_LOSS_S = 60
+
+MAX_REPLICA_LAG_S = max(5, MAX_DATA_LOSS_S - 10)
+
+MAX_LOG_SIZE_MB = 100
 
 ###
 # Utilities
@@ -87,6 +108,7 @@ def wait_until_file_changes(path, last_known_mtime):
     while True:
         t = time.time()
         update_keydbs()
+        truncate_logs()
         time.sleep(max(0.1, INTERVAL_S - (time.time() - t)))
         if not os.path.exists(path):
             # File doesn't exist, continue until file is created
@@ -289,7 +311,7 @@ def local_keydb_paths(filesystem):
     return {
         # Keydb pid file is located in here
         "run": os.path.join(VAR, 'run', f'keydb-{id}'),
-        # Keydb log file is here
+        # Keydb log file is here - this is the directory that contains the log file
         "log": os.path.join(VAR, 'log', f'keydb-{id}'),
         'dump.rdb': os.path.join(data, 'dump.rdb'),
         # Where keydb will persist data:
@@ -541,10 +563,12 @@ pidfile {os.path.join(paths['run'], 'keydb-server.pid')}
 
 # data
 dir {paths['data']}
-# Save once per minute, when there is at least 1 change (so some point in saving).
+# Save every MAX_DATA_LOSS_S, when there is at least 1 change (so some point in saving).
 # Because of timestamps (?) there is always at least 1 change, so this
-# does save every minute no matter what.
-save 60 1
+# does save every MAX_DATA_LOSS_S no matter what.  We use *other* code
+# based on juicefs's metrics to decide whether not to actually copy over
+# a compressed version of the backup to cloud storage.
+save {MAX_DATA_LOSS_S} 1
 
 # Enabling appendonly constantly broke things.  I don't understand why, but
 # I think things don't work if the file is missing -- i.e., you can't just
@@ -553,6 +577,9 @@ save 60 1
 # data loss.   Note that the rdb file always gets saved every 60s from the
 # above configuration.
 appendonly no
+
+# even this can be insanely verbose -- a GB in a minute!
+loglevel notice
 
 # See https://juicefs.com/docs/community/databases_for_metadata#redis
 maxmemory-policy noeviction
@@ -567,9 +594,9 @@ min-replicas-max-lag {MAX_REPLICA_LAG_S}
 multi-master yes
 active-replica yes
 
-repl-diskless-sync yes
-repl-diskless-sync-delay 5
-repl-backlog-size 10mb
+# no limit on this because it is absolutely critical for replication
+# and for clients to connect and work.
+client-output-buffer-limit replica 0 0 0
 
 # no password: we do security by only binding on private encrypted VPN network
 protected-mode no
@@ -754,8 +781,7 @@ def mount_juicefs(filesystem):
             run([
                 "juicefs", "mount", "--background", "--log",
                 os.path.join(paths['log'], 'juicefs.log')
-            ] + mount_options +
-                [get_redis_url(filesystem), mountpoint],
+            ] + mount_options + [get_redis_url(filesystem), mountpoint],
                 check=True,
                 env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
             log(f"Successful mounted filesystem at {mountpoint}")
@@ -787,6 +813,34 @@ def update():
     filesystems = config['filesystems']
     update_mounted_filesystems(filesystems, network)
     update_caches([filesystem['id'] for filesystem in filesystems])
+
+
+def truncate_log(log_path):
+    MAX_SIZE = MAX_LOG_SIZE_MB * 1024 * 1024
+    if os.path.exists(log_path) and os.path.getsize(
+            log_path) >= MAX_LOG_SIZE_MB * 1024 * 1024:
+        log("truncate_log", log_path)
+        with open(log_path, 'rb') as log_file:
+            log_file.seek(
+                -int(MAX_SIZE / 4),
+                os.SEEK_END)  # Navigate to the last MAX_SIZE/4 characters
+            last_part = log_file.read()
+
+        with open(log_path, 'wb') as log_file:
+            log_file.write(last_part)
+
+
+# juicefs logs are tiny and no problem, but keydb logs can be massive
+# so we truncate the logs...
+def truncate_logs():
+    config = read_cloud_filesystem_json()
+    if config is None:
+        return
+    for filesystem in config['filesystems']:
+        log_path = os.path.join(local_keydb_paths(filesystem)['log'], 'keydb-server.log')
+        truncate_log(log_path)
+        log_path = os.path.join(juicefs_paths(filesystem)['log'], 'juicefs.log')
+        truncate_log(log_path)
 
 
 def update_mounted_filesystems(filesystems, network):
@@ -961,7 +1015,8 @@ def get_replicas(port):
 
 
 def get_quorum(filesystem, network):
-    if filesystem.get('disable_quorum', False):
+    enabled = filesystem.get('quorum', True)
+    if not enabled:
         # quorum requirement is disabled
         return 1
     num_nodes = 1 + len(network['peers'])
