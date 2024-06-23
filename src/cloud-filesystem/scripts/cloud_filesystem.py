@@ -103,7 +103,7 @@ def system(s, check=True, env=None):
     if isinstance(s, str):
         v = shlex.split(s)
     else:
-        v = s
+        v = [str(x) for x in s]
     if env is None:
         env = os.environ
     else:
@@ -739,6 +739,7 @@ def mount_juicefs(filesystem):
     error = None
     for i in range(10 if first_time else 1):
         try:
+            mount_options = get_mount_options(filesystem)
             run([
                 "juicefs", "config",
                 get_redis_url(filesystem), "--yes", "--force"
@@ -749,7 +750,7 @@ def mount_juicefs(filesystem):
             run([
                 "juicefs", "mount", "--background", "--log",
                 os.path.join(paths['log'], 'juicefs.log')
-            ] + get_mount_options(filesystem) +
+            ] + mount_options +
                 [get_redis_url(filesystem), mountpoint],
                 check=True,
                 env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
@@ -943,7 +944,8 @@ def update_filesystem(filesystem, network):
 
 
 def get_replicas(port):
-    s = subprocess.run(['keydb-cli', '-p', port, "INFO", "replication"],
+    s = subprocess.run(['keydb-cli', '-p',
+                        str(port), "INFO", "replication"],
                        capture_output=True)
     if s.returncode:
         raise RuntimeError(s.stderr)
