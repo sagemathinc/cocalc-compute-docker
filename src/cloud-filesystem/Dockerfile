@@ -26,6 +26,7 @@ RUN \
 
 # Build JuiceFS from source from our fork of JuiceFS.  Our fork adds a --client-id option, which
 # is critical to prevent distributed filesystem corruption due to using async replication with keydb.
+ARG JUICEFS_COMMIT=
 RUN \
      apt-get update \
   && DEBIAN_FRONTEND=noninteractive \
@@ -46,6 +47,7 @@ RUN \
 # I reported (1) upstream: https://github.com/Snapchat/KeyDB/issues/834
 # but I'll probably develop more on a fork. We'll see.  Fortunately, KeyDB
 # is a very stable and mature project.
+ARG KEYDB_COMMIT=
 RUN \
      apt-get update \
   && DEBIAN_FRONTEND=noninteractive \
