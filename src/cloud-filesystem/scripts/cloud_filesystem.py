@@ -594,6 +594,14 @@ min-replicas-max-lag {MAX_REPLICA_LAG_S}
 multi-master yes
 active-replica yes
 
+# Avoid forwarding RREPLAY messages to other masters?
+#   WARNING: This setting is dangerous! You must be certain all masters are connected to each
+#   other in a true mesh topology or data loss will occur!
+#   This command can be used to reduce multimaster bus traffic
+# See https://github.com/Snapchat/KeyDB/issues/205
+# And we do have a full mesh, plus always checking for a quorum.
+multi-master-no-forward yes
+
 # no limit on this because it is absolutely critical for replication
 # and for clients to connect and work.
 client-output-buffer-limit replica 0 0 0
@@ -837,9 +845,11 @@ def truncate_logs():
     if config is None:
         return
     for filesystem in config['filesystems']:
-        log_path = os.path.join(local_keydb_paths(filesystem)['log'], 'keydb-server.log')
+        log_path = os.path.join(
+            local_keydb_paths(filesystem)['log'], 'keydb-server.log')
         truncate_log(log_path)
-        log_path = os.path.join(juicefs_paths(filesystem)['log'], 'juicefs.log')
+        log_path = os.path.join(
+            juicefs_paths(filesystem)['log'], 'juicefs.log')
         truncate_log(log_path)
 
 
