@@ -71,6 +71,10 @@ from google.cloud import storage
 # this frequently in seconds.
 INTERVAL_S = 5
 
+# default timeout for executing subprocess (nothing we do should take
+# more than a few seconds!)
+SUBPROCESS_TIMEOUT_S = 10
+
 # Delete locally cached files if filesystem is in the "not automount"
 # state or deleted for this many minutes.
 FREE_NOT_MOUNTED_M = 60
@@ -129,7 +133,7 @@ def wait_until_file_changes(path, last_known_mtime, timeout):
         last_known_mtime = mtime
 
 
-def system(s, check=True, env=None):
+def system(s, check=True, env=None, timeout=SUBPROCESS_TIMEOUT_S):
     if isinstance(s, str):
         v = shlex.split(s)
     else:
@@ -139,12 +143,12 @@ def system(s, check=True, env=None):
     else:
         env = {**os.environ, **env}
     process = subprocess.Popen(v, env=env)
-    exit_code = process.wait()
+    exit_code = process.wait(timeout=timeout)
     if exit_code and check:
         sys.exit(exit_code)
 
 
-def run(cmd, check=True, env=None, cwd=None):
+def run(cmd, check=True, env=None, cwd=None, timeout=SUBPROCESS_TIMEOUT_S):
     """
     Takes as input a shell command, runs it, streaming output to
     stdout and stderr as usual. Basically this is os.system(cmd),
@@ -163,11 +167,23 @@ def run(cmd, check=True, env=None, cwd=None):
         subprocess.check_call(cmd,
                               shell=isinstance(cmd, str),
                               env=env,
-                              cwd=cwd)
+                              cwd=cwd,
+                              timeout=timeout)
     except subprocess.CalledProcessError as e:
         log(f"Command '{cmd}' failed with error code: {e.returncode}", e)
         if check:
             raise
+
+
+def run_read(cmd, check=True, timeout=SUBPROCESS_TIMEOUT_S):
+    if isinstance(cmd, str):
+        log(f"run_read: {cmd}")
+    else:
+        cmd = [str(x) for x in cmd]
+        log(f"run_read: {' '.join(cmd)}")
+    return subprocess.check_output(cmd,
+                                   stderr=subprocess.STDOUT,
+                                   timeout=timeout).decode()
 
 
 def mkdir(path):
@@ -830,6 +846,7 @@ def update():
     log("UPDATE")
     config = read_cloud_filesystem_json()
     if config is None:
+        log("UPDATE: skipping since no config")
         return
     network = config['network']
     filesystems = config['filesystems']
@@ -1001,10 +1018,8 @@ def update_keydbs():
 
 
 def mounted_filesystem_paths():
-    s = subprocess.run(['mount', '-t', 'fuse.juicefs'], capture_output=True)
-    if s.returncode:
-        raise RuntimeError(s.stderr)
-    return [x.split()[2] for x in s.stdout.decode().splitlines()]
+    s = run_read(['mount', '-t', 'fuse.juicefs'])
+    return [x.split()[2] for x in s.splitlines()]
 
 
 def update_juicefs_config(filesystem):
@@ -1026,24 +1041,15 @@ def update_filesystem(filesystem, network):
 
 
 def get_replicas(port):
-    s = subprocess.run(['keydb-cli', '-p',
-                        str(port), "INFO", "replication"],
-                       capture_output=True)
-    if s.returncode:
-        raise RuntimeError(s.stderr)
+    s = run_read(['keydb-cli', '-p', port, "INFO", "replication"])
     return [
-        x.split(':')[1] for x in str(s.stdout.decode()).splitlines()
+        x.split(':')[1] for x in s.splitlines()
         if x.startswith('master') and 'host:' in x
     ]
 
 
 def get_redis_info_field(port, field):
-    s = subprocess.run(['keydb-cli', '-p',
-                        str(port), "INFO", "replication"],
-                       capture_output=True)
-    if s.returncode:
-        raise RuntimeError(s.stderr)
-    x = s.stdout.decode()
+    x = run_read(['keydb-cli', '-p', port, "INFO", "replication"])
     z = x.split(field + ':')
     if len(z) < 2:
         return 0
@@ -1063,14 +1069,10 @@ def get_min_slaves_good_slaves(port):
 
 
 def get_min_replicas_to_write(port):
-    s = subprocess.run([
+    x = run_read([
         'keydb-cli', '-p',
         str(port), "CONFIG", "get", "min-replicas-to-write"
-    ],
-                       capture_output=True)
-    if s.returncode:
-        raise RuntimeError(s.stderr)
-    x = s.stdout.decode().strip()
+    ]).strip()
     if not x:
         return None
     return int(x.split()[-1])
@@ -1216,6 +1218,7 @@ def read_cloud_filesystem_json():
     if not os.path.exists(CLOUD_FILESYSTEM_JSON):
         log("no ", CLOUD_FILESYSTEM_JSON, " so nothing to do")
         return None
+    log("read config ", CLOUD_FILESYSTEM_JSON)
     with open(CLOUD_FILESYSTEM_JSON) as json_file:
         return json.load(json_file)
 
@@ -1282,7 +1285,7 @@ def fsck(path, repair=False, recursive=False, sync_dir_stat=False):
     if sync_dir_stat:
         cmd.append("--sync-dir-stat")
     log(' '.join(cmd))
-    system(cmd, check=False, env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
+    system(cmd, check=False, env={'GOOGLE_APPLICATION_CREDENTIALS': key_file}, timeout=None)
 
 
 def gc(path, compact=False, delete=False):
@@ -1294,7 +1297,7 @@ def gc(path, compact=False, delete=False):
     if delete:
         cmd.append("--delete")
     log(' '.join(cmd))
-    system(cmd, check=False, env={'GOOGLE_APPLICATION_CREDENTIALS': key_file})
+    system(cmd, check=False, env={'GOOGLE_APPLICATION_CREDENTIALS': key_file}, timeout=None)
 
 
 if __name__ == '__main__':
