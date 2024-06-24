@@ -1211,8 +1211,14 @@ def signal_handler(sig, frame):
 # Maintenance
 ###
 
+def is_subpath(path, directory):
+    path = os.path.realpath(path)
+    directory = os.path.realpath(directory)
+    if os.path.commonpath([path, directory]) == directory:
+        return True
+    return False
 
-def filesystem_with_path(path):
+def filesystem_containing_path(path):
     """
     Find the filesystem that has this path in it.
     """
@@ -1222,13 +1228,13 @@ def filesystem_with_path(path):
     config = read_cloud_filesystem_json()
     filesystems = config['filesystems']
     for filesystem in filesystems:
-        if abspath.startswith(mountpoint_fullpath(filesystem)):
+        if is_subpath(abspath, mountpoint_fullpath(filesystem)):
             return filesystem
     raise ValueError(f"unable to find filesystem whose mount contains {path}")
 
 
 def fsck(path, repair=False, recursive=False, sync_dir_stat=False):
-    filesystem = filesystem_with_path(path)
+    filesystem = filesystem_containing_path(path)
     mountpoint = mountpoint_fullpath(filesystem)
     abspath = os.path.abspath(path)
     if mountpoint == abspath:
@@ -1253,7 +1259,7 @@ def fsck(path, repair=False, recursive=False, sync_dir_stat=False):
 
 
 def gc(path, compact=False, delete=False):
-    filesystem = filesystem_with_path(path)
+    filesystem = filesystem_containing_path(path)
     key_file = gcs_key(filesystem)
     cmd = ["juicefs", "gc", get_redis_url(filesystem)]
     if compact:
