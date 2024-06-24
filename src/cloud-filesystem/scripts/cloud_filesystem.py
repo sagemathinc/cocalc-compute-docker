@@ -86,7 +86,9 @@ CLOUD_FILESYSTEM_JSON = '/cocalc/conf/cloud-filesystem.json'
 # to close to this parameter.
 MAX_DATA_LOSS_S = 60
 
-MAX_REPLICA_LAG_S = max(5, MAX_DATA_LOSS_S - 10)
+# do not make this TOO small, e.g., it better be bigger than the typical unmount
+# and shutdown time
+MAX_REPLICA_LAG_S = max(10, MAX_DATA_LOSS_S - 10)
 
 MAX_LOG_SIZE_MB = 100
 
@@ -459,7 +461,7 @@ def save_filesystem_state(filesystem):
 last_keydb_updatetime = {}
 
 
-def update_keydb_dump(filesystem):
+def update_keydb_dump(filesystem, network):
     if not has_state_changed_since_calling_save_filesystem_state(filesystem):
         # do not clutter the logs
         #    log("update_keydb_dump", filesystem['id'], 'no state change')
@@ -474,6 +476,13 @@ def update_keydb_dump(filesystem):
         log("update_keydb_dump", filesystem['id'],
             'filesystem state change - but dump.rdb is unchanged')
         # file is unchanged
+        return
+
+    min_slaves_good_slaves = get_min_slaves_good_slaves(filesystem['port'])
+    min_replicas_to_write = get_quorum(filesystem, network) - 1
+    if min_replicas_to_write < min_slaves_good_slaves:
+        log("update_keydb_dump: not backing up to bucket because a quorum of replicas is NOT available, so saving this could result in data loss"
+            )
         return
 
     # once has_state_changed returns true, it keeps returning true
@@ -889,7 +898,7 @@ def update_mounted_filesystems(filesystems, network):
             v = get_config(path)
             if v is not None:
                 try:
-                    unmount_filesystem(v[0])
+                    unmount_filesystem(v[0], network)
                 except Exception as e:
                     print(e)
                     log("Error unmounting filesystem", path, e)
@@ -979,7 +988,7 @@ def update_keydbs():
             # save bad or blank state, deleting all metadata
             continue
         try:
-            update_keydb_dump(filesystem)
+            update_keydb_dump(filesystem, network)
         except Exception as e:
             log("WARNING: failed to update_keydb_dump", e)
         ensure_keydb_running(filesystem, network)
@@ -1008,7 +1017,7 @@ def update_filesystem(filesystem, network):
         filesystem['mountpoint'])
     save_config(filesystem, network)
     update_replication(filesystem, network)
-    update_keydb_dump(filesystem)
+    update_keydb_dump(filesystem, network)
     update_juicefs_config(filesystem)
 
 
@@ -1024,17 +1033,29 @@ def get_replicas(port):
     ]
 
 
-def get_connected_slaves(port):
+def get_redis_info_field(port, field):
     s = subprocess.run(['keydb-cli', '-p',
                         str(port), "INFO", "replication"],
                        capture_output=True)
     if s.returncode:
         raise RuntimeError(s.stderr)
     x = s.stdout.decode()
-    z = x.split('connected_slaves:')
+    z = x.split(field + ':')
     if len(z) < 2:
         return 0
     return int(z[1].split()[0])
+
+
+def get_connected_slaves(port):
+    return get_redis_info_field(port, 'connected_slaves')
+
+
+# Number of replicas currently considered good
+def get_min_slaves_good_slaves(port):
+    try:
+        return get_redis_info_field(port, 'min_slaves_good_slaves')
+    except:
+        return 0
 
 
 def get_min_replicas_to_write(port):
@@ -1133,7 +1154,7 @@ def unmount_all():
     network = config['network']
     for filesystem in config['filesystems']:
         try:
-            unmount_filesystem(filesystem)
+            unmount_filesystem(filesystem, network)
         except Exception as e:
             log(f"Error unmounting a filesystem -- '{e}'")
 
@@ -1158,7 +1179,7 @@ def unmount_path(mountpoint, maxtime=3):
     #raise RuntimeError(f"failed to unmount {mountpoint}")
 
 
-def unmount_filesystem(filesystem):
+def unmount_filesystem(filesystem, network):
     mountpoint = mountpoint_fullpath(filesystem)
     # unmount juicefs
     unmount_path(mountpoint)
@@ -1168,7 +1189,7 @@ def unmount_filesystem(filesystem):
 
     # copy over keydb dump to bucket -- there should be a new dump since it just ended
     clear_state(filesystem)
-    update_keydb_dump(filesystem)
+    update_keydb_dump(filesystem, network)
 
     # unmount the bucket -- be aggressive because keydb already stopped
     unmount_path(bucket_fullpath(filesystem), 3)
@@ -1211,12 +1232,14 @@ def signal_handler(sig, frame):
 # Maintenance
 ###
 
+
 def is_subpath(path, directory):
     path = os.path.realpath(path)
     directory = os.path.realpath(directory)
     if os.path.commonpath([path, directory]) == directory:
         return True
     return False
+
 
 def filesystem_containing_path(path):
     """
