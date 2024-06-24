@@ -92,6 +92,11 @@ MAX_REPLICA_LAG_S = max(10, MAX_DATA_LOSS_S - 10)
 
 MAX_LOG_SIZE_MB = 100
 
+# when waiting for new state, we wait at most this
+# long to make sure we regularly have a chance to
+# do misc maintenance, e.g., mounting unmounted filesystems.
+MAX_WAIT_TIME_S = 45
+
 ###
 # Utilities
 ###
@@ -106,8 +111,9 @@ def get_mtime(path, zero=None):
     return zero if not os.path.exists(path) else os.path.getmtime(path)
 
 
-def wait_until_file_changes(path, last_known_mtime):
-    while True:
+def wait_until_file_changes(path, last_known_mtime, timeout):
+    start = time.time()
+    while time.time() - start < timeout:
         t = time.time()
         update_keydbs()
         truncate_logs()
@@ -1351,7 +1357,7 @@ if __name__ == '__main__':
             try:
                 if success:
                     wait_until_file_changes(CLOUD_FILESYSTEM_JSON,
-                                            last_known_mtime)
+                                            last_known_mtime, MAX_WAIT_TIME_S)
                 else:
                     log(f"failed last time, so will retry in {INTERVAL_S} seconds"
                         )
