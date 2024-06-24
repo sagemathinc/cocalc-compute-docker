@@ -377,6 +377,8 @@ COMPUTE_SERVER_ID = int(open('/cocalc/conf/compute_server_id').read().strip())
 
 def submit_metrics(filesystem):
     metrics = get_filesystem_metrics(filesystem)
+    if metrics is None:
+        return
     url = f"{API_SERVER}/api/v2/internal/compute/cloud-filesystem/set-metrics"
     headers = {"Content-Type": "application/json"}
     auth = HTTPBasicAuth(API_KEY, '')
@@ -387,8 +389,6 @@ def submit_metrics(filesystem):
                              headers=headers,
                              auth=auth,
                              verify=False)
-    print(response.status_code)
-    print(response.json())
 
 
 # State tracking for purposes of uploading dump.rdb file only when necessary.
@@ -456,7 +456,7 @@ def save_filesystem_state(filesystem):
 
 
 # last timestamp of keydb we changed, mapping from id to time
-last_keydb_time = {}
+last_keydb_updatetime = {}
 
 
 def update_keydb_dump(filesystem):
@@ -470,7 +470,7 @@ def update_keydb_dump(filesystem):
             'filesystem state change - no dump.rdb')
         return
     t_keydb = get_mtime(paths['dump.rdb'])
-    if last_keydb_time.get(filesystem['id'], 0) == t_keydb:
+    if last_keydb_updatetime.get(filesystem['id'], 0) == t_keydb:
         log("update_keydb_dump", filesystem['id'],
             'filesystem state change - but dump.rdb is unchanged')
         # file is unchanged
@@ -485,7 +485,7 @@ def update_keydb_dump(filesystem):
         )
 
     # Important - we do not want to touch the actual bucket unless necessary,
-    # since it costs money.  Hence the last_keydb_time cache above.
+    # since it costs money.  Hence the last_keydb_updatetime cache above.
     t_keydb_gz = get_mtime(paths['dump.rdb.gz'])
     if t_keydb is None:
         t_keydb = 0
@@ -505,7 +505,7 @@ def update_keydb_dump(filesystem):
     log("update_keydb_dump: ours is newer, so backup")
     upload_gzstd(paths['dump.rdb'], paths['bucket_dump_rdb_gz'],
                  gcs_key(filesystem))
-    last_keydb_time[filesystem['id']] = t_keydb
+    last_keydb_updatetime[filesystem['id']] = t_keydb
 
     log("update_keydb_dump: submitting metrics to cocalc server")
     try:
@@ -514,6 +514,10 @@ def update_keydb_dump(filesystem):
         log(
             f"WARNING: issue submitting metrics for filesystem {filesystem['id']}",
             e)
+
+
+# last timestamp of when keydb was tarted: mapping id to time
+last_keydb_starttime = {}
 
 
 def start_keydb(filesystem, network):
@@ -584,10 +588,6 @@ loglevel notice
 # See https://juicefs.com/docs/community/databases_for_metadata#redis
 maxmemory-policy noeviction
 
-# We only allow writes when a quorum of replicas are available and
-# fully working.  This prevents split brain, which can lead to filesystem
-# inconsistencies/corruption.
-min-replicas-to-write {get_quorum(filesystem, network) - 1}
 min-replicas-max-lag {MAX_REPLICA_LAG_S}
 
 # multimaster replication
@@ -617,6 +617,7 @@ port {filesystem['port']}
         keydb_config_content += f"replicaof {peer} {filesystem['port']}\n"
     with open(keydb_config_file, 'w') as file:
         file.write(keydb_config_content)
+    last_keydb_starttime[filesystem['id']] = time.time()
     run(["keydb-server", keydb_config_file])
 
 
@@ -861,8 +862,7 @@ def update_mounted_filesystems(filesystems, network):
     error = None
     for filesystem in filesystems:
         if is_keydb_running(filesystem):
-            # ensure replication for any running keydb always properly setup, since otherwise
-            # that could block mounting below.
+            # ensure replication for any running keydb always properly setup
             update_replication(filesystem, network)
         try:
             path = mountpoint_fullpath(filesystem)
@@ -1024,6 +1024,33 @@ def get_replicas(port):
     ]
 
 
+def get_connected_slaves(port):
+    s = subprocess.run(['keydb-cli', '-p',
+                        str(port), "INFO", "replication"],
+                       capture_output=True)
+    if s.returncode:
+        raise RuntimeError(s.stderr)
+    x = s.stdout.decode()
+    z = x.split('connected_slaves:')
+    if len(z) < 2:
+        return 0
+    return int(z[1].split()[0])
+
+
+def get_min_replicas_to_write(port):
+    s = subprocess.run([
+        'keydb-cli', '-p',
+        str(port), "CONFIG", "get", "min-replicas-to-write"
+    ],
+                       capture_output=True)
+    if s.returncode:
+        raise RuntimeError(s.stderr)
+    x = s.stdout.decode().strip()
+    if not x:
+        return None
+    return int(x.split()[-1])
+
+
 def get_quorum(filesystem, network):
     enabled = filesystem.get('quorum', True)
     if not enabled:
@@ -1068,10 +1095,29 @@ def update_replication(filesystem, network):
             remove_replica(host, port)
     # Also update the quorum size so that writes stop if we are not part
     # of a quorum of replicas.  NOTE: This functionality uses my fork of keydb!
-    run([
-        'keydb-cli', '-p', port, 'CONFIG', 'SET', 'min-replicas-to-write',
-        get_quorum(filesystem, network) - 1
-    ])
+    # We only allow writes when a quorum of replicas are available and
+    # fully working.  This prevents split brain, which can lead to filesystem
+    # inconsistencies/corruption.  We only enable this once keydb is fully
+    # up and running, since otherwise it can really mess with the startup
+    # process, since we DO need to write to this node to initialize it.
+    min_replicas_to_write = get_quorum(filesystem, network) - 1
+    cur_min_replicas_to_write = get_min_replicas_to_write(port)
+    #log(filesystem['id'], 'min_replicas_to_write=',min_replicas_to_write)
+    #log(filesystem['id'], 'cur_min_replicas_to_write=',cur_min_replicas_to_write)
+    if cur_min_replicas_to_write != min_replicas_to_write:
+        # we change it if (1) we EVER set it, or (2) we reached quorum,
+        # or (3) we started keydb at least MAX_DATA_LOSS_S*3 seconds ago.
+        #log('get_connected_slaves(port)=',get_connected_slaves(port))
+        #log("time compare", time.time() >= last_keydb_starttime.get(filesystem['id'],0) + 3*MAX_DATA_LOSS_S)
+        if (cur_min_replicas_to_write is not None or \
+            get_connected_slaves(port) >= min_replicas_to_write or \
+            time.time() >= last_keydb_starttime.get(filesystem['id'],0) + 3*MAX_DATA_LOSS_S):
+
+            # OK, update the number of replicas
+            run([
+                'keydb-cli', '-p', port, 'CONFIG', 'SET',
+                'min-replicas-to-write', min_replicas_to_write
+            ])
 
 
 ###
@@ -1280,7 +1326,7 @@ if __name__ == '__main__':
                     wait_until_file_changes(CLOUD_FILESYSTEM_JSON,
                                             last_known_mtime)
                 else:
-                    log(f"failed last time, so will retry mount in {INTERVAL_S} seconds"
+                    log(f"failed last time, so will retry in {INTERVAL_S} seconds"
                         )
                     time.sleep(INTERVAL_S)
                 last_known_mtime = get_mtime(CLOUD_FILESYSTEM_JSON)
