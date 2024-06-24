@@ -603,13 +603,11 @@ min-replicas-max-lag {MAX_REPLICA_LAG_S}
 multi-master yes
 active-replica yes
 
-# Avoid forwarding RREPLAY messages to other masters?
-#   WARNING: This setting is dangerous! You must be certain all masters are connected to each
-#   other in a true mesh topology or data loss will occur!
-#   This command can be used to reduce multimaster bus traffic
+# WARNING: This setting is dangerous!
 # See https://github.com/Snapchat/KeyDB/issues/205
-# And we do have a full mesh, plus always checking for a quorum.
-multi-master-no-forward yes
+# We do have a full mesh, plus always checking for a quorum,
+# but for now we keep this OFF for safety.
+multi-master-no-forward no
 
 # no limit on this because it is absolutely critical for replication
 # and for clients to connect and work.
