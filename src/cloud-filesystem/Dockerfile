@@ -69,7 +69,7 @@ RUN \
   && apt-get remove -y python3-pip
 
 # Bup
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y bup
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y bup python3-fuse
 
 # More cleanup
 RUN \
