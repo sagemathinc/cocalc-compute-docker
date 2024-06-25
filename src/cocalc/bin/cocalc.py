@@ -63,6 +63,52 @@ def stats(args):
         # system(["dstat", mountpoint])
 
 
+def create_backup(args):
+    (fstype, mountpoint) = filesystem(args.mountpoint)
+    target = args.target if args.target else ''
+    if fstype == JUICEFS_FSTYPE:
+        v = [
+            'docker', 'exec', '-it', '-w', '/scripts', 'cloud-filesystem',
+            'python3', '-c',
+            f"from cloud_filesystem import create_backup; create_backup('{mountpoint}', target='{target}')"
+        ]
+        print(v)
+        system(v, check=False)
+    else:
+        raise RuntimeError(
+            "backup is only implemented right now for CloudFS paths")
+
+
+def rm_backup(args):
+    (fstype, mountpoint) = filesystem(args.mountpoint)
+    target = args.target if args.target else ''
+    if fstype == JUICEFS_FSTYPE:
+        v = [
+            'docker', 'exec', '-it', '-w', '/scripts', 'cloud-filesystem',
+            'python3', '-c',
+            f"from cloud_filesystem import rm_backup; rm_backup('{mountpoint}', timestamp='{args.timestamp}', target='{target}')"
+        ]
+        system(v, check=False)
+    else:
+        raise RuntimeError(
+            "backup is only implemented right now for CloudFS paths")
+
+
+def mount_backups(args):
+    (fstype, mountpoint) = filesystem(args.mountpoint)
+    target = args.target if args.target else ''
+    if fstype == JUICEFS_FSTYPE:
+        v = [
+            'docker', 'exec', '-it', '-w', '/scripts', 'cloud-filesystem',
+            'python3', '-c',
+            f"from cloud_filesystem import mount_backups; mount_backups('{mountpoint}', target='{target}')"
+        ]
+        system(v, check=False)
+    else:
+        raise RuntimeError(
+            "backup is only implemented right now for CloudFS paths")
+
+
 def juicefs_fsck(args):
     path = os.path.abspath(args.path)
     v = [
@@ -138,13 +184,64 @@ def main():
                                      description='CoCalc command line utility')
     subparsers = parser.add_subparsers(dest='command')
 
+    # Filesystem
+
     fs_parser = subparsers.add_parser('fs', help='Filesystem commands')
     fs_subparsers = fs_parser.add_subparsers(dest='fs_command')
+
+    ### BACKUP COMMANDS
+    backup_parser = fs_subparsers.add_parser('backup', help='Backup commands')
+    backup_subparsers = backup_parser.add_subparsers(dest='backup_command')
+
+    create_backup_parser = backup_subparsers.add_parser(
+        'create',
+        help=
+        'Create a backup of a Cloud Filesystem and mount backups at [mountpoint]/.backups'
+    )
+    create_backup_parser.add_argument(
+        '--mountpoint',
+        default='.',
+        help='Path in filesystem to backup (default: current working directory)'
+    )
+    create_backup_parser.add_argument(
+        '--target',
+        help=
+        "Path to backup repository.  This defaults to [mountpoint]/.bup inside the Cloud Filesystem, but you can specify any writable directory.  You can backup many different cloud filesystems to the same target, and the backups will be efficiently deduplicated between them."
+    )
+
+    rm_backup_parser = backup_subparsers.add_parser(
+        'rm', help='Delete a backup of a Cloud Filesystem')
+    rm_backup_parser.add_argument(
+        '--mountpoint',
+        default='.',
+        help=
+        'Path in filesystem to backup.  (default: current working directory)')
+    rm_backup_parser.add_argument('--target',
+                                  help="Path to backup repository.")
+    rm_backup_parser.add_argument('timestamp', help='Timestamp of the backup.')
+
+    mount_backup_parser = backup_subparsers.add_parser(
+        'mount',
+        help=
+        'Mount backups of a Cloud Filesystem so you can browse them at [mountpoint]/.backups'
+    )
+    mount_backup_parser.add_argument(
+        '--mountpoint',
+        default='.',
+        help=
+        'Path in filesystem whose backups we will mount (default: current working directory)'
+    )
+    mount_backup_parser.add_argument('--target',
+                                     help="Path to backup repository.")
+
+    ### END BACKUP COMMANDS
 
     # compact subcommand
     compact_parser = fs_subparsers.add_parser(
         'compact',
-        help='Clean up non-contiguous slices to improve read performance (CloudFS only) ')
+        help=
+        'Clean up non-contiguous slices to improve read performance (CloudFS only) '
+    )
     compact_parser.add_argument('path', help='Filesystem path to compact')
 
     # fsck subcommand
@@ -188,28 +285,35 @@ def main():
                              help='Delete extraneous files')
 
     # warmup subcommand
-    warmup_parser = fs_subparsers.add_parser('warmup',
-                                                  help='Filesystem warmup (CloudFS only) ')
+    warmup_parser = fs_subparsers.add_parser(
+        'warmup', help='Filesystem warmup (CloudFS only) ')
     warmup_parser.add_argument('paths', nargs='+', help='Paths to warm up')
 
     # Parse the arguments
     args = parser.parse_args()
 
     if args.command == 'fs':
-        if args.fs_command == 'compact':
-            compact(args)
+        if args.fs_command == 'backup':
+            if args.backup_command == 'create':
+                return create_backup(args)
+            elif args.backup_command == 'rm':
+                return rm_backup(args)
+            elif args.backup_command == 'mount':
+                return mount_backups(args)
+        elif args.fs_command == 'compact':
+            return compact(args)
         elif args.fs_command == 'fsck':
-            fsck(args)
+            return fsck(args)
         elif args.fs_command == 'gc':
-            gc(args)
+            return gc(args)
         elif args.fs_command == 'stats':
-            stats(args)
+            return stats(args)
         elif args.fs_command == 'sync':
-            sync(args)
+            return sync(args)
         elif args.fs_command == 'warmup':
-            warmup(args.paths)
-    else:
-        parser.print_help()
+            return warmup(args.paths)
+
+    parser.print_help()
 
 
 if __name__ == '__main__':

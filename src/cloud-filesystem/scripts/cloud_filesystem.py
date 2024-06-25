@@ -133,17 +133,29 @@ def wait_until_file_changes(path, last_known_mtime, timeout):
         last_known_mtime = mtime
 
 
-def system(s, check=True, env=None, timeout=SUBPROCESS_TIMEOUT_S):
+def system(s,
+           check=True,
+           env=None,
+           timeout=SUBPROCESS_TIMEOUT_S,
+           cwd=None,
+           verbose_time=False):
     if isinstance(s, str):
         v = shlex.split(s)
     else:
         v = [str(x) for x in s]
+    log(' '.join(v))
     if env is None:
         env = os.environ
     else:
         env = {**os.environ, **env}
-    process = subprocess.Popen(v, env=env)
+    if verbose_time:
+        t = time.time()
+    else:
+        t = 0
+    process = subprocess.Popen(v, env=env, cwd=cwd)
     exit_code = process.wait(timeout=timeout)
+    if t:
+        log("time = ", time.time() - t, " seconds")
     if exit_code and check:
         sys.exit(exit_code)
 
@@ -1285,7 +1297,99 @@ def fsck(path, repair=False, recursive=False, sync_dir_stat=False):
     if sync_dir_stat:
         cmd.append("--sync-dir-stat")
     log(' '.join(cmd))
-    system(cmd, check=False, env={'GOOGLE_APPLICATION_CREDENTIALS': key_file}, timeout=None)
+    system(cmd,
+           check=False,
+           env={'GOOGLE_APPLICATION_CREDENTIALS': key_file},
+           timeout=None)
+
+
+def get_backup_state(path, target=''):
+    filesystem = filesystem_containing_path(path)
+    mountpoint = mountpoint_fullpath(filesystem)
+    abspath = os.path.abspath(path)
+    if not target:
+        target = os.path.join(mountpoint, '.bup')
+    if target:
+        target = os.path.abspath(target)
+    env = {'BUP_DIR': target}
+    branch = f"cloudfs-{filesystem['id']}"
+    return {
+        'mountpoint': mountpoint,
+        'target': target,
+        'env': env,
+        'branch': branch
+    }
+
+
+# start backups
+
+
+def create_backup(mountpoint, target=''):
+    state = get_backup_state(mountpoint, target)
+    env = state['env']
+    target = state['target']
+    mountpoint = state['mountpoint']
+    branch = state['branch']
+    system(['bup', 'init'], check=False, env=env)
+    # - without --no-check-device, any time you unmount/mount or change servers,
+    #   it reads the entire filesystem again from scratch, which is REALLY bad.
+    # - the excludes are all special juicefs psuedo-files; trying to back some of them up
+    #   takes infinitely long, because they never end...
+    try:
+        system([
+            'bup', 'index', '-x', '--no-check-device', '--exclude', '.stats',
+            '--exclude', '.config', '--exclude', '.accesslog', '--exclude',
+            '.trash', "--exclude", '.bup', '.'
+        ],
+               env=env,
+               cwd=mountpoint,
+               verbose_time=True,
+               timeout=None)
+        system(['bup', 'save', '--strip-path', mountpoint, '-n', branch, '.'],
+               env=env,
+               cwd=mountpoint,
+               verbose_time=True,
+               timeout=None)
+    finally:
+        mount_backups(mountpoint, target)
+
+
+def rm_backup(mountpoint, timestamp, target=''):
+    state = get_backup_state(mountpoint, target)
+    env = state['env']
+    target = state['target']
+    branch = state['branch']
+    try:
+        system(['bup', 'rm', '--unsafe',
+                os.path.join(branch, timestamp)],
+               env=env,
+               verbose_time=True,
+               timeout=None)
+    finally:
+        mount_backups(mountpoint, target)
+
+
+def mount_backups(mountpoint, target):
+    state = get_backup_state(mountpoint, target)
+    env = state['env']
+    target = state['target']
+    mountpoint = state['mountpoint']
+    branch = state['branch']
+
+    fuse = os.path.join(mountpoint, '.bup-fuse')
+    system(['umount', '-l', fuse], check=False)
+    system(['fusermount', '-u', '-z', fuse], check=False)
+    mkdir(fuse)
+    system(['bup', 'fuse', fuse], env=env, timeout=20)
+
+    backups = os.path.join(mountpoint, '.backups')
+    if os.path.exists(backups):
+        os.unlink(backups)
+    system(['ln', '-sf', os.path.join(fuse, branch), backups])
+    print(f"\n  Browse backups at: {backups}\n")
+
+
+# end backups
 
 
 def gc(path, compact=False, delete=False):
@@ -1297,7 +1401,10 @@ def gc(path, compact=False, delete=False):
     if delete:
         cmd.append("--delete")
     log(' '.join(cmd))
-    system(cmd, check=False, env={'GOOGLE_APPLICATION_CREDENTIALS': key_file}, timeout=None)
+    system(cmd,
+           check=False,
+           env={'GOOGLE_APPLICATION_CREDENTIALS': key_file},
+           timeout=None)
 
 
 if __name__ == '__main__':
