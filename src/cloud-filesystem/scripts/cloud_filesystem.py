@@ -66,6 +66,13 @@ it is critical to NOT write when there is a network partitions.
 
 import argparse, datetime, gzip, json, os, random, shutil, signal, subprocess, sys, tempfile, time
 from google.cloud import storage
+import requests
+from requests.auth import HTTPBasicAuth
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+# Disable the InsecureRequestWarning on sending metrics to cocalc (mainly
+# annoying when doing development)
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 # We poll filesystem for changes to CLOUD_FILESYSTEM_JSON at most
 # this frequently in seconds.
@@ -187,12 +194,12 @@ def run(cmd, check=True, env=None, cwd=None, timeout=SUBPROCESS_TIMEOUT_S):
             raise
 
 
-def run_read(cmd, check=True, timeout=SUBPROCESS_TIMEOUT_S):
+def run_read(cmd, check=True, timeout=SUBPROCESS_TIMEOUT_S, verbose=False):
     if isinstance(cmd, str):
-        log(f"run_read: {cmd}")
+        if verbose: log(f"run_read: {cmd}")
     else:
         cmd = [str(x) for x in cmd]
-        log(f"run_read: {' '.join(cmd)}")
+        if verbose: log(f"run_read: {' '.join(cmd)}")
     return subprocess.check_output(cmd,
                                    stderr=subprocess.STDOUT,
                                    timeout=timeout).decode()
@@ -403,9 +410,6 @@ def get_filesystem_metrics(filesystem):
     return metrics
 
 
-import requests
-from requests.auth import HTTPBasicAuth
-
 API_KEY = open('/cocalc/conf/api_key').read().strip()
 API_SERVER = open('/cocalc/conf/api_server').read().strip()
 COMPUTE_SERVER_ID = int(open('/cocalc/conf/compute_server_id').read().strip())
@@ -414,17 +418,21 @@ COMPUTE_SERVER_ID = int(open('/cocalc/conf/compute_server_id').read().strip())
 def submit_metrics(filesystem):
     metrics = get_filesystem_metrics(filesystem)
     if metrics is None:
+        log("submit_metrics: nothing to submit right now")
         return
     url = f"{API_SERVER}/api/v2/internal/compute/cloud-filesystem/set-metrics"
     headers = {"Content-Type": "application/json"}
     auth = HTTPBasicAuth(API_KEY, '')
     data = dict(metrics)
     data['compute_server_id'] = COMPUTE_SERVER_ID
+    log(f"submit_metrics: sending to {url}")
     response = requests.post(url,
                              json=data,
                              headers=headers,
                              auth=auth,
                              verify=False)
+    log("submit_metrics: status_code=", response.status_code)
+    log("submit_metrics: response=", response.json())
 
 
 # State tracking for purposes of uploading dump.rdb file only when necessary.
@@ -1230,7 +1238,7 @@ def read_cloud_filesystem_json():
     if not os.path.exists(CLOUD_FILESYSTEM_JSON):
         log("no ", CLOUD_FILESYSTEM_JSON, " so nothing to do")
         return None
-    log("read config ", CLOUD_FILESYSTEM_JSON)
+    #log("read config ", CLOUD_FILESYSTEM_JSON)
     with open(CLOUD_FILESYSTEM_JSON) as json_file:
         return json.load(json_file)
 
