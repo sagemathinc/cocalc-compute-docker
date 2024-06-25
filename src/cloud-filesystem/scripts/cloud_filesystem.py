@@ -1303,31 +1303,33 @@ def fsck(path, repair=False, recursive=False, sync_dir_stat=False):
            timeout=None)
 
 
-def get_backup_state(path, target=''):
+# start backups
+
+
+def get_backup_state(path, repo=''):
+    path = os.path.expanduser(path)
+    if repo:
+        repo = os.path.expanduser(repo)
     filesystem = filesystem_containing_path(path)
     mountpoint = mountpoint_fullpath(filesystem)
-    abspath = os.path.abspath(path)
-    if not target:
-        target = os.path.join(mountpoint, '.bup')
-    if target:
-        target = os.path.abspath(target)
-    env = {'BUP_DIR': target}
+    if not repo:
+        repo = os.path.join(mountpoint, '.bup')
+    if repo:
+        repo = os.path.abspath(repo)
+    env = {'BUP_DIR': repo}
     branch = f"cloudfs-{filesystem['id']}"
     return {
         'mountpoint': mountpoint,
-        'target': target,
+        'repo': repo,
         'env': env,
         'branch': branch
     }
 
 
-# start backups
-
-
-def create_backup(mountpoint, target=''):
-    state = get_backup_state(mountpoint, target)
+def create_backup(mountpoint, repo=''):
+    state = get_backup_state(mountpoint, repo)
     env = state['env']
-    target = state['target']
+    repo = state['repo']
     mountpoint = state['mountpoint']
     branch = state['branch']
     system(['bup', 'init'], check=False, env=env)
@@ -1351,13 +1353,13 @@ def create_backup(mountpoint, target=''):
                verbose_time=True,
                timeout=None)
     finally:
-        mount_backups(mountpoint, target)
+        mount_backups(mountpoint, repo)
 
 
-def rm_backup(mountpoint, timestamp, target=''):
-    state = get_backup_state(mountpoint, target)
+def rm_backup(mountpoint, timestamp, repo=''):
+    state = get_backup_state(mountpoint, repo)
     env = state['env']
-    target = state['target']
+    repo = state['repo']
     branch = state['branch']
     try:
         system(['bup', 'rm', '--unsafe',
@@ -1366,13 +1368,13 @@ def rm_backup(mountpoint, timestamp, target=''):
                verbose_time=True,
                timeout=None)
     finally:
-        mount_backups(mountpoint, target)
+        mount_backups(mountpoint, repo)
 
 
-def mount_backups(mountpoint, target):
-    state = get_backup_state(mountpoint, target)
+def mount_backups(mountpoint, repo):
+    state = get_backup_state(mountpoint, repo)
     env = state['env']
-    target = state['target']
+    repo = state['repo']
     mountpoint = state['mountpoint']
     branch = state['branch']
 
