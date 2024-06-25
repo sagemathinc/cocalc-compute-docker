@@ -68,6 +68,9 @@ RUN \
   && pip install google-cloud-storage \
   && apt-get remove -y python3-pip
 
+# Bup
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y bup
+
 # More cleanup
 RUN \
      apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false \
