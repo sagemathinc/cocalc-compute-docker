@@ -49,13 +49,11 @@ RUN \
      apt-get update \
   && DEBIAN_FRONTEND=noninteractive \
   && apt-get install -y build-essential nasm autotools-dev autoconf libjemalloc-dev tcl tcl-dev uuid-dev libcurl4-openssl-dev libssl-dev \
-  && git clone https://github.com/Snapchat/KeyDB /tmp/KeyDB \
+  && git clone --branch RELEASE_6_3_4 --single-branch https://github.com/Snapchat/KeyDB.git /tmp/KeyDB \
   && cd /tmp/KeyDB \
-  && git fetch --all \
-  && git checkout RELEASE_6_3_4 \
   && git apply /tmp/patches/keydb-multimaster-min-slaves.patch \
   && git submodule init && git submodule update \
-  && make -j4 USE_SYSTEMD=no BUILD_TLS=no ENABLE_FLASH=yes \
+  && make -j4 USE_SYSTEMD=no BUILD_TLS=no ENABLE_FLASH=no \
   && make install \
   && strip /usr/local/bin/keydb* \
   && rm -rf /tmp/KeyDB \

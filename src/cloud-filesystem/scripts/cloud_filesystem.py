@@ -108,7 +108,6 @@ MAX_LOG_SIZE_MB = 100
 # do misc maintenance, e.g., mounting unmounted filesystems.
 MAX_WAIT_TIME_S = 45
 
-
 # TODO: This is NOT at all tested or working yet.  Just something to work
 # on someday.
 ENABLE_FLASH = False
@@ -1410,6 +1409,7 @@ def mount_backups(mountpoint, repo):
     if os.path.exists(backups):
         os.unlink(backups)
     system(['ln', '-sf', os.path.join(fuse, branch), backups])
+    system(['ls', backups])
     print(f"\n  Browse backups at: {backups}\n")
 
 
