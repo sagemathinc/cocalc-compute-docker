@@ -63,9 +63,12 @@ def stats(args):
         # system(["dstat", mountpoint])
 
 
-def create_backup(args):
-    (fstype, mountpoint) = filesystem(args.mountpoint)
-    repo = args.repo if args.repo else ''
+## BACKUPS
+
+
+def create_backup(fs, repo):
+    (fstype, mountpoint) = filesystem(fs)
+    repo = repo if repo else ''
     if fstype == JUICEFS_FSTYPE:
         v = [
             'docker', 'exec', '-it', '-w', '/scripts', 'cloud-filesystem',
@@ -79,14 +82,14 @@ def create_backup(args):
             "backup is only implemented right now for CloudFS paths")
 
 
-def rm_backup(args):
-    (fstype, mountpoint) = filesystem(args.mountpoint)
-    repo = args.repo if args.repo else ''
+def rm_backup(fs, repo, timestamp):
+    (fstype, mountpoint) = filesystem(fs)
+    repo = repo if repo else ''
     if fstype == JUICEFS_FSTYPE:
         v = [
             'docker', 'exec', '-it', '-w', '/scripts', 'cloud-filesystem',
             'python3', '-c',
-            f"from cloud_filesystem import rm_backup; rm_backup('{mountpoint}', timestamp='{args.timestamp}', repo='{repo}')"
+            f"from cloud_filesystem import rm_backup; rm_backup('{mountpoint}', timestamp='{timestamp}', repo='{repo}')"
         ]
         system(v, check=False)
     else:
@@ -94,9 +97,9 @@ def rm_backup(args):
             "backup is only implemented right now for CloudFS paths")
 
 
-def mount_backups(args):
-    (fstype, mountpoint) = filesystem(args.mountpoint)
-    repo = args.repo if args.repo else ''
+def mount_backups(fs, repo):
+    (fstype, mountpoint) = filesystem(fs)
+    repo = repo if repo else ''
     if fstype == JUICEFS_FSTYPE:
         v = [
             'docker', 'exec', '-it', '-w', '/scripts', 'cloud-filesystem',
@@ -107,6 +110,16 @@ def mount_backups(args):
     else:
         raise RuntimeError(
             "backup is only implemented right now for CloudFS paths")
+
+
+def backup(args):
+    if args.rm:
+        for timestamp in args.rm.split(','):
+            rm_backup(args.fs, args.repo, timestamp)
+    elif args.mount:
+        mount_backups(args.fs, args.repo)
+    else:
+        create_backups(args.fs, args.repo)
 
 
 def juicefs_fsck(args):
@@ -185,48 +198,34 @@ def main():
     subparsers = parser.add_subparsers(dest='command')
 
     ### BACKUP COMMANDS
-    backup_parser = subparsers.add_parser('backup', help='Backup commands')
-    backup_subparsers = backup_parser.add_subparsers(dest='backup_command')
-
-    create_backup_parser = backup_subparsers.add_parser(
-        'create',
-        help=
-        'Create a backup of a Cloud Filesystem and mount backups at [mountpoint]/.backups'
+    backup_parser = subparsers.add_parser(
+        'backup',
+        help='Create and manage incremental backups',
+        description=
+        'By default, creates a new backup of the cloud filesystem containing the current  directory.  Use the --rm option to delete existing backups, the --mount option to mount and browse backups, and the --repo option to specify a repo other than "[filesystem]/.bup".   Only Cloud Filesystems are currently supported.'
     )
-    create_backup_parser.add_argument(
-        '--mountpoint',
+    backup_parser.add_argument(
+        '--fs',
         default='.',
-        help='Path in filesystem to backup (default: current working directory)'
+        help=
+        'Path to cloud filesystem (default: current working directory) -- the whole filesystem containing this path is backed up.'
     )
-    create_backup_parser.add_argument(
+    backup_parser.add_argument(
         '--repo',
         help=
-        "Path to backup repository.  This defaults to [mountpoint]/.bup inside the Cloud Filesystem, but you can specify any writable directory.  You can backup many different cloud filesystems to the same repo, and the backups will be efficiently deduplicated between them."
+        "Path to backup repository.  This defaults to [mountpoint]/.bup inside the cloud filesystem you are backing up, but you can specify any writable directory.  You can efficiently backup many different filesystems to the same repo."
     )
-
-    rm_backup_parser = backup_subparsers.add_parser(
-        'rm', help='Delete a backup of a Cloud Filesystem')
-    rm_backup_parser.add_argument(
-        '--mountpoint',
-        default='.',
+    backup_parser.add_argument(
+        '--rm',
         help=
-        'Path in filesystem to backup.  (default: current working directory)')
-    rm_backup_parser.add_argument('--repo', help="Path to backup repository.")
-    rm_backup_parser.add_argument('timestamp', help='Timestamp of the backup.')
-
-    mount_backup_parser = backup_subparsers.add_parser(
-        'mount',
-        help=
-        'Mount backups of a Cloud Filesystem so you can browse them at [mountpoint]/.backups'
+        'Instead of creating a backup, delete one more backups.  Separate multiple timestamps with a comma.'
     )
-    mount_backup_parser.add_argument(
-        '--mountpoint',
-        default='.',
+    backup_parser.add_argument(
+        '--mount',
+        action='store_true',
         help=
-        'Path in filesystem whose backups we will mount (default: current working directory)'
+        'Instead of creating a new backup, just mount the backups at [mountpoint]/.backups.  This also happens automatically whenever you make a new backup.'
     )
-    mount_backup_parser.add_argument('--repo',
-                                     help="Path to backup repository.")
 
     ### END BACKUP COMMANDS
 
@@ -293,12 +292,7 @@ def main():
     args = parser.parse_args()
 
     if args.command == 'backup':
-        if args.backup_command == 'create':
-            return create_backup(args)
-        elif args.backup_command == 'rm':
-            return rm_backup(args)
-        elif args.backup_command == 'mount':
-            return mount_backups(args)
+        return backup(args)
     elif args.command == 'fs':
         if args.fs_command == 'compact':
             return compact(args)
