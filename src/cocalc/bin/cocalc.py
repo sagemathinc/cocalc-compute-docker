@@ -184,13 +184,8 @@ def main():
                                      description='CoCalc command line utility')
     subparsers = parser.add_subparsers(dest='command')
 
-    # Filesystem
-
-    fs_parser = subparsers.add_parser('fs', help='Filesystem commands')
-    fs_subparsers = fs_parser.add_subparsers(dest='fs_command')
-
     ### BACKUP COMMANDS
-    backup_parser = fs_subparsers.add_parser('backup', help='Backup commands')
+    backup_parser = subparsers.add_parser('backup', help='Backup commands')
     backup_subparsers = backup_parser.add_subparsers(dest='backup_command')
 
     create_backup_parser = backup_subparsers.add_parser(
@@ -216,8 +211,7 @@ def main():
         default='.',
         help=
         'Path in filesystem to backup.  (default: current working directory)')
-    rm_backup_parser.add_argument('--repo',
-                                  help="Path to backup repository.")
+    rm_backup_parser.add_argument('--repo', help="Path to backup repository.")
     rm_backup_parser.add_argument('timestamp', help='Timestamp of the backup.')
 
     mount_backup_parser = backup_subparsers.add_parser(
@@ -235,6 +229,12 @@ def main():
                                      help="Path to backup repository.")
 
     ### END BACKUP COMMANDS
+
+    # Filesystem commands
+    fs_parser = subparsers.add_parser('filesystem',
+                                      aliases=['fs'],
+                                      help='Filesystem commands')
+    fs_subparsers = fs_parser.add_subparsers(dest='fs_command')
 
     # compact subcommand
     compact_parser = fs_subparsers.add_parser(
@@ -292,15 +292,15 @@ def main():
     # Parse the arguments
     args = parser.parse_args()
 
-    if args.command == 'fs':
-        if args.fs_command == 'backup':
-            if args.backup_command == 'create':
-                return create_backup(args)
-            elif args.backup_command == 'rm':
-                return rm_backup(args)
-            elif args.backup_command == 'mount':
-                return mount_backups(args)
-        elif args.fs_command == 'compact':
+    if args.command == 'backup':
+        if args.backup_command == 'create':
+            return create_backup(args)
+        elif args.backup_command == 'rm':
+            return rm_backup(args)
+        elif args.backup_command == 'mount':
+            return mount_backups(args)
+    elif args.command == 'fs':
+        if args.fs_command == 'compact':
             return compact(args)
         elif args.fs_command == 'fsck':
             return fsck(args)
