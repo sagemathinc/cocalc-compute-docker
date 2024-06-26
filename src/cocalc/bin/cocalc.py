@@ -4,6 +4,7 @@ import subprocess, shlex, argparse, os, sys
 
 JUICEFS_THREADS = 100
 JUICEFS_FSTYPE = "fuse.juicefs"
+CLOUDFS_ONLY = 'CloudFS only'
 
 
 def system(s, check=True):
@@ -59,15 +60,15 @@ def stats(args):
         juicefs(['stats', mountpoint])
     else:
         raise RuntimeError(
-            "stats are only available right now for CloudFS paths")
+            "stats are only currently implemented for CloudFS paths")
         # system(["dstat", mountpoint])
 
 
 ## BACKUPS
 
 
-def create_backup(fs, repo):
-    (fstype, mountpoint) = filesystem(fs)
+def create_backup(path, repo):
+    (fstype, mountpoint) = filesystem(path)
     repo = repo if repo else ''
     if fstype == JUICEFS_FSTYPE:
         v = [
@@ -79,11 +80,11 @@ def create_backup(fs, repo):
         system(v, check=False)
     else:
         raise RuntimeError(
-            "backup is only implemented right now for CloudFS paths")
+            "backup is only currently implemented for CloudFS paths")
 
 
-def rm_backup(fs, repo, timestamp):
-    (fstype, mountpoint) = filesystem(fs)
+def rm_backup(path, repo, timestamp):
+    (fstype, mountpoint) = filesystem(path)
     repo = repo if repo else ''
     if fstype == JUICEFS_FSTYPE:
         v = [
@@ -94,11 +95,11 @@ def rm_backup(fs, repo, timestamp):
         system(v, check=False)
     else:
         raise RuntimeError(
-            "backup is only implemented right now for CloudFS paths")
+            "backup is only currently implemented for CloudFS paths")
 
 
-def mount_backups(fs, repo):
-    (fstype, mountpoint) = filesystem(fs)
+def mount_backups(path, repo):
+    (fstype, mountpoint) = filesystem(path)
     repo = repo if repo else ''
     if fstype == JUICEFS_FSTYPE:
         v = [
@@ -109,21 +110,21 @@ def mount_backups(fs, repo):
         system(v, check=False)
     else:
         raise RuntimeError(
-            "backup is only implemented right now for CloudFS paths")
+            "backup is only currently implemented for CloudFS paths")
 
 
 def backup(args):
     if args.rm:
         for timestamp in args.rm.split(','):
-            rm_backup(args.fs, args.repo, timestamp)
+            rm_backup('.', args.repo, timestamp)
     elif args.mount:
-        mount_backups(args.fs, args.repo)
+        mount_backups('.', args.repo)
     else:
-        create_backups(args.fs, args.repo)
+        create_backup('.', args.repo)
 
 
 def juicefs_fsck(args):
-    path = os.path.abspath(args.path)
+    path = os.path.abspath('.')
     v = [
         'docker', 'exec', '-it', '-w', '/scripts', 'cloud-filesystem',
         'python3', '-c',
@@ -133,7 +134,7 @@ def juicefs_fsck(args):
 
 
 def fsck(args):
-    if is_juicefs(args.path):
+    if is_juicefs("."):
         juicefs_fsck(args)
     else:
         raise RuntimeError("fsck only implemented for Cloud Filesystems")
@@ -147,7 +148,7 @@ def compact(args):
 
 
 def juicefs_gc(args):
-    path = os.path.abspath(args.path)
+    path = os.path.abspath('.')
     v = [
         'docker', 'exec', '-it', '-w', '/scripts', 'cloud-filesystem',
         'python3', '-c',
@@ -157,7 +158,7 @@ def juicefs_gc(args):
 
 
 def gc(args):
-    if is_juicefs(args.path):
+    if is_juicefs('.'):
         juicefs_gc(args)
     else:
         raise RuntimeError("gc only implemented for Cloud Filesystems")
@@ -181,15 +182,12 @@ def sync(args):
     juicefs(v)
 
 
-def warmup(paths):
-    for path in paths:
-        print(f"warmup '{path}'")
-        if is_juicefs(path):
-            juicefs(['warmup', '--threads', str(JUICEFS_THREADS), path])
-        else:
-            print(
-                f"warmup currently only implemented for Cloud Filesystems - excluding '{path}'"
-            )
+def warmup(path='.'):
+    print(f"warmup '{path}'")
+    if is_juicefs(path):
+        juicefs(['warmup', '--threads', str(JUICEFS_THREADS), path])
+    else:
+        print(f"warmup is currently {CLOUDFS_ONLY}")
 
 
 def main():
@@ -202,18 +200,14 @@ def main():
         'backup',
         help='Create and manage incremental backups',
         description=
-        'By default, creates a new backup of the cloud filesystem containing the current  directory.  Use the --rm option to delete existing backups, the --mount option to mount and browse backups, and the --repo option to specify a repo other than "[filesystem]/.bup".   Only Cloud Filesystems are currently supported.'
+        f'By default, creates a new backup of the filesystem containing the current working directory.  Use the --rm option to delete existing backups, the --mount option to mount and browse backups, and the --repo option to specify a repo other than "[filesystem]/.bup".  {CLOUDFS_ONLY}'
     )
     backup_parser.add_argument(
-        '--fs',
-        default='.',
+        'repo',
+        default='',
+        nargs='?',
         help=
-        'Path to cloud filesystem (default: current working directory) -- the whole filesystem containing this path is backed up.'
-    )
-    backup_parser.add_argument(
-        '--repo',
-        help=
-        "Path to backup repository.  This defaults to [mountpoint]/.bup inside the cloud filesystem you are backing up, but you can specify any writable directory.  You can efficiently backup many different filesystems to the same repo."
+        'Optional path to a backup directory. The default is [mountpoint]/.bup inside the filesystem containing the working directory.  You can specify any writable directory, and you can backup multiple filesystems to the same repo.'
     )
     backup_parser.add_argument(
         '--rm',
@@ -227,27 +221,26 @@ def main():
         'Instead of creating a new backup, just mount the backups at [mountpoint]/.backups.  This also happens automatically whenever you make a new backup.'
     )
 
-    ### END BACKUP COMMANDS
+    ### END BACKUP COMMAND
 
     # Filesystem commands
-    fs_parser = subparsers.add_parser('filesystem',
-                                      aliases=['fs'],
-                                      help='Filesystem commands')
-    fs_subparsers = fs_parser.add_subparsers(dest='fs_command')
+    cloudfs_parser = subparsers.add_parser(
+        'cloudfs',
+        help=f'{CLOUDFS_ONLY} management commands')
+    cloudfs_subparsers = cloudfs_parser.add_subparsers(dest='cloudfs_command')
 
     # compact subcommand
-    compact_parser = fs_subparsers.add_parser(
+    compact_parser = cloudfs_subparsers.add_parser(
         'compact',
-        help=
-        'Clean up non-contiguous slices to improve read performance (CloudFS only) '
-    )
-    compact_parser.add_argument('path', help='Filesystem path to compact')
+        help=f'Clean up non-contiguous slices to improve read performance')
+    compact_parser.add_argument('path',
+                                nargs='?',
+                                default='.',
+                                help='Filesystem path to compact')
 
     # fsck subcommand
-    fsck_parser = fs_subparsers.add_parser(
-        'fsck', help='Check filesystem consistency (CloudFS only)')
-    fsck_parser.add_argument(
-        'path', help='Path to a cloud filesystem or files/directories in one')
+    fsck_parser = cloudfs_subparsers.add_parser(
+        'fsck', help=f'Check filesystem consistency')
     fsck_parser.add_argument('--repair',
                              action='store_true',
                              help="Repair broken paths")
@@ -259,9 +252,8 @@ def main():
                              help='Sync directory stats')
 
     # gc subcommand
-    gc_parser = fs_subparsers.add_parser(
-        'gc', help='Garbage collect filesystem objects (CloudFS only) ')
-    gc_parser.add_argument('path', help='Path to a cloud filesystem')
+    gc_parser = cloudfs_subparsers.add_parser(
+        'gc', help=f'Garbage collect filesystem objects')
     gc_parser.add_argument('--compact',
                            action='store_true',
                            help="Compact slices")
@@ -270,42 +262,54 @@ def main():
                            help='Delete leaked objects')
 
     # stats subcommand
-    stats_parser = fs_subparsers.add_parser(
-        'stats', help='Show performance statistics (CloudFS only) ')
-    stats_parser.add_argument('path', help='Path for gathering statistics')
+    stats_parser = cloudfs_subparsers.add_parser(
+        'stats', help=f'Show performance statistics')
+    stats_parser.add_argument('path',
+                              default='.',
+                              nargs='?',
+                              help='Path for gathering statistics')
 
     # sync subcommand
-    sync_parser = fs_subparsers.add_parser(
-        'sync', help='Efficiently sync files (similar to rsync)')
-    sync_parser.add_argument('source', help='Source path')
-    sync_parser.add_argument('dest', help='Destination path')
+    sync_parser = subparsers.add_parser(
+        'sync',
+        help='Sync files from one directory to another',
+        description=
+        'This is similar to rsync, but more aware of filesystem; in particular it is optimized for the Cloud Filesystem.'
+    )
+    sync_parser.add_argument(
+        'source', help='Source path (subdirectory of HOME directory)')
+    sync_parser.add_argument(
+        'dest', help='Destination path (subdirectory of HOME directory)')
     sync_parser.add_argument('--delete',
                              action='store_true',
                              help='Delete extraneous files')
 
     # warmup subcommand
-    warmup_parser = fs_subparsers.add_parser(
-        'warmup', help='Filesystem warmup (CloudFS only) ')
-    warmup_parser.add_argument('paths', nargs='+', help='Paths to warm up')
+    warmup_parser = subparsers.add_parser(
+        'warmup',
+        help='Warmup filesystem cache',
+        description=
+        f"Make current working directory FAST by doownloading data to the local cache. Currently {CLOUDFS_ONLY}."
+    )
 
     # Parse the arguments
     args = parser.parse_args()
 
     if args.command == 'backup':
         return backup(args)
-    elif args.command == 'fs':
-        if args.fs_command == 'compact':
+    elif args.command == 'sync':
+        return sync(args)
+    elif args.command == 'warmup':
+        return warmup()
+    elif args.command == 'cloudfs':
+        if args.cloudfs_command == 'compact':
             return compact(args)
-        elif args.fs_command == 'fsck':
+        elif args.cloudfs_command == 'fsck':
             return fsck(args)
-        elif args.fs_command == 'gc':
+        elif args.cloudfs_command == 'gc':
             return gc(args)
-        elif args.fs_command == 'stats':
+        elif args.cloudfs_command == 'stats':
             return stats(args)
-        elif args.fs_command == 'sync':
-            return sync(args)
-        elif args.fs_command == 'warmup':
-            return warmup(args.paths)
 
     parser.print_help()
 
