@@ -65,14 +65,14 @@ def write_conf(compute_server_id, nodes):
     interface = None
     peers = []
     for node in nodes:
-        if node['id'] == compute_server_id:
+        if node['compute_server_id'] == compute_server_id:
             interface = node
         else:
             peers.append(node)
 
     if interface == None:
-        raise Error("%s must contain node with id %s" %
-                    (vpn_json, compute_server_id))
+        raise RuntimeError("%s must contain node with global id %s" %
+                           (vpn_json, compute_server_id))
 
     conf = f"""
 [Interface]
@@ -85,7 +85,7 @@ Address = {interface['vpn_ip']}/32
     for peer in peers:
         conf += f"""
 [Peer]
-# id={peer['id']}
+# compute_server_id={peer['compute_server_id']}
 PublicKey = {peer['public_key']}
 AllowedIPs = {peer['vpn_ip']}/32
 """
@@ -130,13 +130,13 @@ def write_hosts(nodes):
     hosts = HOSTS_COMMENT + '\n'
     for node in nodes:
         if 'vpn_ip' in node and node["vpn_ip"]:
-            hosts += f'{node["vpn_ip"]} compute-server-{node["id"]}\n'
+            hosts += f'{node["vpn_ip"]} compute-server-{node["project_specific_id"]}\n'
             if 'dns' in node and node['dns']:
                 hosts += f'{node["vpn_ip"]} {node["dns"]}\n'
         if 'internal_ip' in node and node["internal_ip"]:
-            hosts += f'{node["internal_ip"]} internal-{node["id"]}\n'
+            hosts += f'{node["internal_ip"]} internal-{node["project_specific_id"]}\n'
         if 'external_ip' in node and node["external_ip"]:
-            hosts += f'{node["external_ip"]} external-{node["id"]}\n'
+            hosts += f'{node["external_ip"]} external-{node["project_specific_id"]}\n'
 
     open('hosts', 'w').write(hosts)
 
@@ -152,7 +152,7 @@ if __name__ == '__main__':
         '--compute-server-id',
         type=int,
         help=
-        "ID of the compute server (falls back to /cocalc/conf/compute_server_id)"
+        "global id of the compute server (falls back to /cocalc/conf/compute_server_id)"
     )
 
     args = parser.parse_args()
