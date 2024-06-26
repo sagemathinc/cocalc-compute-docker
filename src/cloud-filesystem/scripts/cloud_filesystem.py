@@ -108,6 +108,11 @@ MAX_LOG_SIZE_MB = 100
 # do misc maintenance, e.g., mounting unmounted filesystems.
 MAX_WAIT_TIME_S = 45
 
+
+# TODO: This is NOT at all tested or working yet.  Just something to work
+# on someday.
+ENABLE_FLASH = False
+
 ###
 # Utilities
 ###
@@ -358,7 +363,8 @@ def local_keydb_paths(filesystem):
         "log": os.path.join(VAR, 'log', f'keydb-{id}'),
         'dump.rdb': os.path.join(data, 'dump.rdb'),
         # Where keydb will persist data:
-        "data": data
+        "data": data,
+        "flash": os.path.join(VAR, 'flash', f'keydb-{id}'),
     }
 
 
@@ -368,7 +374,7 @@ def keydb_paths(filesystem):
     paths['dump.rdb.gz'] = os.path.join(bucket_fullpath(filesystem), 'keydb',
                                         'dump.rdb.gz')
     paths['bucket_dump_rdb_gz'] = f'gs://{bucket}/keydb/dump.rdb.gz'
-    for key in ['run', 'log', 'data']:
+    for key in ['run', 'log', 'data', 'flash']:
         mkdir(paths[key])
     return paths
 
@@ -667,7 +673,15 @@ port {filesystem['port']}
     with open(keydb_config_file, 'w') as file:
         file.write(keydb_config_content)
     last_keydb_starttime[filesystem['id']] = time.time()
-    run(["keydb-server", keydb_config_file])
+    # keydb-server --storage-provider  flash  [path-to-flash-storage] --maxmemory [max-memory-for-DRAM… ie. 500mb or 1G] --maxmemory-policy allkeys-lru
+    if ENABLE_FLASH:
+        run([
+            "keydb-server", '--storage-provider', 'flash', paths['flash'],
+            '--maxmemory', '100mb', '--maxmemory-policy', 'allkeys-lru',
+            keydb_config_file
+        ])
+    else:
+        run(["keydb-server", keydb_config_file])
 
 
 def is_keydb_running(filesystem):

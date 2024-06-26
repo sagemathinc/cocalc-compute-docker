@@ -27,7 +27,7 @@ apt-get install -y \
        supervisor \
        rsync \
        iputils-ping \
-       netutils
+       net-tools
 
 # I want a simple unified experience for our users, where they can just do "pip install"
 # in one global simple environment.  This is new in Ubuntu 22.04.  We may change later,
