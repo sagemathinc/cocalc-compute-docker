@@ -1,0 +1,29 @@
+From a49dc492d48598ab8d9dc968e835192f36ea8082 Mon Sep 17 00:00:00 2001
+From: William Stein <wstein@sagemath.com>
+Date: Mon, 24 Jun 2024 18:56:46 +0000
+Subject: [PATCH 4/5] allow 64MB block size
+
+---
+ cmd/format.go | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/cmd/format.go b/cmd/format.go
+index 10143d7d..0f431e86 100644
+--- a/cmd/format.go
++++ b/cmd/format.go
+@@ -198,7 +198,11 @@ func formatManagementFlags() []cli.Flag {
+ }
+ 
+ func fixObjectSize(s uint64) uint64 {
+-	const min, max = 64 << 10, 16 << 20
++	// NOTE: I changed this to allow 64MB, since bigger can save a LOT
++	// of money on Google Cloud.  The lead dev of JuiceFS refused to support
++	// this change due to it complicating heuristics, as explained here:
++	//    https://github.com/juicedata/juicefs/issues/3287
++	const min, max = 64 << 10, 16 << 22
+ 	var bits uint
+ 	for s > 1 {
+ 		bits++
+-- 
+2.43.0
+

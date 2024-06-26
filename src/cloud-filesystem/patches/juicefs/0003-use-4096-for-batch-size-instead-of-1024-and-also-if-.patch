@@ -1,0 +1,42 @@
+From 3bc97af1904322198ea72ee6c91424e94cf4fa7a Mon Sep 17 00:00:00 2001
+From: William Stein <wstein@sagemath.com>
+Date: Mon, 24 Jun 2024 05:22:16 +0000
+Subject: [PATCH 3/5] use 4096 for batch-size (instead of 1024) and also if a
+ value <= 1 is given
+
+---
+ cmd/flags.go       | 2 +-
+ pkg/meta/config.go | 4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/cmd/flags.go b/cmd/flags.go
+index 20ce9c82..abc15c24 100644
+--- a/cmd/flags.go
++++ b/cmd/flags.go
+@@ -287,7 +287,7 @@ func metaFlags() []cli.Flag {
+ 		// repo at the same time on multiple clients at once).
+ 		&cli.IntFlag{
+ 			Name:  "batch-size",
+-			Value: 1024,
++			Value: 4 << 10,
+ 			Usage: "the batch size used for inode and slice ids. Set to something small to greatly increase the chances of filesystem corruption if you write form multiple clients and do not properly set client-id.",
+ 		},
+ 		&cli.IntFlag{
+diff --git a/pkg/meta/config.go b/pkg/meta/config.go
+index c26e454c..08345caa 100644
+--- a/pkg/meta/config.go
++++ b/pkg/meta/config.go
+@@ -76,8 +76,8 @@ func (c *Config) SelfCheck() {
+ 		c.ClientId = c.ClientId % 1024
+ 	}
+ 	if c.BatchSize <= 1 {
+-		logger.Warnf("batch-size must be at least 2")
+-		c.BatchSize = 2
++		logger.Warnf("using default batch-size")
++		c.BatchSize = 4 << 10
+ 	}
+ }
+ 
+-- 
+2.43.0
+

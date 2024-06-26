@@ -137,11 +137,11 @@ CLOUD_FILESYSTEM_TAG = $(shell $(GET_TAG) cloud-filesystem)
 
 # See https://github.com/GoogleCloudPlatform/gcsfuse/tags
 GCSFUSE_VERSION=2.2.0
-# commits here are currently ONLY used to force update when main changes!!!!
-JUICEFS_COMMIT=$(shell git ls-remote -h https://github.com/sagemathinc/juicefs main | awk '{print $$1}')
-KEYDB_COMMIT=$(shell git ls-remote -h https://github.com/sagemathinc/juicefs main | awk '{print $$1}')
+# Do not change these willy-nilly without checking that the patches work!!
+JUICEFS_BRANCH=release-1.2
+KEYDB_BRANCH=RELEASE_6_3_4
 cloud-filesystem:
-	cd src/cloud-filesystem && docker build  --build-arg ARCH=$(ARCH) --build-arg ARCH1=$(ARCH1) --build-arg ARCH=$(ARCH)  --build-arg GCSFUSE_VERSION=$(GCSFUSE_VERSION) --build-arg JUICEFS_COMMIT=$(JUICEFS_COMMIT)  --build-arg KEYDB_COMMIT=$(KEYDB_COMMIT) --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/cloud-filesystem$(ARCH):$(CLOUD_FILESYSTEM_TAG) .
+	cd src/cloud-filesystem && docker build  --build-arg ARCH=$(ARCH) --build-arg ARCH1=$(ARCH1) --build-arg ARCH=$(ARCH)  --build-arg GCSFUSE_VERSION=$(GCSFUSE_VERSION) --build-arg JUICEFS_BRANCH=$(JUICEFS_BRANCH)  --build-arg KEYDB_BRANCH=$(KEYDB_BRANCH) --build-arg BASE_TAG=$(BASE_TAG) -t $(DOCKER_USER)/cloud-filesystem$(ARCH):$(CLOUD_FILESYSTEM_TAG) .
 run-cloud-filesystem:
 	docker run --name run-cloud-filesystem -it --rm $(DOCKER_USER)/cloud-filesystem$(ARCH):$(CLOUD_FILESYSTEM_TAG) bash
 push-cloud-filesystem:

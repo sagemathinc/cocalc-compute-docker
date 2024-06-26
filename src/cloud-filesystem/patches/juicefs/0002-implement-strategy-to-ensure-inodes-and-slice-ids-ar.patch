@@ -1,0 +1,164 @@
+From 8116d19abf2a18110a424877b761b2f23c614be0 Mon Sep 17 00:00:00 2001
+From: William Stein <wstein@sagemath.com>
+Date: Sat, 22 Jun 2024 17:51:13 +0000
+Subject: [PATCH 2/5] implement strategy to ensure inodes and slice ids are
+ unique between clients
+
+- this is critical to prevent filesystem corruption when using redis with async replication
+---
+ cmd/flags.go       | 18 +++++++++---------
+ cmd/mount.go       |  5 ++---
+ pkg/meta/base.go   | 19 ++++++++++++-------
+ pkg/meta/config.go | 17 +++++++++++++----
+ 4 files changed, 36 insertions(+), 23 deletions(-)
+
+diff --git a/cmd/flags.go b/cmd/flags.go
+index b2232273..20ce9c82 100644
+--- a/cmd/flags.go
++++ b/cmd/flags.go
+@@ -280,20 +280,20 @@ func metaFlags() []cli.Flag {
+ 			Value: "100ms",
+ 			Usage: "skip updating attribute of a directory if the mtime difference is smaller than this value",
+ 		},
++		// I made the batch size configurable, not that we need to change it for prod but so that it is
++		// very easy to reproduce the motivation for the client-id below.  Set
++		// batch-size to something very small and it is easy to get in a situation where inodes
++		// overlap on different clients and the filesystem becomes corrupted (e.g., git clone the same big
++		// repo at the same time on multiple clients at once).
+ 		&cli.IntFlag{
+-			Name:  "inode-batch-size",
++			Name:  "batch-size",
+ 			Value: 1024,
+-			Usage: "the inode batch size",
++			Usage: "the batch size used for inode and slice ids. Set to something small to greatly increase the chances of filesystem corruption if you write form multiple clients and do not properly set client-id.",
+ 		},
+ 		&cli.IntFlag{
+-			Name:  "inode-batch-modulus",
+-			Value: 1,
+-			Usage: "the inode batch modulus",
+-		},
+-		&cli.IntFlag{
+-			Name:  "inode-batch-residue",
++			Name:  "client-id",
+ 			Value: 0,
+-			Usage: "the inode batch residue",
++			Usage: "numerical id with 0 <= client-id < 1024 that you should explicitly assign to this client.  These client-id's should be DISTINCT between all current mounted clients!  The client id is used to ensure that there is no overlap between clients when assigning inode and slice ids.  This is critical to support asynchronous replication using Redis.",
+ 		},
+ 	})
+ }
+diff --git a/cmd/mount.go b/cmd/mount.go
+index 9095b01b..7b5912d0 100644
+--- a/cmd/mount.go
++++ b/cmd/mount.go
+@@ -311,9 +311,8 @@ func getMetaConf(c *cli.Context, mp string, readOnly bool) *meta.Config {
+ 	conf.Subdir = c.String("subdir")
+ 	conf.SkipDirMtime = utils.Duration(c.String("skip-dir-mtime"))
+ 	conf.Sid, _ = strconv.ParseUint(os.Getenv("_JFS_META_SID"), 10, 64)
+-	conf.InodeBatchSize = c.Int64("inode-batch-size")
+-	conf.InodeBatchModulus = c.Uint64("inode-batch-modulus")
+-	conf.InodeBatchResidue = c.Uint64("inode-batch-residue")
++	conf.BatchSize = c.Int("batch-size")
++	conf.ClientId = c.Uint64("client-id")
+ 
+ 	atimeMode := c.String("atime-mode")
+ 	if atimeMode != meta.RelAtime && atimeMode != meta.StrictAtime && atimeMode != meta.NoAtime {
+diff --git a/pkg/meta/base.go b/pkg/meta/base.go
+index 06382efc..3d175a14 100644
+--- a/pkg/meta/base.go
++++ b/pkg/meta/base.go
+@@ -40,8 +40,13 @@ import (
+ )
+ 
+ const (
+-	sliceIdBatch = 4 << 10
+ 	nlocks       = 1024
++	// I'm hardcoding batchModulus for now since it makes no sense as a mount
++	// parameter.  It would be good to make a filesystem creation parameter
++	// similar to compression.  It's critical to NEVER change it once the
++	// filesystem is in use, since that could cause corruption (since the algorithm
++    // for inode allocation would break).
++	batchModulus = 1024
+ )
+ 
+ var maxCompactSlices = 1000
+@@ -946,11 +951,11 @@ func (m *baseMeta) nextInode() (Ino, error) {
+ 	m.freeMu.Lock()
+ 	defer m.freeMu.Unlock()
+ 	if m.freeInodes.next >= m.freeInodes.maxid {
+-		v, err := m.en.incrCounter("nextInode", m.conf.InodeBatchSize)
++		v, err := m.en.incrCounter("nextInode", int64(m.conf.BatchSize))
+ 		if err != nil {
+ 			return 0, err
+ 		}
+-		m.freeInodes.next = uint64(v) - uint64(m.conf.InodeBatchSize)
++		m.freeInodes.next = uint64(v) - uint64(m.conf.BatchSize)
+ 		m.freeInodes.maxid = uint64(v)
+ 	}
+ 	n := m.freeInodes.next
+@@ -959,7 +964,7 @@ func (m *baseMeta) nextInode() (Ino, error) {
+ 		n = m.freeInodes.next
+ 		m.freeInodes.next++
+ 	}
+-	return Ino(n), nil
++	return Ino(n*batchModulus + m.conf.ClientId), nil
+ }
+ 
+ func (m *baseMeta) Mknod(ctx Context, parent Ino, name string, _type uint8, mode, cumask uint16, rdev uint32, path string, inode *Ino, attr *Attr) syscall.Errno {
+@@ -1433,14 +1438,14 @@ func (m *baseMeta) NewSlice(ctx Context, id *uint64) syscall.Errno {
+ 	m.freeMu.Lock()
+ 	defer m.freeMu.Unlock()
+ 	if m.freeSlices.next >= m.freeSlices.maxid {
+-		v, err := m.en.incrCounter("nextChunk", sliceIdBatch)
++		v, err := m.en.incrCounter("nextChunk", int64(m.conf.BatchSize))
+ 		if err != nil {
+ 			return errno(err)
+ 		}
+-		m.freeSlices.next = uint64(v) - sliceIdBatch
++		m.freeSlices.next = uint64(v) - uint64(m.conf.BatchSize)
+ 		m.freeSlices.maxid = uint64(v)
+ 	}
+-	*id = m.freeSlices.next
++	*id = m.freeSlices.next*batchModulus + m.conf.ClientId
+ 	m.freeSlices.next++
+ 	return 0
+ }
+diff --git a/pkg/meta/config.go b/pkg/meta/config.go
+index 3ea77214..c26e454c 100644
+--- a/pkg/meta/config.go
++++ b/pkg/meta/config.go
+@@ -49,9 +49,8 @@ type Config struct {
+ 	DirStatFlushPeriod time.Duration
+ 	SkipDirMtime       time.Duration
+ 	Sid                uint64
+-	InodeBatchSize     int64
+-	InodeBatchModulus  uint64
+-	InodeBatchResidue  uint64
++	BatchSize          int
++	ClientId           uint64
+ }
+ 
+ func DefaultConf() *Config {
+@@ -67,9 +66,19 @@ func (c *Config) SelfCheck() {
+ 		c.Heartbeat = time.Second
+ 	}
+ 	if c.Heartbeat > time.Minute*10 {
+-		logger.Warnf("heartbeat shouldd not be greater than 10 minutes")
++		logger.Warnf("heartbeat should not be greater than 10 minutes")
+ 		c.Heartbeat = time.Minute * 10
+ 	}
++	if c.ClientId >= 1024 {
++		logger.Warnf("client-id must be less than 1024")
++		// This should probably be fatal.  Doing the following is letting something potentially dangerous
++		// happen.  However, the default of 0 is even more dangerous.
++		c.ClientId = c.ClientId % 1024
++	}
++	if c.BatchSize <= 1 {
++		logger.Warnf("batch-size must be at least 2")
++		c.BatchSize = 2
++	}
+ }
+ 
+ type Format struct {
+-- 
+2.43.0
+

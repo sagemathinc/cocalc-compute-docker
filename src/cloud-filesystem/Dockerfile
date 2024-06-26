@@ -24,15 +24,19 @@ RUN \
   && rm /tmp/a.deb
 
 
-# Build JuiceFS from source from our fork of JuiceFS.  Our fork adds a --client-id option, which
+# Build JuiceFS from source from our fork of JuiceFS.  Our patches adds a --client-id option, which
 # is critical to prevent distributed filesystem corruption due to using async replication with keydb.
-ARG JUICEFS_COMMIT=
+# Also critical is support for 64MB block size.  Do not exclude this or juicefs defaults to 16MB
+# even if you set 64, and corruption will (probably) ensue.
+COPY patches/juicefs /tmp/patches/juicefs
+ARG JUICEFS_BRANCH=release-1.2
 RUN \
      apt-get update \
   && DEBIAN_FRONTEND=noninteractive \
   && apt-get install -y build-essential golang \
-  && git clone --depth 1 https://github.com/sagemathinc/juicefs /tmp/juicefs \
+  && git clone --branch ${JUICEFS_BRANCH} https://github.com/juicedata/juicefs /tmp/juicefs \
   && cd /tmp/juicefs \
+  && git apply /tmp/patches/juicefs/* \
   && make -j4 \
   && cp juicefs /usr/local/bin \
   && rm -rf /tmp/juicefs \
@@ -43,15 +47,15 @@ RUN \
 # We build keydb from source, since (1) their official binaries assume systemd,
 # and (2) I need to support use of min-slaves-to-write with multi-master replication,
 # which I added in a patch.
-ARG KEYDB_COMMIT=
-COPY patches/ /tmp/patches/
+COPY patches/keydb /tmp/patches/keydb
+ARG KEYDB_BRANCH=RELEASE_6_3_4
 RUN \
      apt-get update \
   && DEBIAN_FRONTEND=noninteractive \
   && apt-get install -y build-essential nasm autotools-dev autoconf libjemalloc-dev tcl tcl-dev uuid-dev libcurl4-openssl-dev libssl-dev \
-  && git clone --branch RELEASE_6_3_4 --single-branch https://github.com/Snapchat/KeyDB.git /tmp/KeyDB \
+  && git clone --depth 1 --branch ${KEYDB_BRANCH} --single-branch https://github.com/Snapchat/KeyDB.git /tmp/KeyDB \
   && cd /tmp/KeyDB \
-  && git apply /tmp/patches/keydb-multimaster-min-slaves.patch \
+  && git apply /tmp/patches/keydb/01-multimaster-min-slaves.patch \
   && git submodule init && git submodule update \
   && make -j4 USE_SYSTEMD=no BUILD_TLS=no ENABLE_FLASH=no \
   && make install \
