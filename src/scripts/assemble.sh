@@ -15,7 +15,18 @@ echo IMAGE=$IMAGE
 echo ARCH_TAG=$ARCH_TAG
 echo TAG=$TAG
 
-docker manifest create   $IMAGE:$TAG $IMAGE-x86_64:$ARCH_TAG $IMAGE-arm64:$ARCH_TAG --amend
+attempt=0
+until docker manifest create   $IMAGE:$TAG $IMAGE-x86_64:$ARCH_TAG $IMAGE-arm64:$ARCH_TAG --amend; do
+  attempt=$((attempt+1))
+  if [[ $attempt -ge 30 ]]; then
+    echo "Command failed after 30 attempts, exiting..."
+    exit 1
+  fi
+  echo "Command failed, retrying in 10 seconds..."
+  sleep 10
+done
+
+
 docker manifest annotate $IMAGE:$TAG $IMAGE-x86_64:$ARCH_TAG --os linux --arch amd64
 docker manifest annotate $IMAGE:$TAG $IMAGE-arm64:$ARCH_TAG  --os linux --arch arm64
 docker manifest push     $IMAGE:$TAG
