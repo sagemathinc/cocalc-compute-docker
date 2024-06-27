@@ -200,7 +200,7 @@ def main():
         'backup',
         help='Create and manage incremental backups',
         description=
-        f'By default, creates a new backup of the filesystem containing the current working directory.  Use the --rm option to delete existing backups, the --mount option to mount and browse backups, and the --repo option to specify a repo other than "[filesystem]/.bup".  {CLOUDFS_ONLY}'
+        f'By default, creates a new backup of the filesystem containing the current working directory.  Use the --rm option to delete existing backups, the --mount option to mount and browse backups, and the --repo option to specify a repo other than "[filesystem]/.bup".  Currently {CLOUDFS_ONLY}.'
     )
     backup_parser.add_argument(
         'repo',
@@ -211,22 +211,22 @@ def main():
     )
     backup_parser.add_argument(
         '--rm',
+        metavar='TIMESTAMP1,TIMESTAMP2,...',
         help=
-        'Instead of creating a backup, delete one more backups.  Separate multiple timestamps with a comma.'
+        'Instead of creating a backup, delete one or more backups.  Separate multiple timestamps with a comma.'
     )
     backup_parser.add_argument(
         '--mount',
         action='store_true',
         help=
-        'Instead of creating a new backup, just mount the backups at [mountpoint]/.backups.  This also happens automatically whenever you make a new backup.'
+        'Instead of creating a new backup, mount the backups at [mountpoint]/.backups.  This also happens automatically whenever you make a new backup.'
     )
 
     ### END BACKUP COMMAND
 
     # Filesystem commands
     cloudfs_parser = subparsers.add_parser(
-        'cloudfs',
-        help=f'{CLOUDFS_ONLY} management commands')
+        'cloudfs', help=f'{CLOUDFS_ONLY} management commands')
     cloudfs_subparsers = cloudfs_parser.add_subparsers(dest='cloudfs_command')
 
     # compact subcommand
@@ -289,8 +289,13 @@ def main():
         'warmup',
         help='Warmup filesystem cache',
         description=
-        f"Make current working directory FAST by doownloading data to the local cache. Currently {CLOUDFS_ONLY}."
+        f"Make paths fast by downloading data to the local cache. Currently {CLOUDFS_ONLY}."
     )
+    warmup_parser.add_argument(
+        'path',
+        default=['.'],
+        nargs='*',
+        help='Paths to warmup (default: current directory)')
 
     # Parse the arguments
     args = parser.parse_args()
@@ -300,7 +305,9 @@ def main():
     elif args.command == 'sync':
         return sync(args)
     elif args.command == 'warmup':
-        return warmup()
+        for path in args.path:
+            warmup(path)
+        return
     elif args.command == 'cloudfs':
         if args.cloudfs_command == 'compact':
             return compact(args)
