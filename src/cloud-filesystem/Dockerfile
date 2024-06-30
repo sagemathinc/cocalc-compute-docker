@@ -56,7 +56,6 @@ RUN \
   && git clone --depth 1 --branch ${KEYDB_BRANCH} --single-branch https://github.com/Snapchat/KeyDB.git /tmp/KeyDB \
   && cd /tmp/KeyDB \
   && git apply /tmp/patches/keydb/01-multimaster-min-slaves.patch \
-  && git submodule init && git submodule update \
   && make -j4 USE_SYSTEMD=no BUILD_TLS=no ENABLE_FLASH=no \
   && make install \
   && strip /usr/local/bin/keydb* \
