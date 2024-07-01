@@ -18,7 +18,7 @@ echo TAG=$TAG
 attempt=0
 until docker manifest create   $IMAGE:$TAG $IMAGE-x86_64:$ARCH_TAG $IMAGE-arm64:$ARCH_TAG --amend; do
   attempt=$((attempt+1))
-  if [[ $attempt -ge 30 ]]; then
+  if [[ $attempt -ge 50 ]]; then
     echo "Command failed after 30 attempts, exiting..."
     exit 1
   fi

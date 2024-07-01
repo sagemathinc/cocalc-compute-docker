@@ -1,1 +1,5 @@
 make cloud-filesystem && make push-cloud-filesystem
+
+if [ `uname -m` = 'x86_64' ]; then
+   make assemble-cloud-filesystem
+fi

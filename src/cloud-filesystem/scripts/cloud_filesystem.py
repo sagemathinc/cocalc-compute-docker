@@ -97,20 +97,31 @@ CLOUD_FILESYSTEM_JSON = '/cocalc/conf/cloud-filesystem.json'
 # to close to this parameter.
 MAX_DATA_LOSS_S = 60
 
-# do not make this TOO small, e.g., it better be bigger than the typical unmount
-# and shutdown time
+# do not make this TOO small, e.g., it better be bigger than the
+# typical unmount and shutdown time
 MAX_REPLICA_LAG_S = max(10, MAX_DATA_LOSS_S - 10)
 
-MAX_LOG_SIZE_MB = 100
+# We need more testing with this first.
+# Right now it seems to cause juicefs to crash when one node is running
+# and we start another and it takes a while to start.  That's just
+# really annoying, obviously.  So for now we turn off this requirement,
+# and will implement something at a different level to avoid split brain.
+# In most cases we only have a single client at a time for cocalc right now.
+QUORUM_ENABLED_BY_DEFAULT = False
+
+# The logfiles can get really big, especially from keydb.
+# We trim that periodically to be at most this large.
+MAX_LOG_SIZE_MB = 50
 
 # when waiting for new state, we wait at most this
 # long to make sure we regularly have a chance to
 # do misc maintenance, e.g., mounting unmounted filesystems.
-MAX_WAIT_TIME_S = 45
+MAX_WAIT_TIME_S = 30
 
 # TODO: This is NOT at all tested or working yet.  Just something to work
 # on someday.
 ENABLE_FLASH = False
+
 
 ###
 # Utilities
@@ -1112,7 +1123,7 @@ def get_min_replicas_to_write(port):
 
 
 def get_quorum(filesystem, network):
-    enabled = filesystem.get('quorum', True)
+    enabled = filesystem.get('quorum', QUORUM_ENABLED_BY_DEFAULT)
     if not enabled:
         # quorum requirement is disabled
         return 1
