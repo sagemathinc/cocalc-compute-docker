@@ -1,0 +1,1 @@
+watch -n 10 cocalc cloudfs compact 
