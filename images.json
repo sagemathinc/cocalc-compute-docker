@@ -198,7 +198,7 @@
       {
         "label": "3.12.3",
         "tag": "2024-07-01",
-        "tested": false
+        "tested": true
       }
     ],
     "description": "[Python](https://python.org) is a versatile and user-friendly programming language, known for its clear syntax and readability. It is widely used for web development, data analysis, artificial intelligence, and scientific computing."
@@ -447,7 +447,7 @@
       { "tag": "2024-03.p3", "tested": true },
       { "tag": "2024-03-10", "tested": true },
       { "tag": "2024-05-18", "tested": true },
-      { "tag": "2024-07-01", "tested": false }
+      { "tag": "2024-07-01", "tested": true }
     ]
   },
   "anaconda-gpu": {
@@ -465,7 +465,8 @@
     "description": "Anaconda is a distribution of Python, R, SageMath and Julia with GPU support for scientific computing (data science, machine learning, data processing, etc.).  This is the [Miniforge](https://github.com/conda-forge/miniforge) Anaconda environment with a Python Jupyter kernel, setup and ready for you to [install any package](https://conda-forge.org/packages/) using `conda install package` command in a terminal or `!conda install -y package` in a Jupyter notebook.  You can also use `pip install` as usual.    This image does not include SageMath or Julia (etc.), but you can quickly install either via `conda install -y sage` and `conda install -y julia`.",
     "versions": [
       { "tag": "2024-03-10", "tested": true },
-      { "tag": "2024-05-18", "tested": true }
+      { "tag": "2024-05-18", "tested": true },
+      { "tag": "2024-07-01", "tested": true }
     ],
     "tutorials": [
       "https://github.com/sagemathinc/cocalc-howto/blob/main/tensorflow.md"
@@ -555,7 +556,7 @@
       {
         "label": "2024-07-01",
         "tag": "release-colab_20240626-060133_RC01",
-        "tested": false
+        "tested": true
       }
     ],
     "description": "[Google Colab](https://colab.google/) comes preinstalled with a wide range of popular data science and machine learning libraries, such as TensorFlow, PyTorch, Matplotlib, and Pandas. It also includes support for Python and its various packages, enabling users to jump straight into coding without worrying about setup and installation."
