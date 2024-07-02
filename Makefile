@@ -34,7 +34,7 @@ prune-all:
 	time docker system prune -a
 
 core:
-	make base && make cocalc && make filesystem && make compute && make python && make anaconda && make openwebui
+	make base && make filesystem && make compute && make python && make anaconda && make openwebui
 push-core:
 	make push-base && make push-filesystem && make push-compute && make push-python  && make push-anaconda && make push-openwebui
 assemble-core:
