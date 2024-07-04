@@ -321,7 +321,7 @@ assemble-sagemath-optional:
 # this depends on sagemath-optional existing locally
 sagemathopt:
 	cd src/sagemath && \
-	docker build  --build-arg SAGEMATH_VARIANT="optional" --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
+	docker build  --build-arg PYTHON_TAG=$(PYTHON_TAG) --build-arg SAGEMATH_VARIANT="optional" --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATH_VERSION) -f Dockerfile .
 run-sagemathopt:
 	docker run --name run-sagemathopt --network=host -it --rm $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATH_VERSION) bash
 push-sagemathopt:

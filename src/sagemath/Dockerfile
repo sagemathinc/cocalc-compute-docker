@@ -1,9 +1,8 @@
+ARG PYTHON_TAG=
 ARG SAGEMATH_VERSION=
 ARG ARCH=
 ARG SAGEMATH_VARIANT=
 FROM sagemathinc/sagemath-${SAGEMATH_VARIANT}${ARCH}:${SAGEMATH_VERSION} as sagemath
-
-ARG PYTHON_TAG=
 FROM sagemathinc/python${ARCH}:${PYTHON_TAG}
 
 # Install packages that Sage assumes are there

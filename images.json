@@ -199,6 +199,11 @@
         "label": "3.12.3",
         "tag": "2024-07-01",
         "tested": true
+      },
+      {
+        "label": "3.12.3.a",
+        "tag": "2024-07-04",
+        "tested": false
       }
     ],
     "description": "[Python](https://python.org) is a versatile and user-friendly programming language, known for its clear syntax and readability. It is widely used for web development, data analysis, artificial intelligence, and scientific computing."
@@ -277,8 +282,8 @@
     "priority": 8,
     "label": "SageMath",
     "package": "sagemathinc/sagemath",
-    "minDiskSizeGb": 20,
-    "dockerSizeGb": 3,
+    "minDiskSizeGb": 25,
+    "dockerSizeGb": 10,
     "gpu": false,
     "icon": "sagemath",
     "url": "https://www.sagemath.org/",
@@ -290,7 +295,8 @@
     "versions": [
       { "tag": "10.1", "tested": true },
       { "tag": "10.2", "tested": true },
-      { "tag": "10.3", "tested": true }
+      { "tag": "10.3", "tested": true },
+      { "label": "10.3.p1", "tag": "10.3", "tested": false }
     ],
     "description": "[SageMath](https://sagemath.org) is an open-source mathematics software system, integrating numerous software packages and providing a unified interface. It is designed for advanced algebra, geometry, number theory, cryptography, and various other fields of mathematics, accessible through a Python-based language. This image does not include optional packages, so it is smaller."
   },
@@ -308,14 +314,15 @@
     "description": "[SageMath](https://sagemath.org) is an open-source mathematics software system, integrating numerous software packages and providing a unified interface. It is designed for advanced algebra, geometry, number theory, cryptography, and various other fields of mathematics, accessible through a Python-based language.  This image also includes all of the following [https://doc.sagemath.org/html/en/reference/spkg/#optional-packages](https://doc.sagemath.org/html/en/reference/spkg/#optional-packages): 4ti2 admcycles benzene biopython bliss buckygen coxeter3 cryptominisat csdp cunningham_tables d3js database_cremona_ellcurve database_cubic_hecke database_jones_numfield database_knotinfo database_kohel database_mutation_class database_odlyzko_zeta database_stein_watkins database_symbolic_data debugpy dot2tex dsdp e_antic ecos_python fricas frobby gap_jupyter gap_packages gitpython igraph ipympl jupyterlab kenzo kissat latte_int libnauty libogg libsemigroups lidia lrslib mathics mathics_scanner mcqd meataxe mpfrcx msolve nibabel notedown onetbb osqp_python palettable papilo pari_elldata pari_galpol pari_nftables pari_seadata perl_term_readline_gnu phitigra pint plantri pybtex pycosat pycryptosat pysingular pytest pytest_mock pytest_xdist python_build python_igraph pyx qdldl_python retrolab rubiks saclib sage_sws2rst scip scip_sdp scs singular_jupyter sirocco slabbe snappy soplex sqlalchemy symengine tdlib texlive texttable tides topcom.   NOTE: this was everything we could successfully install in Jan 2024.  On arm64, we also have to exclude the following (which all build on identically configured x86_64): cbc, glucose, latte, lidia, snappy, and tides",
     "versions": [
       { "tag": "10.2", "tested": true },
-      { "tag": "10.3", "tested": true }
+      { "tag": "10.3", "tested": true },
+      { "tag": "10.3.p1", "tested": false }
     ]
   },
   "rstats": {
     "label": "R Statistics",
     "package": "sagemathinc/rstats",
     "minDiskSizeGb": 15,
-    "dockerSizeGb": 3,
+    "dockerSizeGb": 7,
     "gpu": false,
     "icon": "r",
     "videos": ["https://youtu.be/Owq90O0vLJo"],
@@ -358,6 +365,12 @@
         "label": "2024-05-18 (R version 4.4.0)",
         "tag": "2024-05-18",
         "tested": true
+      },
+      {
+        "version": "4.4.1",
+        "label": "2024-07-04 (R v4.4.1)",
+        "tag": "2024-07-04",
+        "tested": false
       }
     ],
     "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization.   The CoCalc R compute server image includes includes (1) **RStudio** Server and (2) the **R Jupyter kernel.**  To use RStudio, click on the displayed https link after the server starts running (Select the 'Custom Domain Name with SSL' option below to select a custom domain name avoid a security certificate warning) and copy/paste the security token. To use a Jupyter notebook, open a notebook in CoCalc on the compute server and select the R kernel.  _**DISCLAIMER: RSTUDIO/POSIT PBC IS IN NO WAY ASSOCIATED WITH COCALC.**"

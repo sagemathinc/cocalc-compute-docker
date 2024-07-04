@@ -26,7 +26,8 @@ RUN /tmp/install.sh database_knotinfo
 RUN /tmp/install.sh database_kohel
 RUN /tmp/install.sh database_mutation_class
 RUN /tmp/install.sh database_odlyzko_zeta
-RUN /tmp/install.sh database_stein_watkins
+# not working on july 2024:
+#RUN /tmp/install.sh database_stein_watkins
 RUN /tmp/install.sh database_symbolic_data
 RUN /tmp/install.sh debugpy
 RUN /tmp/install.sh dot2tex
