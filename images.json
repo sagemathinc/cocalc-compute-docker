@@ -296,7 +296,12 @@
       { "tag": "10.1", "tested": true },
       { "tag": "10.2", "tested": true },
       { "tag": "10.3", "tested": true },
-      { "label": "10.3.p1", "tag": "10.3", "tested": false }
+      {
+        "label": "10.3.p1",
+        "tag": "10.3.p1",
+        "version": "10.3",
+        "tested": false
+      }
     ],
     "description": "[SageMath](https://sagemath.org) is an open-source mathematics software system, integrating numerous software packages and providing a unified interface. It is designed for advanced algebra, geometry, number theory, cryptography, and various other fields of mathematics, accessible through a Python-based language. This image does not include optional packages, so it is smaller."
   },
@@ -305,7 +310,7 @@
     "label": "SageMath + Optional Packages",
     "package": "sagemathinc/sagemathopt",
     "minDiskSizeGb": 30,
-    "dockerSizeGb": 6,
+    "dockerSizeGb": 12,
     "gpu": false,
     "icon": "sagemath",
     "url": "https://www.sagemath.org/",
@@ -315,7 +320,12 @@
     "versions": [
       { "tag": "10.2", "tested": true },
       { "tag": "10.3", "tested": true },
-      { "tag": "10.3.p1", "tested": false }
+      {
+        "label": "10.3.p1",
+        "tag": "10.3.p1",
+        "version": "10.3",
+        "tested": false
+      }
     ]
   },
   "rstats": {
