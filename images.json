@@ -554,7 +554,7 @@
     "description": "[TensorFlow](https://www.tensorflow.org/) is an open-source machine learning framework developed by Google, widely used for building and training neural networks. Its flexible architecture allows for easy deployment of computation across various platforms, from servers to edge devices, making it suitable for a broad range of AI applications."
   },
   "colab": {
-    "priority": 7,
+    "priority": 11,
     "label": "Google Colab",
     "package": "sagemathinc/colab",
     "minDiskSizeGb": 100,
