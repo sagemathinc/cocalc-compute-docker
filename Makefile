@@ -294,40 +294,43 @@ sagemath:
 	cd src/sagemath && \
 	docker build  --build-arg PYTHON_TAG=$(PYTHON_TAG) --build-arg SAGEMATH_VARIANT="core" --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION)  -t $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_TAG) -f Dockerfile .
 run-sagemath:
-	docker run --name run-sagemath --network=host -it --rm $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION) bash
+	docker run --name run-sagemath --network=host -it --rm $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_TAG) bash
 push-sagemath:
-	docker push $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_VERSION)
+	docker push $(DOCKER_USER)/sagemath$(ARCH):$(SAGEMATH_TAG)
 assemble-sagemath:
-	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath $(SAGEMATH_VERSION)
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath $(SAGEMATH_TAG)
 
 
 ## Helpful build artifact: sagemath-optional -- this is just used for convenience
 ## so we don't have to build sage optional packages repeatedly
 
-SAGEMATHOPT_VERSION=$(shell $(GET_VERSION) sagemathopt)
-SAGEMATHOPT_TAG=$(shell $(GET_TAG) sagemathopt)
+SAGEMATHOPTIONAL_VERSION=$(shell $(GET_VERSION) sagemath-optional)
+SAGEMATHOPTIONAL_TAG=$(shell $(GET_TAG) sagemath-optional)
 sagemath-optional:
-	cd src/sagemath && docker build --build-arg ARCH=${ARCH} --build-arg SAGEMATHOPT_VERSION=${SAGEMATHOPT_VERSION} --build-arg PYTHON_TAG=$(PYTHON_TAG) -t $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATHOPT_TAG) -f optional/Dockerfile${ARCH0} .
+	cd src/sagemath && docker build --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=${SAGEMATHL_VERSION} --build-arg PYTHON_TAG=$(PYTHON_TAG) -t $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATHOPTIONAL_TAG) -f optional/Dockerfile${ARCH0} .
 run-sagemath-optional:
-	docker run --name run-sagemath-optional --network=host -it --rm $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATHOPT_TAG) bash
+	docker run --name run-sagemath-optional --network=host -it --rm $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATHOPTIONAL_TAG) bash
 push-sagemath-optional:
-	docker push $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATHOPT_TAG)
+	docker push $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATHOPTIONAL_TAG)
 assemble-sagemath-optional:
-	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-optional $(SAGEMATHOPT_TAG) $(SAGEMATHOPT_TAG)
-	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-optional $(SAGEMATHOPT_TAG) latest
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-optional $(SAGEMATHOPTIONAL_TAG) $(SAGEMATHOPTIONAL_TAG)
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemath-optional $(SAGEMATHOPTIONAL_TAG) latest
 
 
 ## IMAGE: sagemathopt
 # this depends on sagemath-optional existing locally
+SAGEMATHOPT_VERSION=$(shell $(GET_VERSION) sagemathopt)
+SAGEMATHOPT_TAG=$(shell $(GET_TAG) sagemathopt)
 sagemathopt:
 	cd src/sagemath && \
-	docker build  --build-arg PYTHON_TAG=$(PYTHON_TAG) --build-arg SAGEMATH_VARIANT="optional" --build-arg ARCH=${ARCH} --build-arg SAGEMATHOPT_VERSION=$(SAGEMATHOPT_VERSION) -t $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATHOPT_VERSION) -f Dockerfile .
+	docker build  --build-arg PYTHON_TAG=$(PYTHON_TAG) --build-arg SAGEMATH_VARIANT="optional" --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=$(SAGEMATH_VERSION) -t $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATHOPT_TAG) -f Dockerfile .
 run-sagemathopt:
-	docker run --name run-sagemathopt --network=host -it --rm $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATHOPT_VERSION) bash
+	docker run --name run-sagemathopt --network=host -it --rm $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATHOPT_TAG) bash
 push-sagemathopt:
-	docker push $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATHOPT_VERSION)
+	docker push $(DOCKER_USER)/sagemathopt$(ARCH):$(SAGEMATHOPT_TAG)
 assemble-sagemathopt:
-	./src/scripts/assemble.sh $(DOCKER_USER)/sagemathopt $(SAGEMATHOPT_VERSION)
+	./src/scripts/assemble.sh $(DOCKER_USER)/sagemathopt $(SAGEMATHOPT_TAG)
+
 
 
 ## NOTE USED YET -- not clear it is useful

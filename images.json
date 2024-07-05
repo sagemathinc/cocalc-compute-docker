@@ -203,7 +203,7 @@
       {
         "label": "3.12.3.a",
         "tag": "2024-07-04",
-        "tested": false
+        "tested": true
       }
     ],
     "description": "[Python](https://python.org) is a versatile and user-friendly programming language, known for its clear syntax and readability. It is widely used for web development, data analysis, artificial intelligence, and scientific computing."
@@ -300,7 +300,7 @@
         "label": "10.3.p1",
         "tag": "10.3.p1",
         "version": "10.3",
-        "tested": false
+        "tested": true
       }
     ],
     "description": "[SageMath](https://sagemath.org) is an open-source mathematics software system, integrating numerous software packages and providing a unified interface. It is designed for advanced algebra, geometry, number theory, cryptography, and various other fields of mathematics, accessible through a Python-based language. This image does not include optional packages, so it is smaller."
@@ -324,10 +324,23 @@
         "label": "10.3.p1",
         "tag": "10.3.p1",
         "version": "10.3",
-        "tested": false
+        "tested": true
       }
     ]
   },
+  "sagemath-optional": {
+    "system": true,
+    "priority": 7,
+    "label": "SageMath + Optional Packages",
+    "package": "sagemathinc/sagemath-optional",
+    "versions": [
+      {
+        "tag": "10.3",
+        "version": "10.3"
+      }
+    ]
+  },
+
   "rstats": {
     "label": "R Statistics",
     "package": "sagemathinc/rstats",
@@ -380,7 +393,7 @@
         "version": "4.4.1",
         "label": "2024-07-04 (R v4.4.1)",
         "tag": "2024-07-04",
-        "tested": false
+        "tested": true
       }
     ],
     "description": "[R](https://www.r-project.org/) is a powerful statistical computing language and environment, widely used for data analysis, statistical modeling, and visualization.   The CoCalc R compute server image includes includes (1) **RStudio** Server and (2) the **R Jupyter kernel.**  To use RStudio, click on the displayed https link after the server starts running (Select the 'Custom Domain Name with SSL' option below to select a custom domain name avoid a security certificate warning) and copy/paste the security token. To use a Jupyter notebook, open a notebook in CoCalc on the compute server and select the R kernel.  _**DISCLAIMER: RSTUDIO/POSIT PBC IS IN NO WAY ASSOCIATED WITH COCALC.**"
