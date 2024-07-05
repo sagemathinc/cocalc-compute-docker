@@ -44,7 +44,7 @@ export PROJECT_HOME=/home/user
 
 # websocketfs cach timeout in seconds -- keep small, but not zero.
 # if zero, then using nvcc is very slow and ls is very slow.
-export WEBSOCKETFS_CACHE_TIMEOUT=3
+export WEBSOCKETFS_CACHE_TIMEOUT=7
 
 # For images that use an https proxy server
 export PROXY_PORT=443

@@ -94,17 +94,15 @@ async function main() {
         options: { mountOptions: { allowOther: true, nonEmpty: true } },
         unionfs,
         readTrackingFile: process.env.READ_TRACKING_FILE,
-        exclude: [".*"].concat(
-          EXCLUDE_FROM_SYNC ? EXCLUDE_FROM_SYNC.split("|") : [],
-        ),
+        exclude: EXCLUDE_FROM_SYNC ? EXCLUDE_FROM_SYNC.split("|") : [],
         metadataFile: process.env.METADATA_FILE,
         // We autosync infrequently -- mainly sync happens when user clicks
         // the sync button. We may make this more frequent if we make the sync algorithm
         // more efficient (especially metadata via diffs) and we can trust it more.
-        syncIntervalMin: 60 * 5,
-        syncIntervalMax: 60 * 15,
+        syncIntervalMin: 45,
+        syncIntervalMax: 60 * 5,
         // websocketfs -- critical to minimally use its cache.
-        cacheTimeout: parseInt(process.env.WEBSOCKETFS_CACHE_TIMEOUT ?? "3"),
+        cacheTimeout: parseInt(process.env.WEBSOCKETFS_CACHE_TIMEOUT ?? "7"),
       }));
     }
   } catch (err) {
