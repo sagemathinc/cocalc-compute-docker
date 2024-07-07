@@ -86,9 +86,11 @@ SUBPROCESS_TIMEOUT_S = 10
 # state or deleted for this many minutes.
 FREE_NOT_MOUNTED_M = 60
 
+# Key directory paths where we mount and store things:
 VAR = '/var/cloud-filesystem'
 SECRETS = '/secrets'
 BUCKETS = '/buckets'
+JUICES = '/juices'
 
 # Where data about cloud filesystem configuration is loaded from
 CLOUD_FILESYSTEM_JSON = '/cocalc/conf/cloud-filesystem.json'
@@ -121,7 +123,6 @@ MAX_WAIT_TIME_S = 30
 # TODO: This is NOT at all tested or working yet.  Just something to work
 # on someday.
 ENABLE_FLASH = False
-
 
 ###
 # Utilities
@@ -317,11 +318,12 @@ def mount_filesystem(filesystem, network):
 
 
 def mountpoint_fullpath(filesystem):
-    return os.path.join(os.environ['HOME'], filesystem['mountpoint'])
+    #return os.path.join(os.environ['HOME'], filesystem['mountpoint'])
+    return os.path.join(JUICES, str(filesystem['id']))
 
 
 def bucket_fullpath(filesystem):
-    return os.path.join(BUCKETS, f"storage-bucket-{filesystem['id']}")
+    return os.path.join(BUCKETS, str(filesystem['id']))
 
 
 # Try to mount the bucket for up to the given amount of time.
@@ -832,6 +834,16 @@ def get_mount_options(filesystem):
     return options
 
 
+def ensure_juices_exists():
+    if os.path.exists(JUICES):
+        log("ensure_juices_exists: ", JUICES, "already exists")
+        return
+    log("ensure_juices_exists: creating ", JUICES)
+    run(["sudo", "mkdir", "-p", JUICES], check=True)
+    run(["sudo", "chown", "user:user", JUICES], check=True)
+    run(["sudo", "chmod", "og-rwx", JUICES], check=False)
+
+
 def mount_juicefs(filesystem):
     key_file = gcs_key(filesystem)
     first_time = not os.path.exists(
@@ -849,6 +861,7 @@ def mount_juicefs(filesystem):
     # function at roughly the same time.  This mount could fail with "not formatted" because the format is
     # in progress.  Format is very fast, but not instant.
     mountpoint = mountpoint_fullpath(filesystem)
+    ensure_juices_exists()
     error = None
     for i in range(10 if first_time else 5):
         try:
