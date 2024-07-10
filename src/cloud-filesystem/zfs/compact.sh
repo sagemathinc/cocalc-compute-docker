@@ -1,4 +1,4 @@
 set -ev
 
 cd $1
-watch -n 10 cocalc cloudfs compact
+watch -n 5 cocalc cloudfs compact 
