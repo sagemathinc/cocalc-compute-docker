@@ -306,8 +306,9 @@ assemble-sagemath:
 
 SAGEMATHOPTIONAL_VERSION=$(shell $(GET_VERSION) sagemath-optional)
 SAGEMATHOPTIONAL_TAG=$(shell $(GET_TAG) sagemath-optional)
+
 sagemath-optional:
-	cd src/sagemath && docker build --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=${SAGEMATHL_VERSION} --build-arg PYTHON_TAG=$(PYTHON_TAG) -t $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATHOPTIONAL_TAG) -f optional/Dockerfile${ARCH0} .
+	cd src/sagemath && docker build --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=${SAGEMATH_VERSION} --build-arg PYTHON_TAG=$(PYTHON_TAG) -t $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATHOPTIONAL_TAG) -f optional/Dockerfile${ARCH0} .
 run-sagemath-optional:
 	docker run --name run-sagemath-optional --network=host -it --rm $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATHOPTIONAL_TAG) bash
 push-sagemath-optional:
