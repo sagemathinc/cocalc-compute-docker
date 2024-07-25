@@ -53,6 +53,7 @@ RUN chmod +x  /root/install-packages.sh && ./root/install-packages.sh && rm /roo
 
 # Add links
 COPY scripts/links-to-sage.sh /root
-RUN chmod +x  /root/links-to-sage.sh && ./root/links-to-sage.sh && rm /root/links-to-sage.sh
+COPY scripts/install_scripts.py /root
+RUN chmod +x  /root/links-to-sage.sh && cd /root && ./links-to-sage.sh && rm links-to-sage.sh install_scripts.py
 
 

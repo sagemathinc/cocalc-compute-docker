@@ -25,8 +25,10 @@ RUN  ln -sf "/usr/local/sage/sage" /usr/bin/sage \
 # Sage Jupyter kernel
 RUN cp -r /usr/local/sage/local/var/lib/sage/*/share/jupyter/kernels/sagemath  /usr/local/share/jupyter/kernels/
 
-# Put scripts to start gap, gp, maxima, ... in /usr/local/bin
-RUN sage --nodotsage -c "install_scripts('/usr/local/bin')"
+# Add links
+COPY scripts/links-to-sage.sh /root
+COPY scripts/install_scripts.py /root
+RUN chmod +x  /root/links-to-sage.sh && cd /root && ./links-to-sage.sh && rm links-to-sage.sh install_scripts.py
 
 WORKDIR /home/user
 
