@@ -14,7 +14,7 @@ RUN /tmp/install.sh bliss
 RUN /tmp/install.sh buckygen
 RUN /tmp/install.sh cbc
 RUN /tmp/install.sh coxeter3
-RUN /tmp/install.sh cryptominisat
+#RUN /tmp/install.sh cryptominisat
 RUN /tmp/install.sh csdp
 RUN /tmp/install.sh cunningham_tables
 #RUN /tmp/install.sh cylp
@@ -120,7 +120,7 @@ RUN /tmp/install.sh saclib
 RUN /tmp/install.sh sage_sws2rst
 RUN /tmp/install.sh scip
 RUN /tmp/install.sh scip_sdp
-RUN /tmp/install.sh scs
+#RUN /tmp/install.sh scs
 RUN /tmp/install.sh singular_jupyter
 RUN /tmp/install.sh sirocco
 RUN /tmp/install.sh slabbe
@@ -128,7 +128,7 @@ RUN /tmp/install.sh snappy
 RUN /tmp/install.sh soplex
 RUN /tmp/install.sh sqlalchemy
 #RUN /tmp/install.sh surface_dynamics
-RUN /tmp/install.sh symengine
+#RUN /tmp/install.sh symengine
 RUN /tmp/install.sh tdlib
 RUN /tmp/install.sh texlive
 RUN /tmp/install.sh texttable
@@ -165,5 +165,6 @@ RUN chmod +x  /root/install-packages.sh && ./root/install-packages.sh && rm /roo
 
 # Add links
 COPY scripts/links-to-sage.sh /root
-RUN chmod +x  /root/links-to-sage.sh && ./root/links-to-sage.sh && rm /root/links-to-sage.sh
+COPY scripts/install_scripts.py /root
+RUN chmod +x  /root/links-to-sage.sh && cd /root && ./links-to-sage.sh && rm links-to-sage.sh install_scripts.py
 
