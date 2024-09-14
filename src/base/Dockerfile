@@ -27,6 +27,8 @@ RUN /tmp/install-docker.sh && rm /tmp/install-docker.sh
 COPY setup-user.sh /tmp/setup-user.sh
 RUN /tmp/setup-user.sh && rm /tmp/setup-user.sh
 
+RUN apt-get update && apt-get upgrade -y
+
 # FOR DEV/TESTING ONLY
 # Copy the cocalc directory -- this is going to usually be mounted
 # from the host image to we instead always get an up to date version,
