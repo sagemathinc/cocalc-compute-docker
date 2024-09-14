@@ -40,6 +40,22 @@ push-core:
 assemble-core:
 	make assemble-base && make assemble-filesystem && make assemble-compute && make assemble-python  && make assemble-anaconda && make assemble-openwebui && make assemble-lean
 
+## IMAGE: base
+# We build base-x86_64 and base-arm64.
+# They are pushed to dockerhub.
+# We also run the assemble target to create the multiplatform
+#     $(DOCKER_USER)/base
+# which is what gets used everywhere else.
+BASE_TAG = $(shell $(GET_TAG) base)
+base:
+	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH):$(BASE_TAG) .
+run-base:
+	docker run --name run-base -it --rm $(DOCKER_USER)/base$(ARCH):$(BASE_TAG) bash
+push-base:
+	docker push $(DOCKER_USER)/base$(ARCH):$(BASE_TAG)
+assemble-base:
+	./src/scripts/assemble.sh $(DOCKER_USER)/base $(BASE_TAG)
+
 ## IMAGE: cocalc
 
 # This "cocalc" is the subset of the cocalc nodejs code
@@ -105,21 +121,6 @@ push-cocalc:
 	# Comment this line out if you want to do something by hand, like explicitly set the version number on npmjs.
 	rm -rf /tmp/cocalc-npm$(ARCH0)
 
-## IMAGE: base
-# We build base-x86_64 and base-arm64.
-# They are pushed to dockerhub.
-# We also run the assemble target to create the multiplatform
-#     $(DOCKER_USER)/base
-# which is what gets used everywhere else.
-BASE_TAG = $(shell $(GET_TAG) base)
-base:
-	cd src/base && docker build -t $(DOCKER_USER)/base$(ARCH):$(BASE_TAG) .
-run-base:
-	docker run --name run-base -it --rm $(DOCKER_USER)/base$(ARCH):$(BASE_TAG) bash
-push-base:
-	docker push $(DOCKER_USER)/base$(ARCH):$(BASE_TAG)
-assemble-base:
-	./src/scripts/assemble.sh $(DOCKER_USER)/base $(BASE_TAG)
 
 ## IMAGE: filesystem
 FILESYSTEM_TAG = $(shell $(GET_TAG) filesystem)
@@ -306,7 +307,6 @@ assemble-sagemath:
 
 SAGEMATHOPTIONAL_VERSION=$(shell $(GET_VERSION) sagemath-optional)
 SAGEMATHOPTIONAL_TAG=$(shell $(GET_TAG) sagemath-optional)
-
 sagemath-optional:
 	cd src/sagemath && docker build --build-arg ARCH=${ARCH} --build-arg SAGEMATH_VERSION=${SAGEMATH_VERSION} --build-arg PYTHON_TAG=$(PYTHON_TAG) -t $(DOCKER_USER)/sagemath-optional$(ARCH):$(SAGEMATHOPTIONAL_TAG) -f optional/Dockerfile${ARCH0} .
 run-sagemath-optional:

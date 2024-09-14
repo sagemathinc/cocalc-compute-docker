@@ -2,8 +2,7 @@
 """
 - Periodically check in with cocalc saying that the server is alive.
 
-- Response message may contain vpn and cloud filesystem; if so, we update them.
-
+- Response message may contain ssh keys, vpn and cloud filesystem info; if so, we update them.
 
 The check_in function below calls the remote API, similar to doing the following using curl from the command line
 
@@ -23,10 +22,16 @@ The API response is json formatted has optional fields:
    - vpn_sha1
    - cloud_filsystem
    - cloud_filsystem_sha1
+   - authorized_keys
+   - authorized_keys_sha1
+
 They should be used to update the above global variables whenever the sha1 changes.
 Also, when vpn change, it should be written as valid json to the file /cocalc/conf/vpn.json,
-and when cloud_filsystem changes, write it /cocalc/conf/cloud-filesystem.json.
+and when cloud_filsystem changes, write it to /cocalc/conf/cloud-filesystem.json,
+and when authorized_keys changes, write it to /cocalc/conf/authorized_keys
 
+Yes, a pattern in what this does is emerging regarding updating file contents; maybe that
+could be done more generically.
 """
 import datetime, json, os, sys, subprocess, time, requests
 import argparse
@@ -44,13 +49,15 @@ vpn_sha1 = ''
 vpn = []
 cloud_filesystem = []
 cloud_filesystem_sha1 = ''
+authorized_keys = ''
+authorized_keys_sha1 = ''
 api_key = ''
 api_server = ''
 server_id = 0
 
 
 def check_in():
-    global vpn_sha1, vpn, cloud_filesystem_sha1, cloud_filesystem, api_key, api_server, server_id
+    global vpn_sha1, vpn, cloud_filesystem_sha1, cloud_filesystem, api_key, api_server, server_id, authorized_keys, authorized_keys_sha1
 
     try:
         # Read API key, server, and id if needed
@@ -66,7 +73,8 @@ def check_in():
         data = {
             "id": server_id,
             "vpn_sha1": vpn_sha1,
-            "cloud_filesystem_sha1": cloud_filesystem_sha1
+            "cloud_filesystem_sha1": cloud_filesystem_sha1,
+            "authorized_keys_sha1": authorized_keys_sha1
         }
 
         headers = {
@@ -94,6 +102,17 @@ def check_in():
                 with open('/cocalc/conf/vpn.json', 'w') as f:
                     json.dump(vpn, f, indent=2)
                 update_vpn()
+
+            # Update authorized_keys if changed
+            if 'authorized_keys_sha1' in response_data and 'authorized_keys' in response_data and response_data[
+                    'authorized_keys_sha1'] != authorized_keys_sha1:
+                authorized_keys_sha1 = response_data['authorized_keys_sha1']
+                authorized_keys = response_data.get('authorized_keys',
+                                                    authorized_keys)
+                if authorized_keys:
+                    open('/cocalc/conf/authorized_keys',
+                         'w').write(authorized_keys)
+                    update_authorized_keys()
 
             # Update cloud_filesystem settings if changed
             if 'cloud_filesystem_sha1' in response_data and 'cloud_filesystem' in response_data and response_data[
@@ -136,6 +155,12 @@ def update_vpn():
     if os.path.exists('/cocalc/conf/pings.sh'):
         # launch pings in the background to keep us on the vpn from behind our firewall.
         os.system("exec /cocalc/conf/pings.sh &")
+
+
+def update_authorized_keys():
+    run("cp /cocalc/conf/authorized_keys /home/user/.ssh/authorized_keys"
+        )
+    run("sudo cp /cocalc/conf/authorized_keys /root/.ssh/authorized_keys")
 
 
 launched_cloud_filesystem = 0
