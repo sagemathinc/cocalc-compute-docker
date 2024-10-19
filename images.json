@@ -671,8 +671,8 @@
     "label": "CUDA Development Toolkit",
     "package": "sagemathinc/cuda",
     "gpu": true,
-    "minDiskSizeGb": 33,
-    "dockerSizeGb": 4,
+    "minDiskSizeGb": 35,
+    "dockerSizeGb": 5,
     "icon": "nvidia",
     "tutorials": [
       "https://github.com/sagemathinc/cocalc-howto/blob/main/cuda.md"
@@ -682,7 +682,16 @@
     "description": "The CUDA Toolkit from NVIDIA provides everything you need to develop GPU-accelerated applications.  The CUDA Toolkit includes GPU-accelerated libraries, a compiler, development tools and the CUDA runtime.   It enables dramatic increases in computing performance by harnessing the power of NVIDIA graphics processing units (GPUs) for a wide range of computing tasks.",
     "upstreamVersions": "https://gitlab.com/nvidia/container-images/cuda/blob/master/doc/supported-tags.md",
     "versions": [
-      { "version": "12.3.1-devel-ubuntu22.04", "tag": "12.3.1", "tested": true }
+      {
+        "version": "12.3.1-devel-ubuntu22.04",
+        "tag": "12.3.1",
+        "tested": true
+      },
+      {
+        "version": "12.6.2-devel-ubuntu24.04",
+        "tag": "12.6.2",
+        "tested": true
+      }
     ],
     "jupyterKernels": false
   },
