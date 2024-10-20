@@ -516,7 +516,7 @@
       { "tag": "2024-05-18", "tested": true },
       { "tag": "2024-07-01", "tested": true },
       { "tag": "2024-09-14", "tested": true },
-      { "tag": "2024-10-19", "tested": false }
+      { "tag": "2024-10-19", "tested": true }
     ]
   },
   "anaconda-gpu": {
@@ -537,7 +537,7 @@
       { "tag": "2024-05-18", "tested": true },
       { "tag": "2024-07-01", "tested": true },
       { "tag": "2024-09-14", "tested": true },
-      { "tag": "2024-10-19", "tested": false }
+      { "tag": "2024-10-19", "tested": true }
     ],
     "tutorials": [
       "https://github.com/sagemathinc/cocalc-howto/blob/main/tensorflow.md"
@@ -634,7 +634,7 @@
       {
         "label": "2024-10-19",
         "tag": "release-colab_20240920-060127_RC00",
-        "tested": false
+        "tested": true
       }
     ],
     "description": "[Google Colab](https://colab.google/) comes preinstalled with a wide range of popular data science and machine learning libraries, such as TensorFlow, PyTorch, Matplotlib, and Pandas. It also includes support for Python and its various packages, enabling users to jump straight into coding without worrying about setup and installation."
@@ -674,7 +674,7 @@
       },
       {
         "tag": "2024-10-19",
-        "tested": false
+        "tested": true
       }
     ],
     "jupyterKernels": false,
@@ -733,7 +733,7 @@
         "label": "0.4.26 (2024-10)",
         "tag": "24.04-py3",
         "version": "24.04-py3",
-        "tested": false
+        "tested": true
       }
     ],
     "description": "[JAX](https://jax.readthedocs.io/en/latest/) is a framework for high-performance numerical computing and machine learning research. It includes Numpy-like APIs, automatic differentiation, [XLA](https://github.com/openxla/openxla-nvgpu) acceleration and simple primitives for scaling across GPUs.   [The JAX NGC Container](https://catalog.ngc.nvidia.com/orgs/nvidia/containers/jax) comes with all dependencies included, providing an easy place to start developing applications in areas such as NLP, Computer Vision, Multimodality, physics-based simulations, reinforcement learning, drug discovery, and neural rendering."
