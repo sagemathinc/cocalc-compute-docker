@@ -9,7 +9,7 @@ import express, { Router } from "express";
 import { createServer } from "https";
 import { callback } from "awaiting";
 import { pathToRegexp } from "path-to-regexp";
-import { stripAuthCookie } from "./auth";
+import { COOKIE_NAME } from "./auth";
 import { debounce } from "lodash";
 
 const log = debug("proxy:create-proxy");
@@ -155,7 +155,7 @@ function createRoutes(server, router, config, isAuthCookieValid) {
       log(`proxy ${path} error: `, err);
     });
     router.use(path, (req, res) => {
-      stripAuthCookieFromRequest(req);
+      // stripAuthCookieFromRequest(req);
       proxy.web(req, res);
     });
     if (ws) {
@@ -192,7 +192,7 @@ function createRoutes(server, router, config, isAuthCookieValid) {
         for (const regexp of regexps) {
           if (regexp.test(req.url)) {
             log(`websocket upgrade: FOUND handler matching url='${req.url}'`);
-            stripAuthCookieFromRequest(req);
+            // stripAuthCookieFromRequest(req);
             handler(req, socket, head);
             return;
           }
@@ -205,11 +205,37 @@ function createRoutes(server, router, config, isAuthCookieValid) {
   }
 }
 
-// SECURITY: We do NOT include the auth cookie in what we
-// send to the target, so one proxied service can't gain
-// access to another one.
-function stripAuthCookieFromRequest(req) {
-  if (req.headers["cookie"] != null) {
-    req.headers["cookie"] = stripAuthCookie(req.headers["cookie"]);
+// Disabled for now.  This would be a nice added measure of security,
+// but it's not critical, given that the registration token is known
+// to the compute server anyways. It's right there on the filesystem.
+// Also this causes trouble randomly for some servers (e.g., pluto).
+
+// // SECURITY: We do NOT include the auth cookie in what we
+// // send to the target, so one proxied service can't gain
+// // access to another one.
+// function stripAuthCookieFromRequest(req) {
+//   if (req.headers["cookie"] != null) {
+//     req.headers["cookie"] = stripAuthCookie(req.headers["cookie"]);
+//   }
+// }
+
+// We do not use this because it breaks things in a bunch of cases still.
+// basically the stripping must be indirectly impacting how requests work
+// so that they aren't authenticated, and everything is broken.
+export function stripAuthCookie(cookie: string): string {
+  if (cookie == null) {
+    return cookie;
   }
+  const v: string[] = [];
+  for (const c of cookie.split(";")) {
+    const z = c.split("=");
+    if (z[0].trim() == COOKIE_NAME) {
+      // do not include it in v, which will
+      // be the new cookies values after going through
+      // the proxy.
+    } else {
+      v.push(c);
+    }
+  }
+  return v.join(";");
 }
