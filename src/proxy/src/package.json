@@ -1,10 +1,10 @@
 {
   "name": "@cocalc/compute-server-proxy",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "A Proxy for compute servers",
   "main": "dist/lib/https-server.js",
   "scripts": {
-    "prepublishOnly": "pnpm clean && pnpm make && pnpm audit",
+    "prepublishOnly": "pnpm clean && pnpm make",
     "pub": "pnpm publish --access=public --no-git-checks",
     "clean": "rm -rf dist node_modules",
     "make": "pnpm install && pnpm run build",

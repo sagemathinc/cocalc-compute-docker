@@ -32,7 +32,8 @@
       { "tag": "1.4", "tested": true },
       { "tag": "1.4.1", "tested": true },
       { "tag": "1.5", "tested": true },
-      { "tag": "1.6", "tested": true }
+      { "tag": "1.6", "tested": true },
+      { "tag": "1.7", "tested": true },
     ],
     "description": "Proxy container, which is used in Kubernetes."
   },
