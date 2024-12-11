@@ -61,7 +61,7 @@ RUN /tmp/install.sh libsemigroups
 RUN /tmp/install.sh lidia
 RUN /tmp/install.sh lrslib
 RUN /tmp/install.sh mathics
-RUN /tmp/install.sh mathics_scanner
+#RUN /tmp/install.sh mathics_scanner
 RUN /tmp/install.sh mcqd
 RUN /tmp/install.sh meataxe
 #RUN /tmp/install.sh p_group_cohomology
@@ -74,7 +74,7 @@ RUN /tmp/install.sh onetbb
 #RUN /tmp/install.sh ore_algebra
 RUN /tmp/install.sh osqp_python
 #RUN /tmp/install.sh p_group_cohomology
-RUN /tmp/install.sh palettable
+#RUN /tmp/install.sh palettable
 #RUN /tmp/install.sh pandoc
 #RUN /tmp/install.sh pandoc_attributes
 RUN /tmp/install.sh papilo
@@ -88,7 +88,7 @@ RUN /tmp/install.sh pari_seadata
 #RUN /tmp/install.sh perl_mongodb
 RUN /tmp/install.sh perl_term_readline_gnu
 RUN /tmp/install.sh phitigra
-RUN /tmp/install.sh pint
+#RUN /tmp/install.sh pint
 RUN /tmp/install.sh plantri
 #RUN /tmp/install.sh polymake
 #RUN /tmp/install.sh hypersurfaces
