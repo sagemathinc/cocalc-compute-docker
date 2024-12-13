@@ -19,8 +19,23 @@ else
   $RUN < /dev/null
 fi;
 
-docker logs -f --tail=999 --timestamps open-webui  &
-docker logs -f --tail=999 --timestamps ollama  &
+docker logs -f --tail=999 --timestamps open-webui &
+docker logs -f --tail=999 --timestamps ollama &
+
+# Define the check_ollama function
+check_ollama() {
+    if ! docker ps --format "{{.Names}}" | grep -q "^ollama$"; then
+        echo "Ollama container is not running. Restarting it..."
+        docker stop ollama
+        docker start ollama
+    elif [ $GPU_COUNT -gt 0 ] && docker exec ollama nvidia-smi | grep -q "Unknown Error"; then
+        echo "Detected 'Unknown Error' in nvidia-smi output. Restarting ollama container..."
+        docker stop ollama
+        docker start ollama
+    else
+        echo "Ollama container is running properly."
+    fi
+}
 
 # Stop all the extra containers started by docker compose when this script
 # receives SIGINT or SIGTERM. Thanks to
@@ -35,5 +50,6 @@ trap stop_script SIGINT SIGTERM
 
 while true
 do
-    sleep 1
+    sleep 30
+    check_ollama
 done
