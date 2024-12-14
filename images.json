@@ -776,5 +776,13 @@
     "package": "sagemathinc/cocalc-docker",
     "minDiskSizeGb": 50,
     "dockerSizeGb": 8
+  },
+  "google-cloud": {
+    "label": "Google Cloud Configuration",
+    "icon": "googlecloud",
+    "base_image": {
+      "arm64": "projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-arm64-v20241115",
+      "x86_64": "projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20241115"
+    }
   }
 }
