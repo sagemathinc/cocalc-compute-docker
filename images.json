@@ -740,7 +740,7 @@
       {
         "version": "12.6.3-devel-ubuntu24.04",
         "tag": "12.6.3",
-        "tested": false
+        "tested": true
       }
     ],
     "jupyterKernels": true
