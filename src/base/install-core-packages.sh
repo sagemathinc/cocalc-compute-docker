@@ -13,6 +13,8 @@ apt-get update
 
 export DEBIAN_FRONTEND=noninteractive
 
+apt-get upgrade -y
+
 apt-get install -y \
        cron \
        curl \

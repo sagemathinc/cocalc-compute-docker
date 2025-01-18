@@ -15,10 +15,10 @@ USER root
 RUN echo "umask 022" >> /etc/bash.bashrc
 
 # See https://github.com/sagemathinc/cocalc/issues/921
-ENV LC_ALL C.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV TERM screen
+ENV LC_ALL=C.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV TERM=screen
 
 # So we can source (see http://goo.gl/oBPi5G)
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
@@ -49,7 +49,7 @@ RUN  mkdir -p /nvm \
   && source /nvm/nvm.sh \
   && nvm install --no-progress 18.17.1 \
   && rm -rf /nvm/.git/ \
-  && npm install -g npm pnpm \
+  && npm install -g npm@10 pnpm \
   && echo "source /nvm/nvm.sh" >> /etc/bash.bashrc
 
 # Copy over a custom workspace file, so pnpm ONLY installs packages, and builds, etc.

@@ -76,9 +76,9 @@ RUN chown -R user:user /var/log
 
 # RStudio shows a lot of errors without a proper locale setup.
 RUN apt update && apt -y install locales && locale-gen en_US.UTF-8
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
 COPY start-rstudio.sh /opt/start-rstudio.sh
 RUN chmod a+x /opt/start-rstudio.sh

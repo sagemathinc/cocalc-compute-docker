@@ -24,6 +24,18 @@ COPY base/scripts/* /usr/local/bin/
 # so we add them to the PATH.
 RUN echo 'export PATH=/usr/local/cuda/bin:$PATH' >> /etc/bash.bashrc
 
+# Install Python with Jupyter and the top most popular standard python libraries
+COPY python/install-core-python.sh /tmp
+RUN chmod a+x /tmp/install-core-python.sh && /tmp/install-core-python.sh && rm /tmp/install-core-python.sh
+
+# Install popular Python libraries that depend on CUDA
+RUN pip3 install cudaq
+COPY cuda/test_cudaq.py /tmp
+RUN python3 /tmp/test_cudaq.py
+
+RUN pip3 install cuda-python
+RUN pip3 install pycuda
+
 USER user
 ENTRYPOINT []
 CMD /cocalc/start-compute.sh
