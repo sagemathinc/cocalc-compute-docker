@@ -49,7 +49,7 @@ RUN  mkdir -p /nvm \
   && source /nvm/nvm.sh \
   && nvm install --no-progress 18.17.1 \
   && rm -rf /nvm/.git/ \
-  && npm install -g npm@10 pnpm \
+  && npm install -g npm@10 pnpm@9 \
   && echo "source /nvm/nvm.sh" >> /etc/bash.bashrc
 
 # Copy over a custom workspace file, so pnpm ONLY installs packages, and builds, etc.
@@ -92,12 +92,17 @@ COPY hyperstack /cocalc/hyperstack
 COPY apps /cocalc/apps
 COPY bin /cocalc/bin
 
-# These directories in the cocalc install aren't used but are big.
+# These directories in the cocalc install aren't used by compute servers, but are big.
 RUN cd /cocalc/src/packages \
-   && rm -rf assets cdn database frontend hub next project static
+   && rm -rf assets cdn database frontend hub next static
 
-# remove the 9MB sqlite source code, which we don't need
-RUN rm -f /cocalc/src/packages/node_modules/.pnpm/better-sqlite3*/node_modules/better-sqlite3/deps/sqlite3/sqlite3.c
+# remove the 9 MB sqlite source code, which we don't need
+# zeromq has windows and mac binaries in it, and this package is built only for linux (e.g., it uses fuse).
+# don't need types/typescript
+RUN   cd /cocalc/src/packages/node_modules/.pnpm/ \
+   && rm -f better-sqlite3*/node_modules/better-sqlite3/deps/sqlite3/sqlite3.c \
+   && rm -rf zeromq*/node_modules/zeromq/prebuilds/win32* zeromq*/node_modules/zeromq/prebuilds/darwin* \
+   && rm -rf typescript* @types*
 
 RUN chmod a+rwx /cocalc/src/compute/compute/start*.js /cocalc/start*.sh /cocalc/*.py
 
