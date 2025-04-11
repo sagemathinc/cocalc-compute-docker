@@ -45,11 +45,11 @@ RUN git clone --depth=1 https://github.com/sagemathinc/cocalc.git \
   && cd /cocalc && git pull && git fetch -u origin $BRANCH:$BRANCH && git checkout ${COMMIT:-HEAD}
 
 RUN  mkdir -p /nvm \
-  && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | NVM_DIR=/nvm bash \
+  && curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.2/install.sh | NVM_DIR=/nvm bash \
   && source /nvm/nvm.sh \
-  && nvm install --no-progress 18.17.1 \
+  && nvm install --no-progress 20 \
   && rm -rf /nvm/.git/ \
-  && npm install -g npm@10 pnpm \
+  && npm install -g npm pnpm \
   && echo "source /nvm/nvm.sh" >> /etc/bash.bashrc
 
 # Copy over a custom workspace file, so pnpm ONLY installs packages, and builds, etc.
@@ -94,10 +94,14 @@ COPY bin /cocalc/bin
 
 # These directories in the cocalc install aren't used but are big.
 RUN cd /cocalc/src/packages \
-   && rm -rf assets cdn database frontend hub next project static
+   && rm -rf assets cdn database frontend hub next static
 
-# remove the 9MB sqlite source code, which we don't need
-RUN rm -f /cocalc/src/packages/node_modules/.pnpm/better-sqlite3*/node_modules/better-sqlite3/deps/sqlite3/sqlite3.c
+# Cruft in packages
+RUN  cd /cocalc/src/packages/node_modules/.pnpm/ \
+  && rm -rf zeromq*/node_modules/zeromq/prebuilds/*win* \
+  && rm -rf @types* \
+  && rm -rf typescript* \
+  && rm -rf rxjs\@6.6.7
 
 RUN chmod a+rwx /cocalc/src/compute/compute/start*.js /cocalc/start*.sh /cocalc/*.py
 
