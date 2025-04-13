@@ -13,7 +13,7 @@
         "tested": true
       },
       {
-        "version": "1.16.47",
+        "version": "1.16.48",
         "tag": "test",
         "tested": false
       }
@@ -49,7 +49,8 @@
       { "tag": "1.1", "tested": true },
       { "tag": "1.2", "tested": true },
       { "tag": "1.2.1", "tested": true },
-      { "tag": "1.3", "tested": true }
+      { "tag": "1.3", "tested": true },
+      { "tag": "1.4", "tested": false }
     ],
     "description": "Filesystem container."
   },
