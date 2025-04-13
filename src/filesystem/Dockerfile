@@ -11,11 +11,10 @@ USER root
 RUN \
      apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y unionfs-fuse lz4 \
-     rsync  bsdextrautils bzip2 unzip tar xz-utils \
+     rsync  bsdextrautils bsdmainutils file bzip2 unzip tar xz-utils \
      yapf3 file \
   && ln -s /usr/bin/yapf3 /usr/bin/yapf
 
 USER user
 CMD /cocalc/start-filesystem.sh
-
 

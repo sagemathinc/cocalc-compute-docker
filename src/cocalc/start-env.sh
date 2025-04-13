@@ -4,9 +4,6 @@ set -ev
 
 # Setup env vars about project we will connect to.
 
-# avoid possible confusion
-unset COCALC_PROJECT_ID
-
 # Where to store logs
 export LOGS='/tmp/logs'
 
@@ -18,6 +15,7 @@ export API_SERVER=`cat /cocalc/conf/api_server`
 
 # The project to connect to
 export PROJECT_ID=`cat /cocalc/conf/project_id`
+export COCALC_PROJECT_ID=`cat /cocalc/conf/project_id`
 
 # The numerical id of the compute server
 export COMPUTE_SERVER_ID=`cat /cocalc/conf/compute_server_id`
