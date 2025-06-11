@@ -13,6 +13,10 @@ export API_KEY=`cat /cocalc/conf/api_key`
 # The cocalc web server
 export API_SERVER=`cat /cocalc/conf/api_server`
 
+# The conat server is exactly the same as the API server, e.g., it
+# is "https://cocalc.com" for our production site.
+export CONAT_SERVER=`cat /cocalc/conf/api_server`
+
 # The project to connect to
 export PROJECT_ID=`cat /cocalc/conf/project_id`
 export COCALC_PROJECT_ID=`cat /cocalc/conf/project_id`
