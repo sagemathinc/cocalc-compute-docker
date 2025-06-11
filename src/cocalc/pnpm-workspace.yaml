@@ -3,6 +3,7 @@ packages:
   - "backend"
   - "comm"
   - "jupyter"
+  - "conat"
   - "nats"
   - "project"
   - "sync"
