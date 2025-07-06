@@ -100,8 +100,7 @@ RUN cd /cocalc/src/packages \
 RUN  cd /cocalc/src/packages/node_modules/.pnpm/ \
   && rm -rf zeromq*/node_modules/zeromq/prebuilds/*win* \
   && rm -rf @types* \
-  && rm -rf typescript* \
-  && rm -rf rxjs\@6.6.7
+  && rm -rf typescript*
 
 RUN chmod a+rwx /cocalc/src/compute/compute/start*.js /cocalc/start*.sh /cocalc/*.py
 
