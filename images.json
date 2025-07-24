@@ -626,8 +626,8 @@
     "priority": 11,
     "label": "Google Colab",
     "package": "sagemathinc/colab",
-    "minDiskSizeGb": 100,
-    "dockerSizeGb": 44,
+    "minDiskSizeGb": 125,
+    "dockerSizeGb": 65,
     "gpu": true,
     "icon": "google",
     "url": "https://github.com/googlecolab",
@@ -671,7 +671,7 @@
       {
         "label": "2025-06-28",
         "tag": "release-colab_20250626-060053_RC00",
-        "tested": false
+        "tested": true
       }
     ],
     "description": "[Google Colab](https://colab.google/) comes preinstalled with a wide range of popular data science and machine learning libraries, such as TensorFlow, PyTorch, Matplotlib, and Pandas. It also includes support for Python and its various packages, enabling users to jump straight into coding without worrying about setup and installation."
