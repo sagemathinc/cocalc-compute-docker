@@ -8,12 +8,12 @@
     "source": "https://github.com/sagemathinc/cocalc-compute-docker/tree/main/src/cocalc",
     "versions": [
       {
-        "version": "1.16.93",
+        "version": "1.17.0",
         "tag": "latest",
         "tested": true
       },
       {
-        "version": "1.16.92",
+        "version": "1.16.96",
         "tag": "test",
         "tested": false
       }
@@ -566,7 +566,8 @@
       { "tag": "2024-05-18", "tested": true },
       { "tag": "2024-07-01", "tested": true },
       { "tag": "2024-09-14", "tested": true },
-      { "tag": "2024-10-19", "tested": true }
+      { "tag": "2024-10-19", "tested": true },
+      { "tag": "2025-07-24", "tested": false }
     ],
     "tutorials": [
       "https://github.com/sagemathinc/cocalc-howto/blob/main/tensorflow.md"
@@ -592,7 +593,8 @@
       { "label": "2.2.0 (2023-12)", "tag": "23.12-py3", "tested": true },
       { "label": "2.2.0 (2024-01)", "tag": "24.01-py3", "tested": true },
       { "label": "2.3.0 (2024-02)", "tag": "24.02-py3", "tested": true },
-      { "label": "2.5.0 (2024-10)", "tag": "24.09-py3", "tested": true }
+      { "label": "2.5.0 (2024-10)", "tag": "24.09-py3", "tested": true },
+      { "label": "2.8.0 (2025-06)", "tag": "25.06-py3", "tested": false }
     ],
     "description": "[PyTorch](https://pytorch.org/) is an open-source machine learning library, known for its flexibility and ease of use, particularly in deep learning applications. It provides a dynamic computation graph and a rich ecosystem of tools and libraries, making it a preferred choice for researchers and developers in AI."
   },
@@ -615,7 +617,8 @@
       { "label": "2.14.0 (2023-12)", "tag": "23.12-tf2-py3", "tested": true },
       { "label": "2.14.0 (2024-01)", "tag": "24.01-tf2-py3", "tested": true },
       { "label": "2.15.0 (2024-02)", "tag": "24.02-tf2-py3", "tested": true },
-      { "label": "2.16.1 (2024-10)", "tag": "24.09-tf2-py3", "tested": true }
+      { "label": "2.16.1 (2024-10)", "tag": "24.09-tf2-py3", "tested": true },
+      { "label": "2.17.0 (2025-07)", "tag": "25.02-tf2-py3", "tested": false }
     ],
     "description": "[TensorFlow](https://www.tensorflow.org/) is an open-source machine learning framework developed by Google, widely used for building and training neural networks. Its flexible architecture allows for easy deployment of computation across various platforms, from servers to edge devices, making it suitable for a broad range of AI applications."
   },
@@ -664,6 +667,11 @@
         "label": "2024-10-19",
         "tag": "release-colab_20240920-060127_RC00",
         "tested": true
+      },
+      {
+        "label": "2025-06-28",
+        "tag": "release-colab_20250626-060053_RC00",
+        "tested": false
       }
     ],
     "description": "[Google Colab](https://colab.google/) comes preinstalled with a wide range of popular data science and machine learning libraries, such as TensorFlow, PyTorch, Matplotlib, and Pandas. It also includes support for Python and its various packages, enabling users to jump straight into coding without worrying about setup and installation."
