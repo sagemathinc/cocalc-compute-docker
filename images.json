@@ -594,7 +594,7 @@
       { "label": "2.2.0 (2024-01)", "tag": "24.01-py3", "tested": true },
       { "label": "2.3.0 (2024-02)", "tag": "24.02-py3", "tested": true },
       { "label": "2.5.0 (2024-10)", "tag": "24.09-py3", "tested": true },
-      { "label": "2.8.0 (2025-06)", "tag": "25.06-py3", "tested": false }
+      { "label": "2.8.0 (2025-06)", "tag": "25.06-py3", "tested": true }
     ],
     "description": "[PyTorch](https://pytorch.org/) is an open-source machine learning library, known for its flexibility and ease of use, particularly in deep learning applications. It provides a dynamic computation graph and a rich ecosystem of tools and libraries, making it a preferred choice for researchers and developers in AI."
   },
