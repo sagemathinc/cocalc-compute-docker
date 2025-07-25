@@ -215,6 +215,11 @@
         "label": "3.12.3.b",
         "tag": "2024-09-14",
         "tested": true
+      },
+      {
+        "label": "3.12.3.c",
+        "tag": "2025-07-24",
+        "tested": true
       }
     ],
     "description": "[Python](https://python.org) is a versatile and user-friendly programming language, known for its clear syntax and readability. It is widely used for web development, data analysis, artificial intelligence, and scientific computing."
@@ -545,7 +550,8 @@
       { "tag": "2024-05-18", "tested": true },
       { "tag": "2024-07-01", "tested": true },
       { "tag": "2024-09-14", "tested": true },
-      { "tag": "2024-10-19", "tested": true }
+      { "tag": "2024-10-19", "tested": true },
+      { "tag": "2025-07-24", "tested": true }
     ]
   },
   "anaconda-gpu": {
@@ -617,8 +623,7 @@
       { "label": "2.14.0 (2023-12)", "tag": "23.12-tf2-py3", "tested": true },
       { "label": "2.14.0 (2024-01)", "tag": "24.01-tf2-py3", "tested": true },
       { "label": "2.15.0 (2024-02)", "tag": "24.02-tf2-py3", "tested": true },
-      { "label": "2.16.1 (2024-10)", "tag": "24.09-tf2-py3", "tested": true },
-      { "label": "2.17.0 (2025-07)", "tag": "25.02-tf2-py3", "tested": false }
+      { "label": "2.16.1 (2024-10)", "tag": "24.09-tf2-py3", "tested": true }
     ],
     "description": "[TensorFlow](https://www.tensorflow.org/) is an open-source machine learning framework developed by Google, widely used for building and training neural networks. Its flexible architecture allows for easy deployment of computation across various platforms, from servers to edge devices, making it suitable for a broad range of AI applications."
   },
