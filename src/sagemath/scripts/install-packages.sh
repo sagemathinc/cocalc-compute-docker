@@ -22,4 +22,6 @@ apt-get install -y \
        tachyon \
        python3-pip \
        git \
-       automake
+       automake \
+       pkg-config \
+       libbz2-dev
