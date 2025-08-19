@@ -106,7 +106,7 @@ RUN /tmp/install.sh pycryptosat
 RUN /tmp/install.sh pysingular
 RUN /tmp/install.sh pytest
 RUN /tmp/install.sh pytest_mock
-RUN /tmp/install.sh pytest_xdist
+#RUN /tmp/install.sh pytest_xdist
 RUN /tmp/install.sh python_build
 RUN /tmp/install.sh python_igraph
 RUN /tmp/install.sh pyx

@@ -371,6 +371,12 @@
         "tag": "10.5",
         "version": "10.5",
         "tested": true
+      },
+      {
+        "label": "10.7",
+        "tag": "10.7",
+        "version": "10.7",
+        "tested": false
       }
     ]
   },
@@ -393,6 +399,11 @@
         "tag": "10.5",
         "version": "10.5",
         "tested": true
+      },
+      {
+        "tag": "10.7",
+        "version": "10.7",
+        "tested": false
       }
     ]
   },
