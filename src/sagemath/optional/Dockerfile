@@ -1,5 +1,5 @@
-ARG SAGEMATH_VERSION=
-ARG ARCH=
+ARG ARCH=-x86_64
+ARG SAGEMATH_VERSION=10.7
 FROM sagemathinc/sagemath-core${ARCH}:${SAGEMATH_VERSION} AS base
 
 COPY optional/install.sh /tmp
